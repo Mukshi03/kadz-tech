@@ -96,7 +96,7 @@
 
     if (!C.formEndpoint) {
       status.className = "form-status notice warn";
-      status.textContent = "This form isn't connected yet. Set formEndpoint in assets/config.js to start receiving submissions.";
+      status.textContent = "This form isn't connected yet. Set formEndpoint in config.js to start receiving submissions.";
       console.info("[KADZ] Form data (not sent):", data);
       status.hidden = false;
       return;

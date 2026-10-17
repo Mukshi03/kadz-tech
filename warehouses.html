@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Find a Warehouse | KADZ Tech</title>
+  <meta name="description" content="Search warehouses by city, storage type and available pallet positions.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-page="warehouses">
+
+<main>
+  <div class="page-head">
+    <div class="wrap">
+      <span class="dock"><b>Search</b> Warehouses</span>
+      <h1>Find a warehouse</h1>
+      <p class="lead">Filter by city, storage type and the number of pallet positions you need.</p>
+    </div>
+  </div>
+
+  <section style="padding-top:2rem">
+    <div class="wrap listing-layout">
+      <aside class="filters" aria-label="Filters">
+        <label class="ctrl"><span>City</span>
+          <select id="f-city" data-cities><option value="">All cities</option></select>
+        </label>
+        <label class="ctrl"><span>Storage type</span>
+          <select id="f-type" data-types><option value="">Any type</option></select>
+        </label>
+        <label class="ctrl"><span>Minimum free pallets</span>
+          <input id="f-pallets" type="number" min="0" inputmode="numeric" placeholder="0">
+        </label>
+        <label class="ctrl"><span>Sort by</span>
+          <select id="f-sort">
+            <option value="">Recommended</option>
+            <option value="pallets">Most pallets free</option>
+            <option value="area">Largest area</option>
+          </select>
+        </label>
+      </aside>
+
+      <div style="min-width:0">
+        <div class="results-bar">
+          <span class="label" id="result-count">Loading…</span>
+          <a href="quote.html" class="label" style="color:var(--ink)">Not sure how much space? Use the estimator →</a>
+        </div>
+        <div class="listings" id="listings" aria-live="polite"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="assets/config.js"></script>
+<script src="assets/main.js"></script>
+</body>
+</html>

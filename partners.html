@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>List Your Warehouse | KADZ Tech</title>
+  <meta name="description" content="Warehouse owners: list your unused space with KADZ Tech.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="assets/styles.css">
+</head>
+<body data-page="partners">
+
+<main>
+  <div class="page-head">
+    <div class="wrap">
+      <span class="dock"><b>Partners</b> Warehouse owners</span>
+      <h1>List your warehouse</h1>
+      <p class="lead">Turn empty pallet positions into monthly income. We bring the clients and handle the paperwork. You set availability.</p>
+    </div>
+  </div>
+
+  <section style="padding-top:2.5rem">
+    <div class="wrap grid-3" style="margin-bottom:3rem">
+      <div class="service" style="border-top-color:var(--accent)">
+        <h3>Fill empty space</h3><p>Reach businesses that need short-term or seasonal storage.</p>
+      </div>
+      <div class="service" style="border-top-color:var(--accent)">
+        <h3>Stay in control</h3><p>Choose which space to list, for how long, and at what price.</p>
+      </div>
+      <div class="service" style="border-top-color:var(--accent)">
+        <h3>Get paid monthly</h3><p>We invoice the client and pay you on a fixed monthly schedule.</p>
+      </div>
+    </div>
+
+    <div class="wrap">
+      <form class="form" data-kind="partner" novalidate style="max-width:860px">
+        <h3>Partner application</h3>
+        <div class="form-row">
+          <label class="ctrl"><span>Company name</span><input id="p-company" name="company" required autocomplete="organization"></label>
+          <label class="ctrl"><span>Contact person</span><input id="p-name" name="name" required autocomplete="name"></label>
+        </div>
+        <div class="form-row">
+          <label class="ctrl"><span>Email</span><input id="p-email" name="email" type="email" required autocomplete="email"></label>
+          <label class="ctrl"><span>Phone</span><input id="p-phone" name="phone" type="tel" required autocomplete="tel" placeholder="+966"></label>
+        </div>
+        <div class="form-row">
+          <label class="ctrl"><span>City</span><input id="p-city" name="city" required></label>
+          <label class="ctrl"><span>District or location link <em>optional</em></span><input id="p-location" name="location"></label>
+        </div>
+        <div class="form-row">
+          <label class="ctrl"><span>Total area <em>m²</em></span><input id="p-area" name="areaSqm" type="number" min="1" required></label>
+          <label class="ctrl"><span>Available pallet positions</span><input id="p-pallets" name="palletsAvailable" type="number" min="1" required></label>
+        </div>
+
+        <fieldset data-name="storageTypes" data-required>
+          <legend>Storage types offered</legend>
+          <div class="checks">
+            <label class="check"><input type="checkbox" value="dry"> Dry</label>
+            <label class="check"><input type="checkbox" value="ambient"> Ambient 15–25 °C</label>
+            <label class="check"><input type="checkbox" value="chilled"> Chilled 2–8 °C</label>
+            <label class="check"><input type="checkbox" value="frozen"> Frozen −18 °C</label>
+          </div>
+          <span class="err" hidden>Choose at least one storage type.</span>
+        </fieldset>
+
+        <fieldset data-name="licenses">
+          <legend>Licenses held</legend>
+          <div class="checks">
+            <label class="check"><input type="checkbox" value="commercial-registration"> Commercial registration</label>
+            <label class="check"><input type="checkbox" value="baladiya"> Municipality (Baladiya)</label>
+            <label class="check"><input type="checkbox" value="civil-defense"> Civil Defense</label>
+            <label class="check"><input type="checkbox" value="sfda"> SFDA</label>
+          </div>
+        </fieldset>
+
+        <fieldset data-name="facilities">
+          <legend>Facilities</legend>
+          <div class="checks">
+            <label class="check"><input type="checkbox" value="racking"> Racking</label>
+            <label class="check"><input type="checkbox" value="loading-docks"> Loading docks</label>
+            <label class="check"><input type="checkbox" value="forklifts"> Forklifts</label>
+            <label class="check"><input type="checkbox" value="cctv"> 24/7 CCTV</label>
+            <label class="check"><input type="checkbox" value="wms"> Warehouse software</label>
+          </div>
+        </fieldset>
+
+        <label class="ctrl"><span>Anything else? <em>optional</em></span>
+          <textarea id="p-notes" name="notes" placeholder="Operating hours, staff, minimum term"></textarea>
+        </label>
+        <label class="check" style="justify-self:start"><input type="checkbox" name="terms" required> I confirm the details above are accurate.</label>
+        <div class="form-status" hidden role="status"></div>
+        <div><button class="btn btn-primary" type="submit">Submit application</button></div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script src="assets/config.js"></script>
+<script src="assets/main.js"></script>
+</body>
+</html>

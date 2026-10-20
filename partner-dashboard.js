@@ -1,7 +1,7 @@
 /* Partner dashboard: add/edit warehouses, see their bookings */
 (async function () {
   const { sb, TYPES, esc, fmt, date, $, $$, pill, typeChips, photoUrl, toast, errMsg,
-          requireRole, setupTabs, setupProfileForm, loadUnread, threadButton, bindThreadButtons } = window.KZ;
+          requireRole, setupTabs, setupProfileForm } = window.KZ;
   const u = await requireRole(["partner", "admin"]);
   if (!u) return;
   const uid = u.session.user.id;
@@ -188,17 +188,12 @@
 
   /* ---------------- Bookings for my warehouses ---------------- */
   const STATUS_LABEL = { discussing: "price discussion" };
-  const showMsgCount = (m) => {
-    const total = Object.entries(m).filter(([k]) => k.endsWith(":partner")).reduce((s, [, n]) => s + n, 0);
-    $("#c-msg").textContent = total; $("#c-msg").hidden = !total;
-  };
-  bindThreadButtons($("#bk-list"), { id: uid, role: u.profile?.role }, () => loadUnread().then(showMsgCount));
   async function loadBookings() {
     const box = $("#bk-list");
-    const [{ data, error }, unread] = await Promise.all([sb.rpc("partner_bookings"), loadUnread()]);
-    showMsgCount(unread);
+    const res = await sb.rpc("partner_bookings");
+    const error = res.error, data = (res.data || []).filter((b) => b.status !== "discussing");
     if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
-    if (!data.length) { box.innerHTML = `<div class="empty"><strong>Nothing yet</strong><p>When we discuss a client request with you, or a booking at your warehouse is confirmed, it shows here.</p></div>`; return; }
+    if (!data.length) { box.innerHTML = `<div class="empty"><strong>Nothing yet</strong><p>When a booking at your warehouse is confirmed, it shows here.</p></div>`; return; }
     box.innerHTML = data.map((b) => `
       <article class="row-card${b.status === "discussing" ? " attention" : ""}">
         <div class="row-top">
@@ -211,12 +206,9 @@
           <div><dt>Start</dt><dd>${date(b.start_date)}</dd></div>
           <div><dt>Duration</dt><dd>${b.months} month${b.months > 1 ? "s" : ""}</dd></div>
         </dl>
-        <div class="actions">${threadButton(b.id, "partner", `Messages with ${window.KZ.C.company}`, unread[`${b.id}:partner`])}</div>
-        <div data-chat></div>
       </article>`).join("");
   }
 
   resetForm();
   loadWarehouses();
-  loadUnread().then(showMsgCount);
 })();

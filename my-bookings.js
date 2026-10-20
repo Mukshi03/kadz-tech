@@ -1,7 +1,7 @@
 /* Client dashboard: quotation requests, quotations and bookings */
 (async function () {
   const { sb, C, TYPES, esc, fmt, money, date, $, pill, bookingPill, quoteExpired, toast, errMsg,
-          requireRole, setupTabs, setupProfileForm, loadUnread, threadButton, bindThreadButtons, openQuotePdf } = window.KZ;
+          requireRole, setupTabs, setupProfileForm, openQuotePdf } = window.KZ;
   const u = await requireRole(null);
   if (!u) return;
   $("#who").textContent = u.profile?.full_name || u.session.user.email;
@@ -10,7 +10,6 @@
 
   const box = $("#bookings");
   let rows = [];
-  bindThreadButtons(box, { id: u.session.user.id, role: u.profile?.role });
 
   async function load() {
     const { data, error } = await sb.from("bookings")
@@ -19,7 +18,6 @@
       .order("created_at", { ascending: false });
     if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
     rows = data;
-    const unread = await loadUnread();
 
     // Warehouse names come from the public listing
     const ids = [...new Set(data.map((b) => b.warehouse_id))];
@@ -74,10 +72,8 @@
           </div>` : ""}
         <div class="actions">
           ${b.quote_pdf && priced ? `<button class="btn btn-sm btn-plain" data-pdf="${esc(b.quote_pdf)}">Download quotation${b.quote_number ? " " + esc(b.quote_number) : ""} (PDF)</button>` : ""}
-          ${threadButton(b.id, "client", "Messages", unread[`${b.id}:client`])}
           ${b.status === "pending" ? `<button class="btn btn-sm btn-danger" data-reply="cancelled" data-id="${esc(b.id)}">Cancel request</button>` : ""}
         </div>
-        <div data-chat></div>
       </article>`;
     }).join("");
   }

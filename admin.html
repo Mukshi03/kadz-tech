@@ -36,7 +36,7 @@
       <div data-panel="warehouses">
         <div class="inline-form" style="margin-bottom:1rem">
           <label class="ctrl" style="max-width:220px"><span class="label">Show</span>
-            <select id="wh-filter">
+            <select id="wh-filter" autocomplete="off">
               <option value="">All</option>
               <option value="pending">Waiting for review</option>
               <option value="approved">Approved</option>
@@ -50,7 +50,7 @@
       <div data-panel="bookings" hidden>
         <div class="inline-form" style="margin-bottom:1rem">
           <label class="ctrl" style="max-width:220px"><span class="label">Show</span>
-            <select id="bk-filter">
+            <select id="bk-filter" autocomplete="off">
               <option value="">All</option>
               <option value="pending">Pending</option>
               <option value="confirmed">Confirmed</option>
@@ -69,7 +69,7 @@
         <div class="inline-form" style="margin-bottom:1rem">
           <label class="ctrl" style="max-width:320px"><span class="label">Search</span><input id="u-search" type="search" placeholder="Name, company or email"></label>
           <label class="ctrl" style="max-width:180px"><span class="label">Role</span>
-            <select id="u-role"><option value="">All</option><option value="client">Client</option><option value="partner">Partner</option><option value="admin">Admin</option></select>
+            <select id="u-role" autocomplete="off"><option value="">All</option><option value="client">Client</option><option value="partner">Partner</option><option value="admin">Admin</option></select>
           </label>
         </div>
         <div class="rows" id="u-list"></div>

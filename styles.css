@@ -24,7 +24,7 @@
   --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
 
   --radius: 4px;
-  --wrap: 1180px;
+  --wrap: 1440px;
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -63,11 +63,12 @@ img { max-width: 100%; display: block; }
 a { color: inherit; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 
+/* Left-aligned layout: content starts near the left edge on every screen */
 .wrap {
   max-width: var(--wrap);
-  margin: 0 auto;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px), 3vw);
+  padding-right: max(16px, env(safe-area-inset-right, 0px), 3vw);
 }
 
 /* ---------- Type ---------- */
@@ -437,7 +438,7 @@ code { font-family: var(--f-mono); font-size: .9em; background: color-mix(in srg
 .auth-split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); min-height: calc(100vh - 80px); min-height: calc(100dvh - 80px); padding-block: 0; }
 .auth-brand { position: relative; overflow: hidden; background: var(--band); color: var(--band-ink); border-right: 4px solid var(--accent);
   display: flex; flex-direction: column; justify-content: center; gap: 3rem;
-  padding-block: 3.5rem; padding-left: max(16px, env(safe-area-inset-left, 0px), 4vw); padding-right: 4vw; }
+  padding-block: 3.5rem; padding-left: max(16px, env(safe-area-inset-left, 0px), 3vw); padding-right: 4vw; }
 .auth-rack { position: absolute; inset: 0; opacity: .35; pointer-events: none;
   background-image: linear-gradient(color-mix(in srgb, var(--band-ink) 14%, transparent) 2px, transparent 2px),
                     linear-gradient(90deg, color-mix(in srgb, var(--band-ink) 14%, transparent) 2px, transparent 2px);
@@ -478,3 +479,6 @@ code { font-family: var(--f-mono); font-size: .9em; background: color-mix(in srg
   .auth-facts b { font-size: 1.5rem; }
   .auth-panel { padding-block: 2rem 3rem; }
 }
+
+/* Header and footer run the full width so the menu sits at the right edge */
+.site-header .wrap, .site-footer .wrap { max-width: none; }

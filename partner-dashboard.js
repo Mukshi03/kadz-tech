@@ -45,7 +45,7 @@
           <div><dt>Photos</dt><dd>${w.photos.length}</dd></div>
         </dl>
         ${w.status === "pending" ? `<p class="note">Waiting for review by our team.</p>` : ""}
-        ${w.status === "rejected" ? `<p class="note">Not approved${w.admin_note ? ": " + esc(w.admin_note) : "."} Edit and save to send it for review again.</p>` : ""}
+        ${w.status === "rejected" ? `<p class="note">Not approved. We'll email you the details. Edit and save to send it for review again.</p>` : ""}
         <div class="actions">
           <button class="btn btn-sm btn-plain" data-edit="${esc(w.id)}">Edit</button>
           ${w.status === "approved" ? `<a class="btn btn-sm btn-plain" href="warehouse.html?id=${esc(w.id)}">View listing</a>` : ""}

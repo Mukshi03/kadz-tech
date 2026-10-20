@@ -137,7 +137,6 @@
         ${w.photos.length ? `<div class="thumbs">${w.photos.map((p) => `<a class="thumb" href="${esc(photoUrl(p))}" target="_blank" rel="noopener"><img src="${esc(photoUrl(p))}" alt=""></a>`).join("")}</div>` : `<span class="muted">No photos</span>`}
         ${w.documents.length ? `<ul class="files">${w.documents.map((d) => `<li><button type="button" class="linkbtn" data-doc="${esc(d)}">Open ${esc(d.split("/").pop().replace(/^[0-9a-f-]{36}-/, ""))}</button></li>`).join("")}</ul>` : `<span class="muted">No license documents uploaded</span>`}
         <div class="inline-form">
-          <label class="ctrl" style="flex:3"><span class="label">Note to owner <em>shown if rejected</em></span><input data-note value="${esc(w.admin_note || "")}" placeholder="e.g. Please upload the Civil Defense certificate"></label>
           ${w.status !== "approved" ? `<button class="btn btn-sm btn-primary" data-wh-status="approved">Approve</button>` : ""}
           ${w.status !== "rejected" ? `<button class="btn btn-sm btn-danger" data-wh-status="rejected">${w.status === "approved" ? "Unlist" : "Reject"}</button>` : ""}
           <a class="btn btn-sm btn-plain" href="warehouse.html?id=${esc(w.id)}">Preview</a>
@@ -161,7 +160,7 @@
     if (status === "rejected" && !confirm("Reject or unlist this warehouse? It will be hidden from search.")) return;
     b.disabled = true;
     const { error } = await sb.from("warehouses")
-      .update({ status, admin_note: $("[data-note]", card).value.trim() || null })
+      .update({ status })
       .eq("id", card.dataset.id);
     if (error) { b.disabled = false; return toast(errMsg(error), true); }
     toast(status === "approved" ? "Warehouse approved" : "Warehouse rejected");
@@ -239,7 +238,7 @@
           ${(ACTIONS[b.status] || []).map(([st, label, cls]) => `<button class="btn btn-sm ${cls}" data-act="${st}">${label}</button>`).join("")}
         </div>
         <div class="actions">
-          ${quoting ? `<button class="btn btn-sm btn-plain" data-preview>Preview PDF</button>` : ""}
+          <button class="btn btn-sm btn-plain" data-preview>Preview PDF</button>
           ${b.quote_pdf ? `<button class="btn btn-sm btn-plain" data-pdf="${esc(b.quote_pdf)}">Download ${esc(b.quote_number || "quotation")}</button>` : ""}
         </div>
       </article>`;
@@ -294,7 +293,7 @@
       try {
         const b = bkData.find((x) => x.id === card.dataset.id);
         const blob = await makeQuotePdf(b.id, false, {
-          price_per_pallet: +v("price_per_pallet"), quote_valid_until: v("quote_valid_until") || null,
+          price_per_pallet: +v("price_per_pallet"), quote_valid_until: v("quote_valid_until") || b.quote_valid_until || null,
           admin_note: null, quote_number: b.quote_number || "DRAFT"
         });
         const url = URL.createObjectURL(blob);

@@ -24,7 +24,7 @@
   --f-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
 
   --radius: 4px;
-  --wrap: 1440px;
+  --wrap: none;   /* full width; content lines up with the header on both sides */
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -482,3 +482,6 @@ code { font-family: var(--f-mono); font-size: .9em; background: color-mix(in srg
 
 /* Header and footer run the full width so the menu sits at the right edge */
 .site-header .wrap, .site-footer .wrap { max-width: none; }
+/* Buttons on the right of a two-column band (stack on the left on phones) */
+.cta-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: flex-end; }
+@media (max-width: 620px) { .cta-actions { justify-content: flex-start; } }

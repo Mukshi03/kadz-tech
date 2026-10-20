@@ -111,7 +111,7 @@
   let whData = [];
   async function loadWarehouses() {
     const box = $("#wh-list");
-    let q = sb.from("warehouses").select("*, owner:profiles(full_name, company, email, phone)").order("created_at", { ascending: false });
+    let q = sb.from("warehouses").select("*, owner:profiles!warehouses_owner_id_fkey(full_name, company, email, phone)").order("created_at", { ascending: false });
     if ($("#wh-filter").value) q = q.eq("status", $("#wh-filter").value);
     const { data, error } = await q;
     if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
@@ -200,7 +200,7 @@
   async function loadBookings() {
     const box = $("#bk-list");
     let q = sb.from("bookings")
-      .select("*, cost:booking_costs(partner_price_per_pallet), client:profiles(full_name, company, email, phone), warehouse:warehouses(id, name, city, pallets_available, owner:profiles(full_name, company, email, phone))")
+      .select("*, cost:booking_costs(partner_price_per_pallet), client:profiles!bookings_client_id_fkey(full_name, company, email, phone), warehouse:warehouses!bookings_warehouse_id_fkey(id, name, city, pallets_available, owner:profiles!warehouses_owner_id_fkey(full_name, company, email, phone))")
       .order("created_at", { ascending: false });
     if ($("#bk-filter").value) q = q.eq("status", $("#bk-filter").value);
     const [{ data, error }, unread] = await Promise.all([q, loadUnread()]);
@@ -276,7 +276,7 @@
   // Build the quotation PDF for a booking. save=true stores it, which emails it to the client.
   async function makeQuotePdf(id, save, draft) {
     const { data: bk, error } = await sb.from("bookings")
-      .select("*, client:profiles(full_name, company, email, phone), warehouse:warehouses(city)").eq("id", id).single();
+      .select("*, client:profiles!bookings_client_id_fkey(full_name, company, email, phone), warehouse:warehouses!bookings_warehouse_id_fkey(city)").eq("id", id).single();
     if (error) throw error;
     const booking = { ...bk, ...(draft || {}) };
     const bytes = buildQuotePdf({ company: C, booking, client: bk.client, city: bk.warehouse?.city,

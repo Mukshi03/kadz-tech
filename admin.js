@@ -11,6 +11,13 @@
     p.email && `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`,
     p.phone && `<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a>`
   ].filter(Boolean).join("<br>") : "<span class='muted'>Unknown</span>";
+  // Partner's listed prices, e.g. "Dry 35.00 SAR · Chilled 55.00 SAR"
+  function partnerPriceText(w, only) {
+    const p = w?.partner_prices || {};
+    const parts = Object.entries(p).filter(([t]) => !only || t === only).map(([t, v]) => `${esc(TYPES[t]?.name || t)} ${money(v)}`);
+    const h = [w?.handling_in != null && `handling in ${money(w.handling_in)}`, w?.handling_out != null && `handling out ${money(w.handling_out)}`].filter(Boolean);
+    return [parts.join(" · "), h.length ? h.join(", ") + " per pallet" : ""].filter(Boolean).join("<br>");
+  }
   const METHOD = { whatsapp: "WhatsApp", phone: "Phone call", email: "Email" };
   // WhatsApp / phone / email link for a number or address
   function reach(method, value) {
@@ -127,6 +134,7 @@
           <div><dt>Owner</dt><dd>${contact(w.owner)}</dd></div>
           <div><dt>Pallets free / total</dt><dd>${fmt(w.pallets_available)} / ${fmt(w.pallets_total)}</dd></div>
           <div><dt>Area · min. months</dt><dd>${w.area_sqm ? fmt(w.area_sqm) + " m²" : "–"} · ${w.min_months}</dd></div>
+          <div><dt>Partner price <span class="muted">/ pallet / month</span></dt><dd>${partnerPriceText(w) || "<span class='muted'>Not set</span>"}</dd></div>
           <div><dt>Site contact</dt><dd>${w.contact_method || w.contact_name || w.contact_info
               ? [w.contact_method && `<strong>${esc(METHOD[w.contact_method])}</strong>`, w.contact_name && esc(w.contact_name), reach(w.contact_method, w.contact_info), w.contact_time && `<span class="muted">${esc(w.contact_time)}</span>`].filter(Boolean).join("<br>")
               : "<span class='muted'>Not given</span>"}</dd></div>
@@ -193,7 +201,7 @@
   async function loadBookings() {
     const box = $("#bk-list");
     let q = sb.from("bookings")
-      .select("*, cost:booking_costs(partner_price_per_pallet), client:profiles!bookings_client_id_fkey(full_name, company, email, phone), warehouse:warehouses!bookings_warehouse_id_fkey(id, name, city, pallets_available, owner:profiles!warehouses_owner_id_fkey(full_name, company, email, phone))")
+      .select("*, cost:booking_costs(partner_price_per_pallet), client:profiles!bookings_client_id_fkey(full_name, company, email, phone), warehouse:warehouses!bookings_warehouse_id_fkey(id, name, city, pallets_available, partner_prices, handling_in, handling_out, owner:profiles!warehouses_owner_id_fkey(full_name, company, email, phone))")
       .order("created_at", { ascending: false });
     if ($("#bk-filter").value) q = q.eq("status", $("#bk-filter").value);
     const { data, error } = await q;
@@ -203,7 +211,10 @@
     const pay = (cur) => ["unpaid", "invoiced", "paid"].map((v) => `<option value="${v}"${v === cur ? " selected" : ""}>${v[0].toUpperCase() + v.slice(1)}</option>`).join("");
 
     box.innerHTML = data.map((b) => {
-      const cost = (Array.isArray(b.cost) ? b.cost[0] : b.cost)?.partner_price_per_pallet ?? "";
+      const saved = (Array.isArray(b.cost) ? b.cost[0] : b.cost)?.partner_price_per_pallet;
+      const listed = b.warehouse?.partner_prices?.[b.storage_type];
+      // Use the saved partner price; otherwise start from the partner's listed price
+      const cost = saved ?? listed ?? "";
       const quoting = ["pending", "quoted"].includes(b.status);
       const booked = ["confirmed", "completed"].includes(b.status);
       return `
@@ -224,6 +235,7 @@
           <div><dt>Warehouse owner</dt><dd>${contact(b.warehouse?.owner)}</dd></div>
           <div><dt>Storage · pallets</dt><dd>${esc(TYPES[b.storage_type]?.name || b.storage_type)} · ${fmt(b.pallets)}</dd></div>
           <div><dt>Start · duration</dt><dd>${date(b.start_date)} · ${b.months} mo</dd></div>
+          <div><dt>Partner's listed price</dt><dd>${partnerPriceText(b.warehouse, b.storage_type) || "<span class='muted'>Not set</span>"}</dd></div>
           ${b.status === "quoted" ? `<div><dt>Quote valid until</dt><dd>${date(b.quote_valid_until)}</dd></div>` : ""}
         </dl>
         ${b.notes ? `<p class="note">Client note: ${esc(b.notes)}</p>` : ""}

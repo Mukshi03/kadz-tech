@@ -1,6 +1,6 @@
 /* Partner dashboard: add/edit warehouses, see their bookings */
 (async function () {
-  const { sb, TYPES, esc, fmt, date, $, $$, pill, typeChips, photoUrl, toast, errMsg,
+  const { sb, TYPES, esc, fmt, money, date, $, $$, pill, typeChips, photoUrl, toast, errMsg,
           requireRole, setupTabs, setupProfileForm } = window.KZ;
   const u = await requireRole(["partner", "admin"]);
   if (!u) return;
@@ -41,6 +41,9 @@
         <dl class="kv">
           <div><dt>Pallets free</dt><dd>${fmt(w.pallets_available)} / ${fmt(w.pallets_total)}</dd></div>
           <div><dt>Minimum rental</dt><dd>${w.min_months} month${w.min_months > 1 ? "s" : ""}</dd></div>
+          <div><dt>Your price <span class="muted">/ pallet / month</span></dt><dd>${Object.keys(w.partner_prices || {}).length
+              ? Object.entries(w.partner_prices).map(([t, p]) => `${esc(TYPES[t]?.name || t)} ${money(p)}`).join("<br>")
+              : "<span class='muted'>Not set</span>"}</dd></div>
           <div><dt>Area</dt><dd>${w.area_sqm ? fmt(w.area_sqm) + " m²" : "–"}</dd></div>
           <div><dt>Photos</dt><dd>${w.photos.length}</dd></div>
         </dl>
@@ -84,6 +87,18 @@
   const checks = (id) => $$(`#${id} input:checked`).map((i) => i.value);
   const setChecks = (id, vals) => $$(`#${id} input`).forEach((i) => (i.checked = (vals || []).includes(i.value)));
 
+  const TYPES_ALL = ["dry", "ambient", "chilled", "frozen"];
+  function syncPriceBoxes() {
+    const chosen = checks("w-types");
+    TYPES_ALL.forEach((t) => {
+      const box = $(`[data-price=${t}]`), input = $(`#w-price-${t}`);
+      box.hidden = !chosen.includes(t);
+      input.required = chosen.includes(t);
+    });
+    $("#w-prices-empty").hidden = chosen.length > 0;
+  }
+  $("#w-types").addEventListener("change", syncPriceBoxes);
+
   function resetForm() {
     editing = null; keptPhotos = []; keptDocs = []; removed = { photos: [], docs: [] };
     form.reset();
@@ -93,6 +108,7 @@
     $("#cancel-edit").hidden = true;
     $(".form-status", form).hidden = true;
     renderFiles();
+    syncPriceBoxes();
   }
 
   function fillForm(w) {
@@ -108,9 +124,12 @@
     $("#w-address").value = w.address || ""; $("#w-desc").value = w.description || "";
     $("#w-area").value = w.area_sqm || ""; $("#w-pallets").value = w.pallets_total;
     $("#w-min").value = w.min_months;
+    TYPES_ALL.forEach((t) => ($(`#w-price-${t}`).value = w.partner_prices?.[t] ?? ""));
+    $("#w-hin").value = w.handling_in ?? ""; $("#w-hout").value = w.handling_out ?? "";
     $("#w-cmethod").value = w.contact_method || ""; $("#w-cname").value = w.contact_name || "";
     $("#w-cinfo").value = w.contact_info || ""; $("#w-ctime").value = w.contact_time || "";
     setChecks("w-types", w.storage_types); setChecks("w-features", w.features); setChecks("w-licenses", w.licenses);
+    syncPriceBoxes();
     renderFiles();
   }
   $("#cancel-edit").addEventListener("click", () => { resetForm(); openTab("warehouses"); });
@@ -162,6 +181,9 @@
         address: $("#w-address").value.trim() || null, description: $("#w-desc").value.trim() || null,
         area_sqm: $("#w-area").value ? +$("#w-area").value : null,
         pallets_total: +$("#w-pallets").value,
+        partner_prices: Object.fromEntries(types.map((t) => [t, +$(`#w-price-${t}`).value])),
+        handling_in: $("#w-hin").value === "" ? null : +$("#w-hin").value,
+        handling_out: $("#w-hout").value === "" ? null : +$("#w-hout").value,
         contact_method: $("#w-cmethod").value || null, contact_name: $("#w-cname").value.trim() || null,
         contact_info: $("#w-cinfo").value.trim() || null, contact_time: $("#w-ctime").value.trim() || null,
         min_months: +$("#w-min").value || 1,

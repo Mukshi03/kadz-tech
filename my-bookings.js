@@ -1,7 +1,7 @@
 /* Client dashboard: quotation requests, quotations and bookings */
 (async function () {
   const { sb, C, TYPES, esc, fmt, money, date, $, pill, bookingPill, quoteExpired, toast, errMsg,
-          requireRole, setupTabs, setupProfileForm, loadUnread, threadButton, bindThreadButtons } = window.KZ;
+          requireRole, setupTabs, setupProfileForm, loadUnread, threadButton, bindThreadButtons, openQuotePdf } = window.KZ;
   const u = await requireRole(null);
   if (!u) return;
   $("#who").textContent = u.profile?.full_name || u.session.user.email;
@@ -49,7 +49,7 @@
       <article class="row-card${waiting ? " attention" : ""}">
         <div class="row-top">
           <div style="display:grid;gap:.3rem;min-width:0">
-            <span class="label">${esc(b.ref)} · requested ${date(b.created_at)}</span>
+            <span class="label">${esc(b.quote_number || b.ref)} · requested ${date(b.created_at)}</span>
             <h3>${w ? `<a href="warehouse.html?id=${esc(w.id)}" style="text-decoration:none">${esc(w.name)}</a>` : "Warehouse"}</h3>
             ${w ? `<span class="muted">${esc([w.district, w.city].filter(Boolean).join(", "))}</span>` : ""}
           </div>
@@ -73,6 +73,7 @@
             <button class="btn btn-plain" data-reply="declined" data-id="${esc(b.id)}">Decline</button>
           </div>` : ""}
         <div class="actions">
+          ${b.quote_pdf && priced ? `<button class="btn btn-sm btn-plain" data-pdf="${esc(b.quote_pdf)}">Download quotation${b.quote_number ? " " + esc(b.quote_number) : ""} (PDF)</button>` : ""}
           ${threadButton(b.id, "client", "Messages", unread[`${b.id}:client`])}
           ${b.status === "pending" ? `<button class="btn btn-sm btn-danger" data-reply="cancelled" data-id="${esc(b.id)}">Cancel request</button>` : ""}
         </div>
@@ -89,6 +90,8 @@
   const DONE = { confirmed: "Quotation accepted. Your booking is confirmed.", declined: "Quotation declined", cancelled: "Request cancelled" };
 
   box.addEventListener("click", async (e) => {
+    const pdf = e.target.closest("[data-pdf]");
+    if (pdf) return openQuotePdf(pdf.dataset.pdf);
     const btn = e.target.closest("[data-reply]");
     if (!btn) return;
     const reply = btn.dataset.reply;

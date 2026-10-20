@@ -1,7 +1,8 @@
 /* Admin panel: approve warehouses, manage bookings, quote requests, users */
 (async function () {
   const { sb, C, TYPES, esc, fmt, money, date, $, $$, pill, bookingPill, typeChips, photoUrl, toast, errMsg,
-          requireRole, setupTabs, loadUnread, threadButton, bindThreadButtons } = window.KZ;
+          requireRole, setupTabs, loadUnread, threadButton, bindThreadButtons,
+          buildQuotePdf, loadQuoteLogo, openQuotePdf } = window.KZ;
   const u = await requireRole(["admin"]);
   if (!u) return;
   $("#who").textContent = u.profile?.full_name || u.session.user.email;
@@ -12,6 +13,65 @@
     p.phone && `<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a>`
   ].filter(Boolean).join("<br>") : "<span class='muted'>Unknown</span>";
   const LIC = { "commercial-registration": "Commercial registration", baladiya: "Baladiya", "civil-defense": "Civil Defense", sfda: "SFDA" };
+
+  /* ---------------- Desktop alerts ----------------
+     While this page is open, it checks every 30 seconds. When something new
+     arrives it shows a message on the page and, if turned on, a desktop alert
+     with a short sound. */
+  let prev = null;
+  const alertBtn = $("#alerts-btn");
+  const canNotify = "Notification" in window;
+  const alertsOn = () => { try { return canNotify && Notification.permission === "granted" && localStorage.getItem("kz-alerts") !== "off"; } catch (e) { return false; } };
+  function showAlertBtn() {
+    if (!canNotify) return;
+    alertBtn.hidden = false;
+    alertBtn.textContent = Notification.permission === "denied" ? "Desktop alerts blocked" : alertsOn() ? "Desktop alerts on" : "Turn on desktop alerts";
+    alertBtn.disabled = Notification.permission === "denied";
+    alertBtn.title = Notification.permission === "denied" ? "Allow notifications for this site in your browser settings" : "";
+  }
+  alertBtn.addEventListener("click", async () => {
+    if (alertsOn()) { try { localStorage.setItem("kz-alerts", "off"); } catch (e) {} showAlertBtn(); return toast("Desktop alerts off"); }
+    const p = await Notification.requestPermission();
+    try { localStorage.setItem("kz-alerts", "on"); } catch (e) {}
+    showAlertBtn();
+    if (p === "granted") { beep(); toast("Desktop alerts on. Keep this page open in a tab."); }
+  });
+  function beep() {
+    try {
+      const a = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.18].forEach((t, i) => {
+        const o = a.createOscillator(), g = a.createGain();
+        o.frequency.value = i ? 1046 : 784;
+        g.gain.setValueAtTime(0.12, a.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.001, a.currentTime + t + 0.25);
+        o.connect(g).connect(a.destination); o.start(a.currentTime + t); o.stop(a.currentTime + t + 0.26);
+      });
+    } catch (e) {}
+  }
+  function announce(now) {
+    if (prev) {
+      const plural = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+      const news = [];
+      if (now.bk > prev.bk) news.push(plural(now.bk - prev.bk, "new quotation request", "new quotation requests"));
+      if (now.accepted > prev.accepted) news.push(plural(now.accepted - prev.accepted, "quotation accepted", "quotations accepted"));
+      if (now.msgs > prev.msgs) news.push(plural(now.msgs - prev.msgs, "new message", "new messages"));
+      if (now.wh > prev.wh) news.push(plural(now.wh - prev.wh, "warehouse to review", "warehouses to review"));
+      if (now.q > prev.q) news.push(plural(now.q - prev.q, "new quote form request", "new quote form requests"));
+      if (news.length) {
+        toast(news.join(" · "));
+        if (alertsOn()) {
+          const n = new Notification(`${C.company} admin`, { body: news.join("\n"), tag: "kadz-admin" });
+          n.onclick = () => { window.focus(); n.close(); };
+          beep();
+        }
+      }
+    }
+    prev = now;
+    const total = now.bk + now.msgs + now.wh + now.q;
+    document.title = (total ? `(${total}) ` : "") + `Admin | ${C.company}`;
+  }
+  showAlertBtn();
+  setInterval(() => loadStats(), 30000);
 
   /* ---------------- Summary ---------------- */
   async function loadStats() {
@@ -25,6 +85,7 @@
       loadUnread()
     ]);
     const msgs = Object.values(unread).reduce((s, x) => s + x, 0);
+    announce({ wh: wh.count || 0, bk: bk.count || 0, q: qr.count || 0, msgs, accepted: (act.data || []).length });
     const n = { wh: wh.count || 0, bk: bk.count || 0, qd: qd.count || 0, q: qr.count || 0 };
     const pallets = (act.data || []).reduce((s, b) => s + b.pallets, 0);
     $("#stats").innerHTML = `
@@ -144,7 +205,7 @@
       <article class="row-card${b.status === "pending" ? " attention" : ""}" data-id="${esc(b.id)}">
         <div class="row-top">
           <div style="display:grid;gap:.3rem;min-width:0">
-            <span class="label">${esc(b.ref)} · requested ${date(b.created_at)}</span>
+            <span class="label">${esc(b.ref)}${b.quote_number ? " · " + esc(b.quote_number) : ""} · requested ${date(b.created_at)}</span>
             <h3>${b.warehouse ? `<a href="warehouse.html?id=${esc(b.warehouse.id)}" style="text-decoration:none">${esc(b.warehouse.name)}</a>` : "Deleted warehouse"}</h3>
             ${b.warehouse ? `<span class="muted">${esc(b.warehouse.city)} · ${fmt(b.warehouse.pallets_available)} pallets free now</span>` : ""}
           </div>
@@ -170,6 +231,8 @@
           ${(ACTIONS[b.status] || []).map(([st, label, cls]) => `<button class="btn btn-sm ${cls}" data-act="${st}">${label}</button>`).join("")}
         </div>
         <div class="actions">
+          ${quoting ? `<button class="btn btn-sm btn-plain" data-preview>Preview PDF</button>` : ""}
+          ${b.quote_pdf ? `<button class="btn btn-sm btn-plain" data-pdf="${esc(b.quote_pdf)}">Download ${esc(b.quote_number || "quotation")}</button>` : ""}
           ${threadButton(b.id, "client", "Chat with client", unread[`${b.id}:client`])}
           ${threadButton(b.id, "partner", "Chat with partner", unread[`${b.id}:partner`])}
         </div>
@@ -195,7 +258,45 @@
   }
   $("#bk-list").addEventListener("input", (e) => { const c = e.target.closest("[data-id]"); if (c) calc(c); });
 
+  // Build the quotation PDF for a booking. save=true stores it, which emails it to the client.
+  async function makeQuotePdf(id, save, draft) {
+    const { data: bk, error } = await sb.from("bookings")
+      .select("*, client:profiles(full_name, company, email, phone), warehouse:warehouses(city)").eq("id", id).single();
+    if (error) throw error;
+    const booking = { ...bk, ...(draft || {}) };
+    const bytes = buildQuotePdf({ company: C, booking, client: bk.client, city: bk.warehouse?.city,
+                                  siteUrl: location.href.replace(/[^/]*$/, ""), logo: await loadQuoteLogo(C.logo) });
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    if (!save) return blob;
+    if (!bk.quote_number) throw new Error("This quotation has no number yet. Make sure update-4-quote-pdf.sql was run in Supabase.");
+    const path = `${bk.id}/${bk.quote_number}-${Date.now()}.pdf`;
+    const up = await sb.storage.from("quotations").upload(path, blob, { contentType: "application/pdf" });
+    if (up.error) throw up.error;
+    const r = await sb.from("bookings").update({ quote_pdf: path }).eq("id", bk.id);
+    if (r.error) throw r.error;
+    return bk.quote_number;
+  }
+
   $("#bk-list").addEventListener("click", async (e) => {
+    const pdf = e.target.closest("[data-pdf]");
+    if (pdf) return openQuotePdf(pdf.dataset.pdf);
+    const prev = e.target.closest("[data-preview]");
+    if (prev) {
+      const card = prev.closest("[data-id]");
+      const v = (f) => { const el = $(`[data-f=${f}]`, card); return el ? el.value : ""; };
+      if (v("price_per_pallet") === "") return toast("Enter the client price to preview the PDF.", true);
+      const win = window.open("", "_blank");
+      try {
+        const b = bkData.find((x) => x.id === card.dataset.id);
+        const blob = await makeQuotePdf(b.id, false, {
+          price_per_pallet: +v("price_per_pallet"), quote_valid_until: v("quote_valid_until") || null,
+          admin_note: v("admin_note").trim() || null, quote_number: b.quote_number || "DRAFT"
+        });
+        const url = URL.createObjectURL(blob);
+        if (win) win.location = url; else location.href = url;
+      } catch (err) { win && win.close(); toast(errMsg(err), true); }
+      return;
+    }
     const btn = e.target.closest("[data-act]");
     if (!btn) return;
     const card = btn.closest("[data-id]");
@@ -223,9 +324,15 @@
         err = r.error;
       }
     }
+    let number;
+    if (!err && status === "quoted") {
+      btn.textContent = "Creating PDF…";
+      try { number = await makeQuotePdf(b.id, true); }
+      catch (pdfErr) { err = new Error("The quotation was saved, but the PDF couldn't be created: " + errMsg(pdfErr) + " Click Update quotation to try again."); }
+    }
     btn.disabled = false; btn.textContent = label;
-    if (err) return toast(errMsg(err), true);
-    toast(status === "quoted" && b.status === "pending" ? "Quotation sent to the client" : "Saved");
+    if (err) { loadBookings(); return toast(errMsg(err), true); }
+    toast(status === "quoted" ? `Quotation ${number} ${b.status === "pending" ? "sent" : "updated"}` : "Saved");
     loadBookings(); loadStats();
   });
   $("#bk-filter").addEventListener("change", loadBookings);

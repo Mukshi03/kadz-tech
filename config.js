@@ -19,6 +19,24 @@ window.KADZ = {
 
   currency: "SAR",
 
+  /* ---------- Shown on PDF quotations ----------
+     Empty values are left off the PDF. */
+  logo: "",                  // image file in this folder, e.g. "logo.png"
+  legal: {
+    legalName: "",           // e.g. "KADZ Tech Trading Est."
+    crNumber: "",            // Commercial Registration number
+    vatNumber: "",           // 15-digit VAT number
+    address: "",
+    bank: {
+      name: "",              // e.g. "Saudi National Bank"
+      accountName: "",
+      iban: ""               // e.g. "SA00 0000 0000 0000 0000 0000"
+    }
+  },
+  // Terms printed on every quotation, one line each, e.g.
+  // ["Prices exclude handling and transport.", "Payment by bank transfer before the start date."]
+  quoteTerms: [],
+
   // Default monthly price per pallet used by the estimator on the quote page.
   // Leave as null to show "On request". Each warehouse sets its own price.
   rates: {

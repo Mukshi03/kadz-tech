@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610201353">
+  <link rel="stylesheet" href="styles.css?v=202610201402">
 </head>
 <body data-page="partner-dash">
 
@@ -41,7 +41,7 @@
             <h3 id="form-title">Add a warehouse</h3>
             <button type="button" class="btn btn-sm btn-plain" id="cancel-edit" hidden>Cancel editing</button>
           </div>
-          <p class="muted" id="form-help">New listings are reviewed by our team before they appear in search. You don't set a price here: we agree it with you for each client request.</p>
+          <p class="muted" id="form-help">New listings are reviewed by our team before they appear in search. You'll get an email when it's approved.</p>
 
           <div class="form-row">
             <label class="ctrl"><span>Warehouse name</span><input id="w-name" required placeholder="e.g. North Industrial Hub"></label>
@@ -54,9 +54,10 @@
           <label class="ctrl"><span>Full address <em>optional, shown to admin only</em></span><input id="w-address"></label>
           <label class="ctrl"><span>Description <em>optional</em></span><textarea id="w-desc" placeholder="Building type, ceiling height, operating hours, access"></textarea></label>
 
-          <div class="form-row cols-3">
+          <div class="form-row cols-4">
             <label class="ctrl"><span>Area <em>m²</em></span><input id="w-area" type="number" min="1"></label>
             <label class="ctrl"><span>Pallet positions</span><input id="w-pallets" type="number" min="0" required></label>
+            <label class="ctrl"><span>Price <em>SAR / pallet / month</em></span><input id="w-price" type="number" min="0" step="0.01" placeholder="Empty = on request"></label>
             <label class="ctrl"><span>Minimum months</span><input id="w-min" type="number" min="1" value="1" required></label>
           </div>
 
@@ -69,22 +70,6 @@
               <label class="check"><input type="checkbox" value="frozen"> Frozen −18 °C</label>
             </div>
             <span class="err" hidden>Choose at least one storage type.</span>
-          </fieldset>
-
-          <fieldset class="private-box" id="w-pricebox">
-            <legend>Your price</legend>
-            <p class="muted" style="font-size:.88rem">SAR per pallet per month, for each storage type you offer. We use it to prepare quotations for clients.</p>
-            <div class="form-row cols-4" id="w-prices">
-              <label class="ctrl" data-price="dry" hidden><span>Dry</span><input id="w-price-dry" type="number" min="0" step="0.01" inputmode="decimal"></label>
-              <label class="ctrl" data-price="ambient" hidden><span>Ambient</span><input id="w-price-ambient" type="number" min="0" step="0.01" inputmode="decimal"></label>
-              <label class="ctrl" data-price="chilled" hidden><span>Chilled</span><input id="w-price-chilled" type="number" min="0" step="0.01" inputmode="decimal"></label>
-              <label class="ctrl" data-price="frozen" hidden><span>Frozen</span><input id="w-price-frozen" type="number" min="0" step="0.01" inputmode="decimal"></label>
-            </div>
-            <p class="muted" id="w-prices-empty" style="font-size:.88rem">Choose storage types above to enter prices.</p>
-            <div class="form-row">
-              <label class="ctrl"><span>Handling in <em>SAR per pallet, optional</em></span><input id="w-hin" type="number" min="0" step="0.01" inputmode="decimal"></label>
-              <label class="ctrl"><span>Handling out <em>SAR per pallet, optional</em></span><input id="w-hout" type="number" min="0" step="0.01" inputmode="decimal"></label>
-            </div>
           </fieldset>
 
           <fieldset id="w-features">
@@ -170,9 +155,9 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=202610201353"></script>
-<script src="main.js?v=202610201353"></script>
-<script src="dashboard-common.js?v=202610201353"></script>
-<script src="partner-dashboard.js?v=202610201353"></script>
+<script src="config.js?v=202610201402"></script>
+<script src="main.js?v=202610201402"></script>
+<script src="dashboard-common.js?v=202610201402"></script>
+<script src="partner-dashboard.js?v=202610201402"></script>
 </body>
 </html>

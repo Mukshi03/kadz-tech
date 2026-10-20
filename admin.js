@@ -14,9 +14,10 @@
   // Partner's listed prices, e.g. "Dry 35.00 SAR · Chilled 55.00 SAR"
   function partnerPriceText(w, only) {
     const p = w?.partner_prices || {};
-    const parts = Object.entries(p).filter(([t]) => !only || t === only).map(([t, v]) => `${esc(TYPES[t]?.name || t)} ${money(v)}`);
-    const h = [w?.handling_in != null && `handling in ${money(w.handling_in)}`, w?.handling_out != null && `handling out ${money(w.handling_out)}`].filter(Boolean);
-    return [parts.join(" · "), h.length ? h.join(", ") + " per pallet" : ""].filter(Boolean).join("<br>");
+    const vals = Object.entries(p).filter(([t]) => !only || t === only);
+    const same = vals.length && vals.every(([, v]) => v === vals[0][1]);
+    const parts = same ? [money(vals[0][1])] : vals.map(([t, v]) => `${esc(TYPES[t]?.name || t)} ${money(v)}`);
+    return parts.join(" · ");
   }
   const METHOD = { whatsapp: "WhatsApp", phone: "Phone call", email: "Email" };
   // WhatsApp / phone / email link for a number or address

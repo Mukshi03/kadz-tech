@@ -197,7 +197,8 @@
       </div>
       <div class="foot-bottom">© ${new Date().getFullYear()} ${esc(C.company)}. All rights reserved.</div>
     </div>`;
-  document.body.append(footer);
+  // No footer on the log in / sign up / reset password page
+  if (page !== "login") document.body.append(footer);
 
   /* ---------- Fill city & storage-type selects ---------- */
   $$("select[data-cities]").forEach((sel) => (C.cities || []).forEach((c) => sel.add(new Option(c, c))));

@@ -64,7 +64,6 @@
           ${b.status === "quoted" && b.quote_valid_until ? `<div><dt>Valid until</dt><dd>${date(b.quote_valid_until)}</dd></div>` : ""}
         </dl>
         ${b.status === "pending" ? `<p class="note">We're preparing your quotation. You'll see the price here, and we'll email you when it's ready.</p>` : ""}
-        ${b.admin_note ? `<p class="note">Message from ${esc(C.company)}: ${esc(b.admin_note)}</p>` : ""}
         ${expired ? `<p class="note">This quotation has expired. Request a new one from the warehouse page.</p>` : ""}
         ${waiting ? `<div class="actions">
             <button class="btn btn-primary" data-reply="confirmed" data-id="${esc(b.id)}">Accept quotation</button>

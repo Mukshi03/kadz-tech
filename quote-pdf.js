@@ -220,7 +220,6 @@
       });
       y += 10;
     };
-    section("Notes", b.admin_note ? [b.admin_note] : []);
     section("Terms", C.quoteTerms || [], true);
     const bank = C.legal?.bank || {};
     section("Bank details", [bank.name && `Bank: ${bank.name}`, bank.accountName && `Account name: ${bank.accountName}`, bank.iban && `IBAN: ${bank.iban}`].filter(Boolean));

@@ -236,7 +236,6 @@
         </div>
         <p class="muted" data-calc style="font-size:.9rem"></p>
         <div class="inline-form">
-          <label class="ctrl" style="flex:3"><span class="label">Message to client</span><input data-f="admin_note" value="${esc(b.admin_note || "")}" placeholder="Shown with the quotation or booking"></label>
           ${(ACTIONS[b.status] || []).map(([st, label, cls]) => `<button class="btn btn-sm ${cls}" data-act="${st}">${label}</button>`).join("")}
         </div>
         <div class="actions">
@@ -296,7 +295,7 @@
         const b = bkData.find((x) => x.id === card.dataset.id);
         const blob = await makeQuotePdf(b.id, false, {
           price_per_pallet: +v("price_per_pallet"), quote_valid_until: v("quote_valid_until") || null,
-          admin_note: v("admin_note").trim() || null, quote_number: b.quote_number || "DRAFT"
+          admin_note: null, quote_number: b.quote_number || "DRAFT"
         });
         const url = URL.createObjectURL(blob);
         if (win) win.location = url; else location.href = url;
@@ -313,7 +312,7 @@
     if (status === "quoted" && val("price_per_pallet") === "") { $("[data-f=price_per_pallet]", card).focus(); return toast("Enter the client price first.", true); }
     if (status !== b.status && CONFIRM[status] && !confirm(CONFIRM[status])) return;
 
-    const update = { status, admin_note: val("admin_note").trim() || null };
+    const update = { status };
     if (val("price_per_pallet") !== undefined && !$("[data-f=price_per_pallet]", card).disabled)
       update.price_per_pallet = val("price_per_pallet") === "" ? null : +val("price_per_pallet");
     if (val("quote_valid_until") !== undefined) update.quote_valid_until = val("quote_valid_until") || null;

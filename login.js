@@ -4,18 +4,33 @@
   const params = new URLSearchParams(location.search);
   const next = safeNext(params.get("next"));
   const loginF = $("#login-form"), signF = $("#signup-form"), resetF = $("#reset-form");
-  const tabs = { login: $("#tab-login"), signup: $("#tab-signup") };
-
+  const pageUrl = location.href.split(/[?#]/)[0];
   function show(which) {
     loginF.hidden = which !== "login";
     signF.hidden = which !== "signup";
     resetF.hidden = which !== "reset";
-    tabs.login.setAttribute("aria-selected", which === "login");
-    tabs.signup.setAttribute("aria-selected", which === "signup");
-    $(".tabs").hidden = which === "reset";
+    document.title = (which === "signup" ? "Create account" : which === "reset" ? "Set a new password" : "Log in") + " | " + window.KZ.C.company;
+    const f = which === "signup" ? signF : which === "reset" ? resetF : loginF;
+    $("input:not([type=radio]):not([type=checkbox])", f)?.focus();
   }
-  tabs.login.addEventListener("click", () => show("login"));
-  tabs.signup.addEventListener("click", () => show("signup"));
+  $$("[data-show]").forEach((b) => b.addEventListener("click", () => show(b.dataset.show)));
+
+  // Show / hide password
+  $$(".pw-toggle").forEach((b) => b.addEventListener("click", () => {
+    const input = b.previousElementSibling, hidden = input.type === "password";
+    input.type = hidden ? "text" : "password";
+    b.textContent = hidden ? "Hide" : "Show";
+    b.setAttribute("aria-label", hidden ? "Hide password" : "Show password");
+  }));
+
+  // "Continue with Google" appears only when it's turned on in config.js
+  if (window.KZ.C.googleLogin && sb) {
+    $$("[data-google]").forEach((el) => (el.hidden = false));
+    $(".auth-google").addEventListener("click", async () => {
+      const { error } = await sb.auth.signInWithOAuth({ provider: "google", options: { redirectTo: pageUrl + (next ? "?next=" + encodeURIComponent(next) : "") } });
+      if (error) say(loginF, esc(errMsg(error)));
+    });
+  }
   if (params.get("mode") === "signup") show("signup");
   if (params.get("role") === "partner") $('input[name=role][value=partner]').checked = true;
 
@@ -29,7 +44,6 @@
     if (!b.dataset.label) b.dataset.label = b.textContent;
     b.disabled = on; b.textContent = on ? label : b.dataset.label;
   }
-  const pageUrl = location.href.split(/[?#]/)[0];
 
   if (!sb) { showSetupNotice($("main")); return; }
 
@@ -59,6 +73,7 @@
     const { error } = await sb.auth.signInWithPassword({ email: $("#l-email").value.trim(), password: $("#l-pass").value });
     busy(loginF, false);
     if (error) return say(loginF, esc(errMsg(error)));
+    window.KZ.rememberLogin($("#l-keep").checked);
     goHome();
   });
 

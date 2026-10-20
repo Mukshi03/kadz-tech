@@ -50,6 +50,10 @@ window.KADZ = {
      Supabase dashboard → Project Settings → API Keys.
      Copy the Project URL and the anon / publishable key.
      The anon key is safe to publish: database rules protect the data. */
+  // Show "Continue with Google" on the login page. Turn on only after
+  // enabling Google in Supabase → Authentication → Sign In / Providers.
+  googleLogin: false,
+
   supabaseUrl:"https://gpwxkcajprnroeffknqh.supabase.co",           // e.g. "https://abcdxyz.supabase.co"
   supabaseAnonKey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdwd3hrY2FqcHJucm9lZmZrbnFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NjczODIsImV4cCI6MjEwODA0MzM4Mn0.5z1dT1jpdzCnYgv4FvQHtiA67UpmI6_eTF8ADl6KIdg"
 };

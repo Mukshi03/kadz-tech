@@ -432,3 +432,49 @@ code { font-family: var(--f-mono); font-size: .9em; background: color-mix(in srg
 
 /* Locked form fields (e.g. after a quotation request) */
 .form input:disabled, .form select:disabled, .form textarea:disabled, .form .check:has(input:disabled) { opacity: .55; cursor: not-allowed; }
+
+/* =================== Login: split screen =================== */
+.auth-split { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); min-height: calc(100vh - 80px); padding-block: 0; }
+.auth-brand { position: relative; overflow: hidden; background: var(--band); color: var(--band-ink); border-right: 4px solid var(--accent);
+  display: flex; flex-direction: column; justify-content: center; gap: 3rem;
+  padding-block: 3.5rem; padding-left: max(16px, env(safe-area-inset-left, 0px), 4vw); padding-right: 4vw; }
+.auth-rack { position: absolute; inset: 0; opacity: .35; pointer-events: none;
+  background-image: linear-gradient(color-mix(in srgb, var(--band-ink) 14%, transparent) 2px, transparent 2px),
+                    linear-gradient(90deg, color-mix(in srgb, var(--band-ink) 14%, transparent) 2px, transparent 2px);
+  background-size: 150px 110px; mask-image: linear-gradient(to top right, #000, transparent 75%); }
+.auth-brand-body { position: relative; display: grid; gap: 1.2rem; max-width: 34rem; }
+.auth-brand .label { color: color-mix(in srgb, var(--band-ink) 65%, transparent); }
+.auth-brand h1 { font-size: clamp(2.6rem, 5.2vw, 4.6rem); }
+.auth-brand h1 span { color: var(--accent); }
+.auth-brand p { color: color-mix(in srgb, var(--band-ink) 70%, transparent); font-size: 1.05rem; max-width: 42ch; }
+.auth-facts { position: relative; display: flex; flex-wrap: wrap; gap: 1.2rem 2.6rem; }
+.auth-facts b { display: block; font-family: var(--f-display); font-size: 2.1rem; font-weight: 800; line-height: 1.1; }
+.auth-panel { display: grid; place-items: center; padding-block: 3rem; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.auth-form { width: 100%; max-width: 420px; display: grid; gap: 1.05rem; }
+.auth-form h2 { font-size: clamp(1.9rem, 3vw, 2.5rem); margin-top: -.4rem; }
+.auth-form input:not([type=checkbox]):not([type=radio]) { width: 100%; padding: .8rem .9rem; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); }
+.auth-form input:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
+.pw { position: relative; display: block; }
+.pw input { padding-right: 4.2rem !important; }
+.pw-toggle { position: absolute; right: .4rem; top: 50%; transform: translateY(-50%); background: none; border: 0; padding: .35rem .5rem; color: var(--muted); font: 600 .8rem var(--f-body); cursor: pointer; border-radius: var(--radius); }
+.pw-toggle:hover { color: var(--ink); }
+.auth-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; font-size: .9rem; }
+.keep { display: inline-flex; align-items: center; gap: .5rem; color: var(--muted); cursor: pointer; }
+.keep input { accent-color: var(--accent); width: 16px; height: 16px; }
+.auth-link { color: var(--accent); font-weight: 600; text-decoration: none; }
+.auth-link:hover { text-decoration: underline; }
+.auth-submit { width: 100%; padding-block: .9rem; font-size: 1rem; }
+.auth-or { display: flex; align-items: center; gap: .8rem; color: var(--muted); font-size: .8rem; }
+.auth-or::before, .auth-or::after { content: ""; flex: 1; height: 1px; background: var(--line); }
+.auth-google { width: 100%; padding-block: .85rem; background: transparent; color: var(--ink); border-color: var(--line); }
+.auth-google:hover { border-color: var(--muted); }
+.auth-switch { text-align: center; color: var(--muted); font-size: .92rem; }
+@media (max-width: 900px) {
+  .auth-split { grid-template-columns: 1fr; min-height: 0; }
+  .auth-brand { border-right: 0; border-bottom: 4px solid var(--accent); gap: 1.4rem; padding-block: 2rem; padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .auth-brand h1 { font-size: clamp(2rem, 9vw, 2.8rem); }
+  .auth-brand p { font-size: .95rem; }
+  .auth-facts { gap: .8rem 1.6rem; }
+  .auth-facts b { font-size: 1.5rem; }
+  .auth-panel { padding-block: 2rem 3rem; }
+}

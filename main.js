@@ -49,9 +49,31 @@
     return m;
   }
 
+  // "Keep me logged in" unticked: log out once the browser has been closed.
+  // A cookie with no expiry date disappears when the browser closes.
+  const sitePath = location.pathname.replace(/[^/]*$/, "");
+  const sessionCheck = (async () => {
+    try {
+      if (sb && localStorage.getItem("kz-session-only") === "1" && !document.cookie.split("; ").includes("kz-alive=1")) {
+        localStorage.removeItem("kz-session-only");
+        await sb.auth.signOut({ scope: "local" });
+      }
+    } catch (e) {}
+  })();
+  function rememberLogin(keep) {
+    try {
+      if (keep) localStorage.removeItem("kz-session-only");
+      else {
+        localStorage.setItem("kz-session-only", "1");
+        document.cookie = `kz-alive=1; path=${sitePath}; SameSite=Lax`;
+      }
+    } catch (e) {}
+  }
+
   let profileCache;
   async function getUser() {
     if (!sb) return { session: null, profile: null };
+    await sessionCheck;
     const { data: { session } } = await sb.auth.getSession();
     if (!session) return { session: null, profile: null };
     if (profileCache === undefined || profileCache?.id !== session.user.id) {
@@ -279,6 +301,6 @@
   }
 
   /* ---------- Shared API for page scripts ---------- */
-  window.KZ = { C, sb, TYPES, esc, fmt, money, date, $, $$, pill, bookingPill, quoteExpired, typeChips, photoUrl, errMsg,
+  window.KZ = { C, sb, rememberLogin, TYPES, esc, fmt, money, date, $, $$, pill, bookingPill, quoteExpired, typeChips, photoUrl, errMsg,
                 getUser, requireRole, homeFor, safeNext, toast, showSetupNotice, ready };
 })();

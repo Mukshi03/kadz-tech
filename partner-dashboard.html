@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Partner Dashboard | KADZ Tech</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="partner-dash">
+
+<main>
+  <div class="page-head">
+    <div class="wrap dash-head">
+      <div style="display:grid;gap:.6rem">
+        <span class="dock"><b>Partner</b> <span id="who">…</span></span>
+        <h1>Partner dashboard</h1>
+      </div>
+      <button class="btn btn-primary" type="button" id="new-wh">Add a warehouse</button>
+    </div>
+  </div>
+
+  <section style="padding-top:2rem">
+    <div class="wrap">
+      <div class="stats" id="stats"></div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" data-tab="warehouses" aria-selected="true">My warehouses</button>
+        <button class="tab" role="tab" data-tab="form" aria-selected="false" id="form-tab">Add warehouse</button>
+        <button class="tab" role="tab" data-tab="bookings" aria-selected="false">Bookings</button>
+        <button class="tab" role="tab" data-tab="profile" aria-selected="false">My details</button>
+      </div>
+
+      <div data-panel="warehouses"><div class="rows" id="wh-list"><p class="muted">Loading…</p></div></div>
+
+      <div data-panel="form" hidden>
+        <form class="form" id="wh-form" novalidate style="max-width:900px">
+          <div class="row-top">
+            <h3 id="form-title">Add a warehouse</h3>
+            <button type="button" class="btn btn-sm btn-plain" id="cancel-edit" hidden>Cancel editing</button>
+          </div>
+          <p class="muted" id="form-help">New listings are reviewed by our team before they appear in search. You'll get an email when it's approved.</p>
+
+          <div class="form-row">
+            <label class="ctrl"><span>Warehouse name</span><input id="w-name" required placeholder="e.g. North Industrial Hub"></label>
+            <label class="ctrl"><span>City</span><input id="w-city" required list="city-list"><datalist id="city-list" data-cities></datalist></label>
+          </div>
+          <div class="form-row">
+            <label class="ctrl"><span>District <em>optional</em></span><input id="w-district"></label>
+            <label class="ctrl"><span>Google Maps link <em>optional</em></span><input id="w-map" type="url" placeholder="https://maps.google.com/…"></label>
+          </div>
+          <label class="ctrl"><span>Full address <em>optional, shown to admin only</em></span><input id="w-address"></label>
+          <label class="ctrl"><span>Description <em>optional</em></span><textarea id="w-desc" placeholder="Building type, ceiling height, operating hours, access"></textarea></label>
+
+          <div class="form-row cols-4">
+            <label class="ctrl"><span>Area <em>m²</em></span><input id="w-area" type="number" min="1"></label>
+            <label class="ctrl"><span>Pallet positions</span><input id="w-pallets" type="number" min="0" required></label>
+            <label class="ctrl"><span>Price <em>SAR / pallet / month</em></span><input id="w-price" type="number" min="0" step="0.01" placeholder="Empty = on request"></label>
+            <label class="ctrl"><span>Minimum months</span><input id="w-min" type="number" min="1" value="1" required></label>
+          </div>
+
+          <fieldset id="w-types" data-required>
+            <legend>Storage types</legend>
+            <div class="checks">
+              <label class="check"><input type="checkbox" value="dry"> Dry</label>
+              <label class="check"><input type="checkbox" value="ambient"> Ambient 15–25 °C</label>
+              <label class="check"><input type="checkbox" value="chilled"> Chilled 2–8 °C</label>
+              <label class="check"><input type="checkbox" value="frozen"> Frozen −18 °C</label>
+            </div>
+            <span class="err" hidden>Choose at least one storage type.</span>
+          </fieldset>
+
+          <fieldset id="w-features">
+            <legend>Facilities</legend>
+            <div class="checks">
+              <label class="check"><input type="checkbox" value="racking"> Racking</label>
+              <label class="check"><input type="checkbox" value="loading-docks"> Loading docks</label>
+              <label class="check"><input type="checkbox" value="forklifts"> Forklifts</label>
+              <label class="check"><input type="checkbox" value="cctv"> 24/7 CCTV</label>
+              <label class="check"><input type="checkbox" value="security"> Security guards</label>
+              <label class="check"><input type="checkbox" value="fire-system"> Fire suppression</label>
+              <label class="check"><input type="checkbox" value="wms"> Warehouse software</label>
+            </div>
+          </fieldset>
+
+          <fieldset id="w-licenses">
+            <legend>Licenses held</legend>
+            <div class="checks">
+              <label class="check"><input type="checkbox" value="commercial-registration"> Commercial registration</label>
+              <label class="check"><input type="checkbox" value="baladiya"> Municipality (Baladiya)</label>
+              <label class="check"><input type="checkbox" value="civil-defense"> Civil Defense</label>
+              <label class="check"><input type="checkbox" value="sfda"> SFDA</label>
+            </div>
+          </fieldset>
+
+          <div class="form-row">
+            <div class="ctrl">
+              <span>Photos <em>JPG, PNG or WebP, up to 5 MB each</em></span>
+              <div class="thumbs" id="photo-list"></div>
+              <input id="w-photos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+            </div>
+            <div class="ctrl">
+              <span>License documents <em>PDF or image, up to 10 MB, private</em></span>
+              <ul class="files" id="doc-list"></ul>
+              <input id="w-docs" type="file" accept="application/pdf,image/jpeg,image/png" multiple>
+            </div>
+          </div>
+
+          <div class="form-status" hidden role="status"></div>
+          <div><button class="btn btn-primary" type="submit" id="w-submit">Submit for review</button></div>
+        </form>
+      </div>
+
+      <div data-panel="bookings" hidden>
+        <p class="muted" style="margin-bottom:1rem">Bookings for your warehouses. Our team confirms each booking and handles client billing.</p>
+        <div class="rows" id="bk-list"><p class="muted">Loading…</p></div>
+      </div>
+
+      <div data-panel="profile" hidden>
+        <form class="form" id="profile-form" style="max-width:640px" novalidate>
+          <div class="form-row">
+            <label class="ctrl"><span>Full name</span><input id="p-name" required autocomplete="name"></label>
+            <label class="ctrl"><span>Company</span><input id="p-company" autocomplete="organization"></label>
+          </div>
+          <div class="form-row">
+            <label class="ctrl"><span>Phone</span><input id="p-phone" type="tel" autocomplete="tel"></label>
+            <label class="ctrl"><span>Email <em>can't be changed here</em></span><input id="p-email" disabled></label>
+          </div>
+          <div><button class="btn btn-primary" type="submit">Save details</button></div>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="main.js"></script>
+<script src="dashboard-common.js"></script>
+<script src="partner-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>My Bookings | KADZ Tech</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="my-bookings">
+
+<main>
+  <div class="page-head">
+    <div class="wrap dash-head">
+      <div style="display:grid;gap:.6rem">
+        <span class="dock"><b>Account</b> <span id="who">…</span></span>
+        <h1>My bookings</h1>
+      </div>
+      <a class="btn btn-primary" href="warehouses.html">Book more space</a>
+    </div>
+  </div>
+
+  <section style="padding-top:2rem">
+    <div class="wrap">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" data-tab="bookings" aria-selected="true">Bookings</button>
+        <button class="tab" role="tab" data-tab="profile" aria-selected="false">My details</button>
+      </div>
+
+      <div data-panel="bookings">
+        <div class="rows" id="bookings"><p class="muted">Loading…</p></div>
+      </div>
+
+      <div data-panel="profile" hidden>
+        <form class="form" id="profile-form" style="max-width:640px" novalidate>
+          <div class="form-row">
+            <label class="ctrl"><span>Full name</span><input id="p-name" required autocomplete="name"></label>
+            <label class="ctrl"><span>Company</span><input id="p-company" autocomplete="organization"></label>
+          </div>
+          <div class="form-row">
+            <label class="ctrl"><span>Phone</span><input id="p-phone" type="tel" autocomplete="tel"></label>
+            <label class="ctrl"><span>Email <em>can't be changed here</em></span><input id="p-email" disabled></label>
+          </div>
+          <div><button class="btn btn-primary" type="submit">Save details</button></div>
+        </form>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="main.js"></script>
+<script src="dashboard-common.js"></script>
+<script src="my-bookings.js"></script>
+</body>
+</html>

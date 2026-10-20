@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Admin | KADZ Tech</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="admin">
+
+<main>
+  <div class="page-head">
+    <div class="wrap dash-head">
+      <div style="display:grid;gap:.6rem">
+        <span class="dock"><b>Admin</b> <span id="who">…</span></span>
+        <h1>Admin panel</h1>
+      </div>
+      <button class="btn btn-plain" type="button" id="refresh">Refresh</button>
+    </div>
+  </div>
+
+  <section style="padding-top:2rem">
+    <div class="wrap">
+      <div class="stats" id="stats"></div>
+
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" data-tab="warehouses" aria-selected="true">Warehouses <span class="count" id="c-wh" hidden></span></button>
+        <button class="tab" role="tab" data-tab="bookings" aria-selected="false">Bookings <span class="count" id="c-bk" hidden></span></button>
+        <button class="tab" role="tab" data-tab="quotes" aria-selected="false">Quote requests <span class="count" id="c-q" hidden></span></button>
+        <button class="tab" role="tab" data-tab="users" aria-selected="false">Users</button>
+      </div>
+
+      <div data-panel="warehouses">
+        <div class="inline-form" style="margin-bottom:1rem">
+          <label class="ctrl" style="max-width:220px"><span class="label">Show</span>
+            <select id="wh-filter">
+              <option value="pending">Waiting for review</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
+              <option value="">All</option>
+            </select>
+          </label>
+        </div>
+        <div class="rows" id="wh-list"></div>
+      </div>
+
+      <div data-panel="bookings" hidden>
+        <div class="inline-form" style="margin-bottom:1rem">
+          <label class="ctrl" style="max-width:220px"><span class="label">Show</span>
+            <select id="bk-filter">
+              <option value="pending">Pending</option>
+              <option value="confirmed">Confirmed</option>
+              <option value="completed">Completed</option>
+              <option value="rejected">Rejected</option>
+              <option value="cancelled">Cancelled</option>
+              <option value="">All</option>
+            </select>
+          </label>
+        </div>
+        <div class="rows" id="bk-list"></div>
+      </div>
+
+      <div data-panel="quotes" hidden><div class="rows" id="q-list"></div></div>
+
+      <div data-panel="users" hidden>
+        <div class="inline-form" style="margin-bottom:1rem">
+          <label class="ctrl" style="max-width:320px"><span class="label">Search</span><input id="u-search" type="search" placeholder="Name, company or email"></label>
+          <label class="ctrl" style="max-width:180px"><span class="label">Role</span>
+            <select id="u-role"><option value="">All</option><option value="client">Client</option><option value="partner">Partner</option><option value="admin">Admin</option></select>
+          </label>
+        </div>
+        <div class="rows" id="u-list"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="main.js"></script>
+<script src="dashboard-common.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>

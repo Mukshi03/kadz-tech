@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Log in | KADZ Tech</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="login">
+
+<main>
+  <section>
+    <div class="wrap auth">
+      <div class="tabs" role="tablist">
+        <button class="tab" role="tab" id="tab-login" aria-selected="true">Log in</button>
+        <button class="tab" role="tab" id="tab-signup" aria-selected="false">Create account</button>
+      </div>
+
+      <!-- Log in -->
+      <form class="form" id="login-form" novalidate>
+        <h2>Welcome back</h2>
+        <label class="ctrl"><span>Email</span><input id="l-email" type="email" required autocomplete="email"></label>
+        <label class="ctrl"><span>Password</span><input id="l-pass" type="password" required autocomplete="current-password"></label>
+        <div class="form-status" hidden role="status"></div>
+        <div class="actions" style="justify-content:space-between">
+          <button class="btn btn-primary" type="submit">Log in</button>
+          <button class="linkbtn" type="button" id="forgot">Forgot password?</button>
+        </div>
+      </form>
+
+      <!-- Sign up -->
+      <form class="form" id="signup-form" novalidate hidden>
+        <h2>Create your account</h2>
+        <fieldset>
+          <legend>I want to</legend>
+          <div class="role-pick">
+            <label class="check"><span><input type="radio" name="role" value="client" checked> Rent storage</span><small>I'm a business that needs space</small></label>
+            <label class="check"><span><input type="radio" name="role" value="partner"> List my warehouse</span><small>I own or run a warehouse</small></label>
+          </div>
+        </fieldset>
+        <div class="form-row">
+          <label class="ctrl"><span>Full name</span><input id="s-name" required autocomplete="name"></label>
+          <label class="ctrl"><span>Company</span><input id="s-company" autocomplete="organization"></label>
+        </div>
+        <label class="ctrl"><span>Phone</span><input id="s-phone" type="tel" required autocomplete="tel" placeholder="+966"></label>
+        <label class="ctrl"><span>Email</span><input id="s-email" type="email" required autocomplete="email"></label>
+        <label class="ctrl"><span>Password <em>at least 8 characters</em></span><input id="s-pass" type="password" minlength="8" required autocomplete="new-password"></label>
+        <div class="form-status" hidden role="status"></div>
+        <div><button class="btn btn-primary" type="submit">Create account</button></div>
+      </form>
+
+      <!-- Reset password (after clicking the email link) -->
+      <form class="form" id="reset-form" novalidate hidden>
+        <h2>Set a new password</h2>
+        <label class="ctrl"><span>New password <em>at least 8 characters</em></span><input id="r-pass" type="password" minlength="8" required autocomplete="new-password"></label>
+        <div class="form-status" hidden role="status"></div>
+        <div><button class="btn btn-primary" type="submit">Save password</button></div>
+      </form>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="main.js"></script>
+<script src="login.js"></script>
+</body>
+</html>

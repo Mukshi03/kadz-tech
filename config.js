@@ -13,13 +13,14 @@ window.KADZ = {
     address: ""              // e.g. "Jeddah, Saudi Arabia"
   },
 
-  // Cities shown in the search filters, e.g. ["Jeddah", "Riyadh", "Dammam"]
-  cities: [],
+  // Cities offered in search filters and the partner form,
+  // e.g. ["Jeddah", "Riyadh", "Dammam"]
+  cities: ["Jeddah", "Riyadh", "Dammam"],
 
   currency: "SAR",
 
-  // Monthly price per pallet position for each storage type.
-  // Leave as null to show "Price on request" in the estimator.
+  // Default monthly price per pallet used by the estimator on the quote page.
+  // Leave as null to show "On request". Each warehouse sets its own price.
   rates: {
     dry: null,
     ambient: null,
@@ -27,21 +28,10 @@ window.KADZ = {
     frozen: null
   },
 
-  // URL that receives form submissions as JSON (POST).
-  // Leave empty until your backend / form service is ready.
-  formEndpoint: "",
-
-  /* Warehouse listings. Add one object per warehouse:
-     {
-       name: "North Industrial Hub",
-       city: "Jeddah",
-       district: "Industrial City, Phase 3",
-       types: ["dry", "chilled"],          // dry | ambient | chilled | frozen
-       areaSqm: 4200,
-       palletsAvailable: 380,
-       minMonths: 1,
-       features: ["24/7 CCTV", "Loading docks", "WMS access"]
-     }
-  */
-  warehouses: []
+  /* ---------- Supabase connection ----------
+     Supabase dashboard → Project Settings → API Keys.
+     Copy the Project URL and the anon / publishable key.
+     The anon key is safe to publish: database rules protect the data. */
+  supabaseUrl:"https://gpwxkcajprnroeffknqh.supabase.co",           // e.g. "https://abcdxyz.supabase.co"
+  supabaseAnonKey:"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imdwd3hrY2FqcHJucm9lZmZrbnFoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI0NjczODIsImV4cCI6MjEwODA0MzM4Mn0.5z1dT1jpdzCnYgv4FvQHtiA67UpmI6_eTF8ADl6KIdg"
 };

@@ -35,68 +35,25 @@
     </div>
 
     <div class="wrap">
-      <form class="form" data-kind="partner" novalidate style="max-width:860px">
-        <h3>Partner application</h3>
-        <div class="form-row">
-          <label class="ctrl"><span>Company name</span><input id="p-company" name="company" required autocomplete="organization"></label>
-          <label class="ctrl"><span>Contact person</span><input id="p-name" name="name" required autocomplete="name"></label>
-        </div>
-        <div class="form-row">
-          <label class="ctrl"><span>Email</span><input id="p-email" name="email" type="email" required autocomplete="email"></label>
-          <label class="ctrl"><span>Phone</span><input id="p-phone" name="phone" type="tel" required autocomplete="tel" placeholder="+966"></label>
-        </div>
-        <div class="form-row">
-          <label class="ctrl"><span>City</span><input id="p-city" name="city" required></label>
-          <label class="ctrl"><span>District or location link <em>optional</em></span><input id="p-location" name="location"></label>
-        </div>
-        <div class="form-row">
-          <label class="ctrl"><span>Total area <em>m²</em></span><input id="p-area" name="areaSqm" type="number" min="1" required></label>
-          <label class="ctrl"><span>Available pallet positions</span><input id="p-pallets" name="palletsAvailable" type="number" min="1" required></label>
-        </div>
-
-        <fieldset data-name="storageTypes" data-required>
-          <legend>Storage types offered</legend>
-          <div class="checks">
-            <label class="check"><input type="checkbox" value="dry"> Dry</label>
-            <label class="check"><input type="checkbox" value="ambient"> Ambient 15–25 °C</label>
-            <label class="check"><input type="checkbox" value="chilled"> Chilled 2–8 °C</label>
-            <label class="check"><input type="checkbox" value="frozen"> Frozen −18 °C</label>
-          </div>
-          <span class="err" hidden>Choose at least one storage type.</span>
-        </fieldset>
-
-        <fieldset data-name="licenses">
-          <legend>Licenses held</legend>
-          <div class="checks">
-            <label class="check"><input type="checkbox" value="commercial-registration"> Commercial registration</label>
-            <label class="check"><input type="checkbox" value="baladiya"> Municipality (Baladiya)</label>
-            <label class="check"><input type="checkbox" value="civil-defense"> Civil Defense</label>
-            <label class="check"><input type="checkbox" value="sfda"> SFDA</label>
-          </div>
-        </fieldset>
-
-        <fieldset data-name="facilities">
-          <legend>Facilities</legend>
-          <div class="checks">
-            <label class="check"><input type="checkbox" value="racking"> Racking</label>
-            <label class="check"><input type="checkbox" value="loading-docks"> Loading docks</label>
-            <label class="check"><input type="checkbox" value="forklifts"> Forklifts</label>
-            <label class="check"><input type="checkbox" value="cctv"> 24/7 CCTV</label>
-            <label class="check"><input type="checkbox" value="wms"> Warehouse software</label>
-          </div>
-        </fieldset>
-
-        <label class="ctrl"><span>Anything else? <em>optional</em></span>
-          <textarea id="p-notes" name="notes" placeholder="Operating hours, staff, minimum term"></textarea>
-        </label>
-        <label class="check" style="justify-self:start"><input type="checkbox" name="terms" required> I confirm the details above are accurate.</label>
-        <div class="form-status" hidden role="status"></div>
-        <div><button class="btn btn-primary" type="submit">Submit application</button></div>
-      </form>
+      <div class="section-head" style="margin-bottom:1.5rem">
+        <span class="dock"><b>How it works</b> For owners</span>
+        <h2>From sign-up to first booking</h2>
+      </div>
+      <div class="grid-4 steps" style="--band-ink:var(--ink)">
+        <div class="step"><h3>Create an account</h3><p>Sign up as a partner with your company details.</p></div>
+        <div class="step"><h3>Add your warehouse</h3><p>Enter capacity, storage types and price, and upload photos and licenses.</p></div>
+        <div class="step"><h3>Get approved</h3><p>Our team checks the listing and licenses. You get an email when it goes live.</p></div>
+        <div class="step"><h3>Receive bookings</h3><p>Clients book pallet space. We confirm each booking and handle billing.</p></div>
+      </div>
+      <div class="actions" style="margin-top:2.5rem">
+        <a class="btn btn-primary" href="login.html?mode=signup&amp;role=partner">Create a partner account</a>
+        <a class="btn btn-plain" href="login.html?next=partner-dashboard.html">I already have an account</a>
+      </div>
     </div>
   </section>
 </main>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
 <script src="config.js"></script>
 <script src="main.js"></script>
 </body>

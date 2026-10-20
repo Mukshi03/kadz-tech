@@ -1,19 +1,100 @@
-/* KADZ Tech — shared site script */
+/* KADZ Tech — shared site script (loaded on every page) */
 (function () {
   const C = window.KADZ || {};
   const page = document.body.dataset.page;
 
+  /* ---------- Helpers ---------- */
   const TYPES = {
-    dry:     { name: "Dry",     range: "Uncontrolled" },
+    dry:     { name: "Dry",     range: "No control" },
     ambient: { name: "Ambient", range: "15–25 °C" },
     chilled: { name: "Chilled", range: "2–8 °C" },
-    frozen:  { name: "Frozen",  range: "−18 °C and below" }
+    frozen:  { name: "Frozen",  range: "−18 °C" }
   };
-
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-  const fmt = (n) => Number(n).toLocaleString("en-US");
+  const fmt = (n) => Number(n || 0).toLocaleString("en-US");
+  const money = (n) => (n == null || n === "") ? "On request" : `${Number(n).toLocaleString("en-US", { maximumFractionDigits: 2 })} ${C.currency || "SAR"}`;
+  const date = (d) => d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "–";
   const $ = (sel, root = document) => root.querySelector(sel);
+  const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
+
+  const PILL = {
+    pending: "warn", approved: "ok", confirmed: "ok", paid: "ok",
+    rejected: "bad", cancelled: "bad", unpaid: "muted", invoiced: "info",
+    completed: "muted", new: "warn", handled: "muted",
+    client: "muted", partner: "info", admin: "warn"
+  };
+  const pill = (s) => `<span class="pill ${PILL[s] || "muted"}">${esc(s)}</span>`;
+  const typeChips = (types) => (types || []).map((t) =>
+    `<span class="chip ${esc(t)}">${esc(TYPES[t]?.name || t)}</span>`).join("");
+
+  /* ---------- Supabase ---------- */
+  let sb = null;
+  if (C.supabaseUrl && C.supabaseAnonKey && window.supabase) {
+    sb = window.supabase.createClient(C.supabaseUrl, C.supabaseAnonKey);
+  }
+  const photoUrl = (path) => sb ? sb.storage.from("warehouse-photos").getPublicUrl(path).data.publicUrl : "";
+
+  // Turn database error messages into something readable
+  function errMsg(e) {
+    const m = (e && (e.message || e.error_description)) || String(e || "Something went wrong.");
+    if (/row-level security/i.test(m)) return "You don't have permission to do that.";
+    if (/Invalid login credentials/i.test(m)) return "Email or password is incorrect.";
+    if (/Email not confirmed/i.test(m)) return "Confirm your email first. Check your inbox for the link.";
+    if (/violates foreign key.*bookings/i.test(m)) return "This warehouse has bookings, so it can't be deleted.";
+    return m;
+  }
+
+  let profileCache;
+  async function getUser() {
+    if (!sb) return { session: null, profile: null };
+    const { data: { session } } = await sb.auth.getSession();
+    if (!session) return { session: null, profile: null };
+    if (profileCache === undefined || profileCache?.id !== session.user.id) {
+      const { data } = await sb.from("profiles").select("*").eq("id", session.user.id).maybeSingle();
+      profileCache = data || null;
+    }
+    return { session, profile: profileCache };
+  }
+  const homeFor = (role) => role === "admin" ? "admin.html" : role === "partner" ? "partner-dashboard.html" : "my-bookings.html";
+
+  // Only allow redirects to pages on this site
+  function safeNext(n) {
+    return n && /^[a-z-]+\.html(\?[\w=&%.-]*)?(#[\w-]*)?$/i.test(n) ? n : null;
+  }
+
+  // Use on protected pages. Redirects to login when needed.
+  async function requireRole(roles) {
+    if (!sb) { showSetupNotice($("main")); return null; }
+    const u = await getUser();
+    if (!u.session) {
+      location.href = "login.html?next=" + encodeURIComponent(location.pathname.split("/").pop() + location.search);
+      return null;
+    }
+    if (roles && !roles.includes(u.profile?.role)) {
+      location.href = homeFor(u.profile?.role);
+      return null;
+    }
+    return u;
+  }
+
+  function showSetupNotice(where) {
+    if (!where) return;
+    const box = document.createElement("div");
+    box.className = "wrap";
+    box.innerHTML = `<div class="notice warn" style="margin-block:1.5rem">
+      <strong>Database not connected.</strong> Add your Supabase Project URL and anon key to
+      <code>config.js</code>. The setup guide explains where to find them.</div>`;
+    where.prepend(box);
+  }
+
+  // Small message that appears at the bottom of the screen
+  function toast(msg, bad) {
+    let t = $("#toast");
+    if (!t) { t = document.createElement("div"); t.id = "toast"; t.setAttribute("role", "status"); document.body.append(t); }
+    t.textContent = msg; t.className = bad ? "show bad" : "show";
+    clearTimeout(t._h); t._h = setTimeout(() => (t.className = ""), 4000);
+  }
 
   /* ---------- Header ---------- */
   const navItems = [
@@ -35,6 +116,7 @@
       <nav class="nav" id="site-nav">
         ${navItems.map(([href, label, key]) =>
           `<a href="${href}"${key === page ? ' aria-current="page"' : ""}>${label}</a>`).join("")}
+        <span id="nav-account"><a href="login.html"${page === "login" ? ' aria-current="page"' : ""}>Log in</a></span>
         <a class="btn btn-primary" href="quote.html">Get a quote</a>
       </nav>
     </div>`;
@@ -43,6 +125,20 @@
   toggle.addEventListener("click", () => {
     const open = nav.classList.toggle("open");
     toggle.setAttribute("aria-expanded", open);
+  });
+
+  const ready = getUser().then((u) => {
+    if (u.session) {
+      const dash = homeFor(u.profile?.role);
+      const label = u.profile?.role === "admin" ? "Admin" : u.profile?.role === "partner" ? "Partner dashboard" : "My bookings";
+      $("#nav-account").innerHTML = `<a href="${dash}"${["admin", "partner-dash", "my-bookings"].includes(page) ? ' aria-current="page"' : ""}>${label}</a><a href="#" id="logout">Log out</a>`;
+      $("#logout").addEventListener("click", async (e) => {
+        e.preventDefault();
+        await sb.auth.signOut();
+        location.href = "index.html";
+      });
+    }
+    return u;
   });
 
   /* ---------- Footer ---------- */
@@ -68,6 +164,7 @@
             <li><a href="services.html">Services</a></li>
             <li><a href="quote.html">Price estimator</a></li>
             <li><a href="partners.html">List your warehouse</a></li>
+            <li><a href="login.html">Log in / Sign up</a></li>
           </ul>
         </div>
         ${contactLines ? `<div><h4>Contact</h4><ul>${contactLines}</ul></div>` : ""}
@@ -76,66 +173,48 @@
     </div>`;
   document.body.append(footer);
 
-  /* ---------- Shared: fill city & type selects ---------- */
-  document.querySelectorAll("select[data-cities]").forEach((sel) => {
-    (C.cities || []).forEach((c) => sel.add(new Option(c, c)));
-  });
-  document.querySelectorAll("select[data-types]").forEach((sel) => {
-    Object.entries(TYPES).forEach(([k, t]) => sel.add(new Option(`${t.name} (${t.range})`, k)));
-  });
+  /* ---------- Fill city & storage-type selects ---------- */
+  $$("select[data-cities]").forEach((sel) => (C.cities || []).forEach((c) => sel.add(new Option(c, c))));
+  $$("select[data-types]").forEach((sel) =>
+    Object.entries(TYPES).forEach(([k, t]) => sel.add(new Option(`${t.name} (${t.range})`, k))));
+  $$("datalist[data-cities]").forEach((dl) => (C.cities || []).forEach((c) => dl.append(new Option(c))));
 
-  /* ---------- Shared: form submission ---------- */
-  async function submitForm(form, kind) {
+  /* ---------- Public quote form → quote_requests table ---------- */
+  $$("form[data-kind=quote]").forEach((form) => {
+    const btn = $("button[type=submit]", form);
+    const label = btn.textContent;
     const status = $(".form-status", form);
-    const data = Object.fromEntries(new FormData(form).entries());
-    form.querySelectorAll("fieldset[data-name]").forEach((fs) => {
-      data[fs.dataset.name] = [...fs.querySelectorAll("input:checked")].map((i) => i.value);
-    });
-    data.formType = kind;
-    data.submittedAt = new Date().toISOString();
-
-    if (!C.formEndpoint) {
-      status.className = "form-status notice warn";
-      status.textContent = "This form isn't connected yet. Set formEndpoint in config.js to start receiving submissions.";
-      console.info("[KADZ] Form data (not sent):", data);
-      status.hidden = false;
-      return;
-    }
-    const btn = $("button[type=submit]", form);
-    btn.disabled = true; btn.textContent = "Sending…";
-    try {
-      const res = await fetch(C.formEndpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data)
-      });
-      if (!res.ok) throw new Error(res.status);
-      form.reset();
-      status.className = "form-status notice";
-      status.textContent = "Thanks. Your request has been sent and our team will contact you within one business day.";
-    } catch (e) {
-      status.className = "form-status notice warn";
-      status.textContent = "We couldn't send your request. Check your connection and try again.";
-    } finally {
-      status.hidden = false;
-      btn.disabled = false; btn.textContent = btn.dataset.label;
-    }
-  }
-  document.querySelectorAll("form[data-kind]").forEach((form) => {
-    const btn = $("button[type=submit]", form);
-    if (btn) btn.dataset.label = btn.textContent;
-    form.addEventListener("submit", (e) => {
+    form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      // require at least one checkbox in required fieldsets
-      let ok = true;
-      form.querySelectorAll("fieldset[data-required]").forEach((fs) => {
-        const err = $(".err", fs);
-        const any = fs.querySelector("input:checked");
-        if (err) err.hidden = !!any;
-        if (!any) ok = false;
-      });
-      if (!ok || !form.reportValidity()) return;
-      submitForm(form, form.dataset.kind);
+      const fs = $("fieldset[data-name=services]", form);
+      const services = $$("input:checked", fs).map((i) => i.value);
+      $(".err", fs).hidden = services.length > 0;
+      if (!services.length || !form.reportValidity()) return;
+      if (!sb) {
+        status.className = "form-status notice warn";
+        status.textContent = "This form isn't connected yet. Add your Supabase details to config.js.";
+        status.hidden = false;
+        return;
+      }
+      const f = new FormData(form);
+      const row = {
+        name: f.get("name"), company: f.get("company") || null, email: f.get("email"), phone: f.get("phone") || null,
+        services, storage_type: f.get("storageType") || null, city: f.get("city") || null,
+        pallets: f.get("pallets") ? Number(f.get("pallets")) : null,
+        months: f.get("months") ? Number(f.get("months")) : null, notes: f.get("notes") || null
+      };
+      btn.disabled = true; btn.textContent = "Sending…";
+      const { error } = await sb.from("quote_requests").insert(row);
+      btn.disabled = false; btn.textContent = label;
+      if (error) {
+        status.className = "form-status notice warn";
+        status.textContent = "We couldn't send your request: " + errMsg(error);
+      } else {
+        form.reset();
+        status.className = "form-status notice";
+        status.textContent = "Thanks. Your request has been sent and our team will contact you soon.";
+      }
+      status.hidden = false;
     });
   });
 
@@ -152,65 +231,8 @@
     });
   }
 
-  /* ---------- Warehouses: search & listings ---------- */
-  if (page === "warehouses") {
-    const list = $("#listings"), count = $("#result-count");
-    const fCity = $("#f-city"), fType = $("#f-type"), fPal = $("#f-pallets"), fSort = $("#f-sort");
-    const q = new URLSearchParams(location.search);
-    if (q.get("city")) fCity.value = q.get("city");
-    if (q.get("type")) fType.value = q.get("type");
-    if (q.get("pallets")) fPal.value = q.get("pallets");
-
-    function render() {
-      const all = C.warehouses || [];
-      if (!all.length) {
-        count.textContent = "0 warehouses";
-        list.innerHTML = `
-          <div class="empty">
-            <strong>No warehouses listed yet</strong>
-            <p>Warehouses appear here once they're added. Own a facility? List it and reach businesses looking for space.</p>
-            <a class="btn btn-primary" href="partners.html">List your warehouse</a>
-          </div>`;
-        return;
-      }
-      const minPal = Number(fPal.value) || 0;
-      let rows = all.filter((w) =>
-        (!fCity.value || w.city === fCity.value) &&
-        (!fType.value || (w.types || []).includes(fType.value)) &&
-        (Number(w.palletsAvailable) || 0) >= minPal);
-      if (fSort.value === "pallets") rows.sort((a, b) => b.palletsAvailable - a.palletsAvailable);
-      if (fSort.value === "area") rows.sort((a, b) => b.areaSqm - a.areaSqm);
-      count.textContent = `${rows.length} of ${all.length} warehouse${all.length === 1 ? "" : "s"}`;
-      if (!rows.length) {
-        list.innerHTML = `<div class="empty"><strong>No matches</strong><p>Try another city or storage type, or lower the pallet count.</p></div>`;
-        return;
-      }
-      list.innerHTML = rows.map((w) => `
-        <article class="listing">
-          <div>
-            <h3>${esc(w.name)}</h3>
-            <p class="meta">${esc([w.district, w.city].filter(Boolean).join(", "))}${w.areaSqm ? ` · <span class="num">${fmt(w.areaSqm)}</span> m²` : ""}</p>
-            <div class="chips">${(w.types || []).map((t) => `<span class="chip ${esc(t)}">${esc(TYPES[t]?.name || t)}</span>`).join("")}</div>
-            ${w.features?.length ? `<p class="features">${w.features.map(esc).join(" · ")}</p>` : ""}
-          </div>
-          <div class="side">
-            <div><div class="big num">${fmt(w.palletsAvailable || 0)}</div><span class="label">pallets free</span></div>
-            <a class="btn btn-primary" href="quote.html?warehouse=${encodeURIComponent(w.name)}">Request space</a>
-          </div>
-        </article>`).join("");
-    }
-    [fCity, fType, fPal, fSort].forEach((el) => el.addEventListener("input", render));
-    render();
-  }
-
-  /* ---------- Quote: estimator ---------- */
+  /* ---------- Quote page: estimator ---------- */
   if (page === "quote") {
-    const q = new URLSearchParams(location.search);
-    const wh = q.get("warehouse");
-    if (wh) {
-      const n = $("#q-notes");
-      n.value = `Interested in: ${wh}`;
-    }
     const PALLET_M3 = 1.2 * 1.0 * 1.5 * 0.85; // 1.2×1.0 m pallet, 1.5 m load, 85% fill
     const eMode = $("#e-mode"), boxesBlock = $("#e-boxes-block"), palBlock = $("#e-pallets-block");
     const fields = ["e-mode", "e-type", "e-pallets", "e-boxes", "e-l", "e-w", "e-h", "e-months"].map((id) => $("#" + id));
@@ -235,18 +257,15 @@
       $("#r-volume").textContent = volume.toFixed(1) + " m³";
       $("#r-type").textContent = TYPES[type].name + " · " + TYPES[type].range;
       $("#r-months").textContent = months + (months === 1 ? " month" : " months");
-
       if (rate == null || rate === "") {
         $("#r-rate").textContent = "On request";
         $("#r-total").textContent = "On request";
-        $("#r-note").textContent = "Send the form and we'll reply with a price for this space.";
+        $("#r-note").textContent = "Send the form and we'll reply with a price, or browse warehouses to see their prices.";
       } else {
-        const total = pallets * rate * months;
         $("#r-rate").textContent = `${fmt(rate)} ${C.currency} / pallet / month`;
-        $("#r-total").textContent = `${fmt(total)} ${C.currency}`;
+        $("#r-total").textContent = money(pallets * rate * months);
         $("#r-note").textContent = "Estimate only, excluding handling, transport and VAT.";
       }
-      // carry into quote form
       $("#q-type").value = type;
       $("#q-pallets").value = pallets || "";
       $("#q-months").value = months;
@@ -254,4 +273,8 @@
     fields.forEach((f) => f.addEventListener("input", calc));
     calc();
   }
+
+  /* ---------- Shared API for page scripts ---------- */
+  window.KZ = { C, sb, TYPES, esc, fmt, money, date, $, $$, pill, typeChips, photoUrl, errMsg,
+                getUser, requireRole, homeFor, safeNext, toast, showSetupNotice, ready };
 })();

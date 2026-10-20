@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Warehouse | KADZ Tech</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-page="warehouse">
+
+<main>
+  <div class="page-head">
+    <div class="wrap">
+      <a href="warehouses.html" class="label" style="text-decoration:none">← All warehouses</a>
+      <h1 id="wh-name">Loading…</h1>
+      <p class="lead" id="wh-place"></p>
+      <div class="chips" id="wh-types" style="display:flex;gap:.4rem;flex-wrap:wrap"></div>
+    </div>
+  </div>
+
+  <section style="padding-top:2rem">
+    <div class="wrap wh-layout" id="wh-body">
+      <div style="display:grid;gap:1.8rem;min-width:0">
+        <div class="gallery" id="gallery"><div class="main"></div></div>
+        <div class="spec" id="spec"></div>
+        <div id="wh-desc" style="display:grid;gap:1rem"></div>
+      </div>
+
+      <aside class="book-box">
+        <form class="form" id="book-form" novalidate>
+          <h3>Request space</h3>
+          <p class="muted" style="font-size:.92rem">Send a request. We confirm availability and price, then send an invoice.</p>
+          <label class="ctrl"><span>Storage type</span><select id="b-type" required></select></label>
+          <div class="form-row">
+            <label class="ctrl"><span>Pallets</span><input id="b-pallets" type="number" min="1" required inputmode="numeric"></label>
+            <label class="ctrl"><span>Months</span><input id="b-months" type="number" min="1" value="1" required></label>
+          </div>
+          <label class="ctrl"><span>Start date</span><input id="b-start" type="date" required></label>
+          <label class="ctrl"><span>Notes <em>optional</em></span><textarea id="b-notes" placeholder="Product type, handling needs"></textarea></label>
+          <div class="estimate" style="border-radius:var(--radius);padding:1rem 1.2rem">
+            <div class="row"><span>Rate</span><strong id="b-rate">–</strong></div>
+            <div><span class="label">Estimated total</span><div class="total num" id="b-total" style="font-size:2.2rem">–</div></div>
+            <small>Excludes handling, transport and VAT.</small>
+          </div>
+          <div class="form-status" hidden role="status"></div>
+          <button class="btn btn-primary" type="submit" id="b-submit">Request booking</button>
+        </form>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script src="config.js"></script>
+<script src="main.js"></script>
+<script src="warehouse.js"></script>
+</body>
+</html>

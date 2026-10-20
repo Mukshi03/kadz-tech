@@ -1,6 +1,6 @@
-/* Warehouse detail page + booking request */
+/* Warehouse detail page + quotation request */
 (async function () {
-  const { sb, C, TYPES, esc, fmt, money, $, typeChips, photoUrl, errMsg, showSetupNotice, ready } = window.KZ;
+  const { sb, C, TYPES, esc, fmt, $, typeChips, photoUrl, errMsg, showSetupNotice, ready } = window.KZ;
   const id = new URLSearchParams(location.search).get("id");
   const body = $("#wh-body");
 
@@ -14,14 +14,20 @@
   if (!sb) { showSetupNotice($("main")); return notFound("The database isn't connected yet."); }
   if (!id) return notFound("No warehouse was selected.");
 
-  const { data: w, error } = await sb.from("warehouses").select("*").eq("id", id).maybeSingle();
-  if (error || !w) return notFound("This warehouse doesn't exist or isn't listed anymore.");
+  // Public listing first; owners and admins can also preview unapproved ones
+  let { data: w } = await sb.from("public_warehouses").select("*").eq("id", id).maybeSingle();
+  let preview = false;
+  if (!w) {
+    const r = await sb.from("warehouses").select("*").eq("id", id).maybeSingle();
+    w = r.data; preview = !!w;
+  }
+  if (!w) return notFound("This warehouse doesn't exist or isn't listed anymore.");
 
   document.title = `${w.name} | ${C.company}`;
   $("#wh-name").textContent = w.name;
   $("#wh-place").textContent = [w.district, w.city].filter(Boolean).join(", ");
   $("#wh-types").innerHTML = typeChips(w.storage_types) +
-    (w.status !== "approved" ? ` <span class="pill warn">${esc(w.status)} – only you can see this</span>` : "");
+    (preview ? ` <span class="pill warn">${esc(w.status)} – only you can see this</span>` : "");
 
   /* Gallery */
   const photos = (w.photos || []).map(photoUrl);
@@ -42,7 +48,7 @@
   /* Specs */
   $("#spec").innerHTML = `
     <div><span class="label">Pallets free</span><b>${fmt(w.pallets_available)}</b></div>
-    <div><span class="label">Price / pallet / month</span><b>${w.price_per_pallet != null ? fmt(w.price_per_pallet) : "–"}</b>${w.price_per_pallet != null ? `<span class="muted">${esc(C.currency)}</span>` : `<span class="muted">On request</span>`}</div>
+    <div><span class="label">Pallet positions</span><b>${fmt(w.pallets_total)}</b></div>
     <div><span class="label">Area</span><b>${w.area_sqm ? fmt(w.area_sqm) : "–"}</b><span class="muted">m²</span></div>
     <div><span class="label">Minimum rental</span><b>${w.min_months}</b><span class="muted">month${w.min_months > 1 ? "s" : ""}</span></div>`;
 
@@ -52,34 +58,26 @@
     w.description && `<div><h3 style="margin-bottom:.5rem">About</h3><p style="white-space:pre-line;max-width:65ch">${esc(w.description)}</p></div>`,
     w.features?.length && `<div><span class="label">Facilities</span><div class="taglist" style="margin-top:.4rem">${w.features.map((f) => `<span class="tag">${esc(FEAT[f] || f)}</span>`).join("")}</div></div>`,
     w.licenses?.length && `<div><span class="label">Licenses</span><div class="taglist" style="margin-top:.4rem">${w.licenses.map((f) => `<span class="tag">${esc(LIC[f] || f)}</span>`).join("")}</div></div>`,
-    w.map_url && /^https?:\/\//.test(w.map_url) && `<p><a href="${esc(w.map_url)}" target="_blank" rel="noopener">Open location in maps →</a></p>`
+    w.map_url && /^https?:\/\//.test(w.map_url) && `<p><a href="${esc(w.map_url)}" target="_blank" rel="noopener">Open location in maps →</a></p>`,
+    `<p class="note">Prices depend on storage type, quantity and duration. Request a quotation and we'll reply with a price.</p>`
   ].filter(Boolean).join("");
 
-  /* Booking form */
+  /* Quotation request form */
   const form = $("#book-form"), status = $(".form-status", form), btn = $("#b-submit");
   const bType = $("#b-type"), bPal = $("#b-pallets"), bMonths = $("#b-months"), bStart = $("#b-start");
   (w.storage_types || []).forEach((t) => bType.add(new Option(`${TYPES[t]?.name || t} (${TYPES[t]?.range || ""})`, t)));
-  bPal.max = w.pallets_available || 1;
   bPal.value = Math.min(10, w.pallets_available || 1);
   bMonths.min = w.min_months; bMonths.value = w.min_months;
   const today = new Date(); today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
   bStart.min = today.toISOString().slice(0, 10);
   bStart.value = bStart.min;
 
-  function calc() {
-    const p = +bPal.value || 0, m = +bMonths.value || 0;
-    $("#b-rate").textContent = w.price_per_pallet != null ? `${money(w.price_per_pallet)} / pallet / month` : "On request";
-    $("#b-total").textContent = w.price_per_pallet != null && p && m ? money(w.price_per_pallet * p * m) : (w.price_per_pallet == null ? "On request" : "–");
-  }
-  [bPal, bMonths].forEach((el) => el.addEventListener("input", calc));
-  calc();
-
   const u = await ready;
-  if (w.status !== "approved" || !w.pallets_available) {
+  const label = !u.session ? "Log in to request a quotation" : "Request quotation";
+  btn.textContent = label;
+  if (preview && w.status !== "approved") {
     btn.disabled = true;
-    btn.textContent = w.status !== "approved" ? "Not open for booking yet" : "Fully booked";
-  } else if (!u.session) {
-    btn.textContent = "Log in to book";
+    btn.textContent = "Not listed yet";
   }
 
   form.addEventListener("submit", async (e) => {
@@ -95,14 +93,14 @@
       pallets: +bPal.value, months: +bMonths.value, start_date: bStart.value,
       notes: $("#b-notes").value.trim() || null
     }).select("ref").single();
-    btn.disabled = false; btn.textContent = "Request booking";
+    btn.disabled = false; btn.textContent = label;
     if (error) {
       status.className = "form-status notice warn";
       status.textContent = errMsg(error);
     } else {
-      form.reset(); bStart.value = bStart.min; bMonths.value = w.min_months; calc();
+      form.reset(); bStart.value = bStart.min; bMonths.value = w.min_months; bPal.value = Math.min(10, w.pallets_available || 1);
       status.className = "form-status notice";
-      status.innerHTML = `Request <strong>${esc(data.ref)}</strong> sent. We'll confirm soon. <a href="my-bookings.html">View my bookings →</a>`;
+      status.innerHTML = `Request <strong>${esc(data.ref)}</strong> sent. We'll send you a quotation soon. <a href="my-bookings.html">View my quotes →</a>`;
     }
     status.hidden = false;
   });

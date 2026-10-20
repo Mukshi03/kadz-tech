@@ -19,12 +19,16 @@
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
   const PILL = {
-    pending: "warn", approved: "ok", confirmed: "ok", paid: "ok",
+    pending: "warn", quoted: "info", approved: "ok", confirmed: "ok", paid: "ok", declined: "bad", expired: "muted",
     rejected: "bad", cancelled: "bad", unpaid: "muted", invoiced: "info",
     completed: "muted", new: "warn", handled: "muted",
     client: "muted", partner: "info", admin: "warn"
   };
-  const pill = (s) => `<span class="pill ${PILL[s] || "muted"}">${esc(s)}</span>`;
+  const pill = (s, label) => `<span class="pill ${PILL[s] || "muted"}">${esc(label || s)}</span>`;
+  // Booking statuses read better with friendlier names
+  const BOOKING_LABEL = { pending: "quote requested", quoted: "quote sent" };
+  const quoteExpired = (b) => b.status === "quoted" && b.quote_valid_until && b.quote_valid_until < new Date().toISOString().slice(0, 10);
+  const bookingPill = (b) => quoteExpired(b) ? pill("expired", "quote expired") : pill(b.status, BOOKING_LABEL[b.status]);
   const typeChips = (types) => (types || []).map((t) =>
     `<span class="chip ${esc(t)}">${esc(TYPES[t]?.name || t)}</span>`).join("");
 
@@ -260,7 +264,7 @@
       if (rate == null || rate === "") {
         $("#r-rate").textContent = "On request";
         $("#r-total").textContent = "On request";
-        $("#r-note").textContent = "Send the form and we'll reply with a price, or browse warehouses to see their prices.";
+        $("#r-note").textContent = "Send the form and we'll reply with a quotation.";
       } else {
         $("#r-rate").textContent = `${fmt(rate)} ${C.currency} / pallet / month`;
         $("#r-total").textContent = money(pallets * rate * months);
@@ -275,6 +279,6 @@
   }
 
   /* ---------- Shared API for page scripts ---------- */
-  window.KZ = { C, sb, TYPES, esc, fmt, money, date, $, $$, pill, typeChips, photoUrl, errMsg,
+  window.KZ = { C, sb, TYPES, esc, fmt, money, date, $, $$, pill, bookingPill, quoteExpired, typeChips, photoUrl, errMsg,
                 getUser, requireRole, homeFor, safeNext, toast, showSetupNotice, ready };
 })();

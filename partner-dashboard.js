@@ -1,6 +1,6 @@
 /* Partner dashboard: add/edit warehouses, see their bookings */
 (async function () {
-  const { sb, TYPES, esc, fmt, money, date, $, $$, pill, typeChips, photoUrl, toast, errMsg,
+  const { sb, TYPES, esc, fmt, date, $, $$, pill, typeChips, photoUrl, toast, errMsg,
           requireRole, setupTabs, setupProfileForm } = window.KZ;
   const u = await requireRole(["partner", "admin"]);
   if (!u) return;
@@ -40,7 +40,7 @@
         </div>
         <dl class="kv">
           <div><dt>Pallets free</dt><dd>${fmt(w.pallets_available)} / ${fmt(w.pallets_total)}</dd></div>
-          <div><dt>Price</dt><dd>${w.price_per_pallet != null ? money(w.price_per_pallet) : "On request"}</dd></div>
+          <div><dt>Minimum rental</dt><dd>${w.min_months} month${w.min_months > 1 ? "s" : ""}</dd></div>
           <div><dt>Area</dt><dd>${w.area_sqm ? fmt(w.area_sqm) + " m²" : "–"}</dd></div>
           <div><dt>Photos</dt><dd>${w.photos.length}</dd></div>
         </dl>
@@ -107,7 +107,7 @@
     $("#w-district").value = w.district || ""; $("#w-map").value = w.map_url || "";
     $("#w-address").value = w.address || ""; $("#w-desc").value = w.description || "";
     $("#w-area").value = w.area_sqm || ""; $("#w-pallets").value = w.pallets_total;
-    $("#w-price").value = w.price_per_pallet ?? ""; $("#w-min").value = w.min_months;
+    $("#w-min").value = w.min_months;
     setChecks("w-types", w.storage_types); setChecks("w-features", w.features); setChecks("w-licenses", w.licenses);
     renderFiles();
   }
@@ -154,13 +154,12 @@
     try {
       const newPhotos = await upload("warehouse-photos", $("#w-photos").files);
       const newDocs = await upload("warehouse-docs", $("#w-docs").files);
-      const price = $("#w-price").value;
       const row = {
         name: $("#w-name").value.trim(), city: $("#w-city").value.trim(),
         district: $("#w-district").value.trim() || null, map_url: $("#w-map").value.trim() || null,
         address: $("#w-address").value.trim() || null, description: $("#w-desc").value.trim() || null,
         area_sqm: $("#w-area").value ? +$("#w-area").value : null,
-        pallets_total: +$("#w-pallets").value, price_per_pallet: price === "" ? null : +price,
+        pallets_total: +$("#w-pallets").value,
         min_months: +$("#w-min").value || 1,
         storage_types: types, features: checks("w-features"), licenses: checks("w-licenses"),
         photos: [...keptPhotos, ...newPhotos], documents: [...keptDocs, ...newDocs]
@@ -186,16 +185,13 @@
   /* ---------------- Bookings for my warehouses ---------------- */
   async function loadBookings() {
     const box = $("#bk-list");
-    const { data, error } = await sb.from("bookings")
-      .select("*, warehouse:warehouses!inner(id, name, city, owner_id)")
-      .eq("warehouse.owner_id", uid)
-      .order("created_at", { ascending: false });
+    const { data, error } = await sb.rpc("partner_bookings");
     if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
-    if (!data.length) { box.innerHTML = `<div class="empty"><strong>No bookings yet</strong><p>Bookings for your approved warehouses will show here.</p></div>`; return; }
+    if (!data.length) { box.innerHTML = `<div class="empty"><strong>No confirmed bookings yet</strong><p>When a client's booking at your warehouse is confirmed, it shows here.</p></div>`; return; }
     box.innerHTML = data.map((b) => `
       <article class="row-card">
         <div class="row-top">
-          <div style="display:grid;gap:.3rem"><span class="label">${esc(b.ref)} · ${date(b.created_at)}</span><h3>${esc(b.warehouse.name)}</h3></div>
+          <div style="display:grid;gap:.3rem"><span class="label">${esc(b.ref)}</span><h3>${esc(b.warehouse_name)}</h3></div>
           ${pill(b.status)}
         </div>
         <dl class="kv">
@@ -204,7 +200,6 @@
           <div><dt>Start</dt><dd>${date(b.start_date)}</dd></div>
           <div><dt>Duration</dt><dd>${b.months} month${b.months > 1 ? "s" : ""}</dd></div>
         </dl>
-        ${b.notes ? `<p class="note">${esc(b.notes)}</p>` : ""}
       </article>`).join("");
   }
 

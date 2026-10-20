@@ -28,7 +28,7 @@
 
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" data-tab="warehouses" aria-selected="true">Warehouses <span class="count" id="c-wh" hidden></span></button>
-        <button class="tab" role="tab" data-tab="bookings" aria-selected="false">Bookings <span class="count" id="c-bk" hidden></span></button>
+        <button class="tab" role="tab" data-tab="bookings" aria-selected="false">Quotes &amp; bookings <span class="count" id="c-bk" hidden></span></button>
         <button class="tab" role="tab" data-tab="quotes" aria-selected="false">Quote requests <span class="count" id="c-q" hidden></span></button>
         <button class="tab" role="tab" data-tab="users" aria-selected="false">Users</button>
       </div>
@@ -52,9 +52,11 @@
           <label class="ctrl" style="max-width:220px"><span class="label">Show</span>
             <select id="bk-filter" autocomplete="off">
               <option value="">All</option>
-              <option value="pending">Pending</option>
+              <option value="pending">Quote requested</option>
+              <option value="quoted">Quote sent</option>
               <option value="confirmed">Confirmed</option>
               <option value="completed">Completed</option>
+              <option value="declined">Declined by client</option>
               <option value="rejected">Rejected</option>
               <option value="cancelled">Cancelled</option>
             </select>

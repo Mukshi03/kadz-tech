@@ -1,6 +1,6 @@
 /* Admin panel: approve warehouses, manage bookings, quote requests, users */
 (async function () {
-  const { sb, C, TYPES, esc, fmt, money, date, $, $$, pill, typeChips, photoUrl, toast, errMsg,
+  const { sb, C, TYPES, esc, fmt, money, date, $, $$, pill, bookingPill, typeChips, photoUrl, toast, errMsg,
           requireRole, setupTabs } = window.KZ;
   const u = await requireRole(["admin"]);
   if (!u) return;
@@ -16,17 +16,19 @@
   /* ---------------- Summary ---------------- */
   async function loadStats() {
     const count = (t, f) => { let q = sb.from(t).select("id", { count: "exact", head: true }); if (f) q = f(q); return q; };
-    const [wh, bk, qr, act] = await Promise.all([
+    const [wh, bk, qd, qr, act] = await Promise.all([
       count("warehouses", (q) => q.eq("status", "pending")),
       count("bookings", (q) => q.eq("status", "pending")),
+      count("bookings", (q) => q.eq("status", "quoted")),
       count("quote_requests", (q) => q.eq("status", "new")),
       sb.from("bookings").select("pallets").eq("status", "confirmed")
     ]);
-    const n = { wh: wh.count || 0, bk: bk.count || 0, q: qr.count || 0 };
+    const n = { wh: wh.count || 0, bk: bk.count || 0, qd: qd.count || 0, q: qr.count || 0 };
     const pallets = (act.data || []).reduce((s, b) => s + b.pallets, 0);
     $("#stats").innerHTML = `
       <div class="stat"><span class="label">Warehouses to review</span><b>${n.wh}</b></div>
-      <div class="stat"><span class="label">Bookings to confirm</span><b>${n.bk}</b></div>
+      <div class="stat"><span class="label">Quotations to send</span><b>${n.bk}</b></div>
+      <div class="stat"><span class="label">Waiting for client</span><b>${n.qd}</b></div>
       <div class="stat"><span class="label">New quote requests</span><b>${n.q}</b></div>
       <div class="stat"><span class="label">Pallets in active bookings</span><b>${fmt(pallets)}</b></div>`;
     [["c-wh", n.wh], ["c-bk", n.bk], ["c-q", n.q]].forEach(([id, v]) => { $("#" + id).textContent = v; $("#" + id).hidden = !v; });
@@ -56,7 +58,6 @@
         <dl class="kv">
           <div><dt>Owner</dt><dd>${contact(w.owner)}</dd></div>
           <div><dt>Pallets free / total</dt><dd>${fmt(w.pallets_available)} / ${fmt(w.pallets_total)}</dd></div>
-          <div><dt>Price</dt><dd>${w.price_per_pallet != null ? money(w.price_per_pallet) : "On request"}</dd></div>
           <div><dt>Area · min. months</dt><dd>${w.area_sqm ? fmt(w.area_sqm) + " m²" : "–"} · ${w.min_months}</dd></div>
           <div><dt>Licenses</dt><dd>${w.licenses.length ? w.licenses.map((l) => esc(LIC[l] || l)).join(", ") : "None stated"}</dd></div>
           ${w.map_url && /^https?:\/\//.test(w.map_url) ? `<div><dt>Location</dt><dd><a href="${esc(w.map_url)}" target="_blank" rel="noopener">Open map</a></dd></div>` : ""}
@@ -97,18 +98,45 @@
   });
   $("#wh-filter").addEventListener("change", loadWarehouses);
 
-  /* ---------------- Bookings ---------------- */
+  /* ---------------- Bookings & quotations ---------------- */
+  const iso = (d) => d.toISOString().slice(0, 10);
+  const inDays = (n) => { const d = new Date(); d.setDate(d.getDate() + n); return iso(d); };
+
+  // Which buttons each status gets: [new status, label, style]
+  const ACTIONS = {
+    pending:   [["quoted", "Send quotation", "btn-primary"], ["rejected", "Reject request", "btn-danger"]],
+    quoted:    [["quoted", "Update quotation", "btn-primary"], ["confirmed", "Mark as accepted", "btn-plain"], ["cancelled", "Withdraw quotation", "btn-danger"]],
+    confirmed: [["confirmed", "Save", "btn-primary"], ["completed", "Mark completed", "btn-plain"], ["cancelled", "Cancel booking", "btn-danger"]],
+    completed: [["completed", "Save", "btn-primary"]],
+    declined:  [["declined", "Save note", "btn-plain"]],
+    rejected:  [["rejected", "Save note", "btn-plain"]],
+    cancelled: [["cancelled", "Save note", "btn-plain"]]
+  };
+  const CONFIRM = {
+    rejected: "Reject this request? The client will be told we can't offer it.",
+    cancelled: "Cancel this? Any reserved pallets go back to the warehouse.",
+    confirmed: "Mark this quotation as accepted for the client? The pallets will be reserved.",
+    completed: "Mark this booking as completed? The pallets go back to the warehouse."
+  };
+
+  let bkData = [];
   async function loadBookings() {
     const box = $("#bk-list");
     let q = sb.from("bookings")
-      .select("*, client:profiles(full_name, company, email, phone), warehouse:warehouses(id, name, city, pallets_available, owner:profiles(full_name, company, email, phone))")
+      .select("*, cost:booking_costs(partner_price_per_pallet), client:profiles(full_name, company, email, phone), warehouse:warehouses(id, name, city, pallets_available, owner:profiles(full_name, company, email, phone))")
       .order("created_at", { ascending: false });
     if ($("#bk-filter").value) q = q.eq("status", $("#bk-filter").value);
     const { data, error } = await q;
     if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
-    if (!data.length) { box.innerHTML = `<div class="empty"><strong>Nothing here</strong><p>No bookings with this status.</p></div>`; return; }
-    const opt = (vals, cur) => vals.map((v) => `<option value="${v}"${v === cur ? " selected" : ""}>${v[0].toUpperCase() + v.slice(1)}</option>`).join("");
-    box.innerHTML = data.map((b) => `
+    bkData = data;
+    if (!data.length) { box.innerHTML = `<div class="empty"><strong>Nothing here</strong><p>No requests or bookings with this status.</p></div>`; return; }
+    const pay = (cur) => ["unpaid", "invoiced", "paid"].map((v) => `<option value="${v}"${v === cur ? " selected" : ""}>${v[0].toUpperCase() + v.slice(1)}</option>`).join("");
+
+    box.innerHTML = data.map((b) => {
+      const cost = (Array.isArray(b.cost) ? b.cost[0] : b.cost)?.partner_price_per_pallet ?? "";
+      const quoting = ["pending", "quoted"].includes(b.status);
+      const booked = ["confirmed", "completed"].includes(b.status);
+      return `
       <article class="row-card${b.status === "pending" ? " attention" : ""}" data-id="${esc(b.id)}">
         <div class="row-top">
           <div style="display:grid;gap:.3rem;min-width:0">
@@ -116,41 +144,79 @@
             <h3>${b.warehouse ? `<a href="warehouse.html?id=${esc(b.warehouse.id)}" style="text-decoration:none">${esc(b.warehouse.name)}</a>` : "Deleted warehouse"}</h3>
             ${b.warehouse ? `<span class="muted">${esc(b.warehouse.city)} · ${fmt(b.warehouse.pallets_available)} pallets free now</span>` : ""}
           </div>
-          <div class="actions">${pill(b.status)} ${pill(b.payment_status)}</div>
+          <div class="actions">${bookingPill(b)} ${booked ? pill(b.payment_status) : ""}</div>
         </div>
         <dl class="kv">
           <div><dt>Client</dt><dd>${contact(b.client)}</dd></div>
           <div><dt>Warehouse owner</dt><dd>${contact(b.warehouse?.owner)}</dd></div>
           <div><dt>Storage · pallets</dt><dd>${esc(TYPES[b.storage_type]?.name || b.storage_type)} · ${fmt(b.pallets)}</dd></div>
           <div><dt>Start · duration</dt><dd>${date(b.start_date)} · ${b.months} mo</dd></div>
-          <div><dt>Total</dt><dd>${b.total_amount != null ? money(b.total_amount) : "Set a price"}</dd></div>
+          ${b.status === "quoted" ? `<div><dt>Quote valid until</dt><dd>${date(b.quote_valid_until)}</dd></div>` : ""}
         </dl>
         ${b.notes ? `<p class="note">Client note: ${esc(b.notes)}</p>` : ""}
         <div class="inline-form">
-          <label class="ctrl"><span class="label">Status</span><select data-f="status">${opt(["pending", "confirmed", "rejected", "cancelled", "completed"], b.status)}</select></label>
-          <label class="ctrl"><span class="label">Payment</span><select data-f="payment_status">${opt(["unpaid", "invoiced", "paid"], b.payment_status)}</select></label>
-          <label class="ctrl"><span class="label">${esc(C.currency)} / pallet / month</span><input data-f="price_per_pallet" type="number" min="0" step="0.01" value="${b.price_per_pallet ?? ""}"></label>
-          <label class="ctrl" style="flex:2"><span class="label">Message to client</span><input data-f="admin_note" value="${esc(b.admin_note || "")}" placeholder="Shown on the client's booking"></label>
-          <button class="btn btn-sm btn-primary" data-save>Save</button>
+          <label class="ctrl"><span class="label">Partner price <em>admin only</em></span><input data-f="cost" type="number" min="0" step="0.01" value="${cost}" placeholder="${esc(C.currency)} / pallet / month"></label>
+          <label class="ctrl"><span class="label">Client price</span><input data-f="price_per_pallet" type="number" min="0" step="0.01" value="${b.price_per_pallet ?? ""}" placeholder="${esc(C.currency)} / pallet / month"${quoting ? "" : " disabled"}></label>
+          ${quoting ? `<label class="ctrl"><span class="label">Valid until</span><input data-f="quote_valid_until" type="date" min="${inDays(0)}" value="${b.quote_valid_until && b.quote_valid_until >= inDays(0) ? b.quote_valid_until : inDays(7)}"></label>` : ""}
+          ${booked ? `<label class="ctrl"><span class="label">Payment</span><select data-f="payment_status">${pay(b.payment_status)}</select></label>` : ""}
         </div>
-      </article>`).join("");
+        <p class="muted" data-calc style="font-size:.9rem"></p>
+        <div class="inline-form">
+          <label class="ctrl" style="flex:3"><span class="label">Message to client</span><input data-f="admin_note" value="${esc(b.admin_note || "")}" placeholder="Shown with the quotation or booking"></label>
+          ${(ACTIONS[b.status] || []).map(([st, label, cls]) => `<button class="btn btn-sm ${cls}" data-act="${st}">${label}</button>`).join("")}
+        </div>
+      </article>`;
+    }).join("");
+    $$("#bk-list [data-id]").forEach(calc);
   }
 
+  // Show client total, partner total and margin as prices are typed
+  function calc(card) {
+    const b = bkData.find((x) => x.id === card.dataset.id); if (!b) return;
+    const n = (f) => { const el = $(`[data-f=${f}]`, card); return el && el.value !== "" ? +el.value : null; };
+    const units = b.pallets * b.months, client = n("price_per_pallet"), cost = n("cost");
+    const parts = [];
+    if (client != null) parts.push(`Client total <strong>${money(client * units)}</strong>`);
+    if (cost != null) parts.push(`Partner total ${money(cost * units)}`);
+    if (client != null && cost != null) {
+      const m = (client - cost) * units;
+      parts.push(`Margin <strong style="color:var(${m < 0 ? "--bad" : "--ok"})">${money(m)}</strong>`);
+    }
+    $("[data-calc]", card).innerHTML = parts.length ? parts.join(" · ") + ` <span class="muted">(${fmt(b.pallets)} pallets × ${b.months} mo, excl. VAT)</span>` : "Enter prices to see totals and margin.";
+  }
+  $("#bk-list").addEventListener("input", (e) => { const c = e.target.closest("[data-id]"); if (c) calc(c); });
+
   $("#bk-list").addEventListener("click", async (e) => {
-    const b = e.target.closest("[data-save]");
-    if (!b) return;
-    const card = b.closest("[data-id]");
-    const v = (f) => $(`[data-f=${f}]`, card).value;
-    const price = v("price_per_pallet");
-    if (v("status") === "confirmed" && price === "") return toast("Set a price before confirming.", true);
-    b.disabled = true; b.textContent = "Saving…";
-    const { error } = await sb.from("bookings").update({
-      status: v("status"), payment_status: v("payment_status"),
-      price_per_pallet: price === "" ? null : +price, admin_note: v("admin_note").trim() || null
-    }).eq("id", card.dataset.id);
-    b.disabled = false; b.textContent = "Save";
-    if (error) return toast(errMsg(error), true);
-    toast("Booking updated");
+    const btn = e.target.closest("[data-act]");
+    if (!btn) return;
+    const card = btn.closest("[data-id]");
+    const b = bkData.find((x) => x.id === card.dataset.id);
+    const status = btn.dataset.act;
+    const val = (f) => { const el = $(`[data-f=${f}]`, card); return el ? el.value : undefined; };
+
+    if (status === "quoted" && val("price_per_pallet") === "") { $("[data-f=price_per_pallet]", card).focus(); return toast("Enter the client price first.", true); }
+    if (status !== b.status && CONFIRM[status] && !confirm(CONFIRM[status])) return;
+
+    const update = { status, admin_note: val("admin_note").trim() || null };
+    if (val("price_per_pallet") !== undefined && !$("[data-f=price_per_pallet]", card).disabled)
+      update.price_per_pallet = val("price_per_pallet") === "" ? null : +val("price_per_pallet");
+    if (val("quote_valid_until") !== undefined) update.quote_valid_until = val("quote_valid_until") || null;
+    if (val("payment_status") !== undefined) update.payment_status = val("payment_status");
+
+    btn.disabled = true; const label = btn.textContent; btn.textContent = "Saving…";
+    const { error } = await sb.from("bookings").update(update).eq("id", b.id);
+    let err = error;
+    if (!err) {
+      const cost = val("cost");
+      const old = (Array.isArray(b.cost) ? b.cost[0] : b.cost)?.partner_price_per_pallet ?? "";
+      if (String(cost) !== String(old)) {
+        const r = await sb.from("booking_costs").upsert({ booking_id: b.id, partner_price_per_pallet: cost === "" ? null : +cost, updated_at: new Date().toISOString() });
+        err = r.error;
+      }
+    }
+    btn.disabled = false; btn.textContent = label;
+    if (err) return toast(errMsg(err), true);
+    toast(status === "quoted" && b.status === "pending" ? "Quotation sent to the client" : "Saved");
     loadBookings(); loadStats();
   });
   $("#bk-filter").addEventListener("change", loadBookings);

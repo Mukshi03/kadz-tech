@@ -41,7 +41,7 @@
             <h3 id="form-title">Add a warehouse</h3>
             <button type="button" class="btn btn-sm btn-plain" id="cancel-edit" hidden>Cancel editing</button>
           </div>
-          <p class="muted" id="form-help">New listings are reviewed by our team before they appear in search. You'll get an email when it's approved.</p>
+          <p class="muted" id="form-help">New listings are reviewed by our team before they appear in search. You don't set a price here: we agree it with you for each client request.</p>
 
           <div class="form-row">
             <label class="ctrl"><span>Warehouse name</span><input id="w-name" required placeholder="e.g. North Industrial Hub"></label>
@@ -54,10 +54,9 @@
           <label class="ctrl"><span>Full address <em>optional, shown to admin only</em></span><input id="w-address"></label>
           <label class="ctrl"><span>Description <em>optional</em></span><textarea id="w-desc" placeholder="Building type, ceiling height, operating hours, access"></textarea></label>
 
-          <div class="form-row cols-4">
+          <div class="form-row cols-3">
             <label class="ctrl"><span>Area <em>m²</em></span><input id="w-area" type="number" min="1"></label>
             <label class="ctrl"><span>Pallet positions</span><input id="w-pallets" type="number" min="0" required></label>
-            <label class="ctrl"><span>Price <em>SAR / pallet / month</em></span><input id="w-price" type="number" min="0" step="0.01" placeholder="Empty = on request"></label>
             <label class="ctrl"><span>Minimum months</span><input id="w-min" type="number" min="1" value="1" required></label>
           </div>
 
@@ -114,7 +113,7 @@
       </div>
 
       <div data-panel="bookings" hidden>
-        <p class="muted" style="margin-bottom:1rem">Bookings for your warehouses. Our team confirms each booking and handles client billing.</p>
+        <p class="muted" style="margin-bottom:1rem">Confirmed bookings at your warehouses. We agree the price with you before confirming and handle client billing.</p>
         <div class="rows" id="bk-list"><p class="muted">Loading…</p></div>
       </div>
 

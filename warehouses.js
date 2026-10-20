@@ -1,6 +1,6 @@
 /* Find a warehouse — loads approved warehouses from the database */
 (async function () {
-  const { sb, C, esc, fmt, money, $, typeChips, photoUrl, showSetupNotice } = window.KZ;
+  const { sb, C, esc, fmt, $, typeChips, photoUrl, showSetupNotice } = window.KZ;
   const list = $("#listings"), count = $("#result-count");
   const fCity = $("#f-city"), fType = $("#f-type"), fPal = $("#f-pallets"), fSort = $("#f-sort");
 
@@ -16,9 +16,8 @@
     return;
   }
 
-  const { data, error } = await sb.from("warehouses")
-    .select("id,name,city,district,area_sqm,pallets_available,storage_types,features,price_per_pallet,min_months,photos")
-    .eq("status", "approved")
+  const { data, error } = await sb.from("public_warehouses")
+    .select("id,name,city,district,area_sqm,pallets_available,storage_types,features,min_months,photos")
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -51,7 +50,6 @@
       (w.pallets_available || 0) >= minPal);
     if (fSort.value === "pallets") rows.sort((a, b) => b.pallets_available - a.pallets_available);
     if (fSort.value === "area") rows.sort((a, b) => (b.area_sqm || 0) - (a.area_sqm || 0));
-    if (fSort.value === "price") rows.sort((a, b) => (a.price_per_pallet ?? 1e9) - (b.price_per_pallet ?? 1e9));
 
     count.textContent = `${rows.length} of ${all.length} warehouse${all.length === 1 ? "" : "s"}`;
     if (!rows.length) {
@@ -68,11 +66,11 @@
           <h3><a href="${href}">${esc(w.name)}</a></h3>
           <p class="meta">${esc([w.district, w.city].filter(Boolean).join(", "))}${w.area_sqm ? ` · <span class="num">${fmt(w.area_sqm)}</span> m²` : ""}</p>
           <div class="chips">${typeChips(w.storage_types)}</div>
-          <p class="features">${w.price_per_pallet != null ? `<strong>${money(w.price_per_pallet)}</strong> per pallet / month` : "Price on request"}${w.min_months > 1 ? ` · min. ${w.min_months} months` : ""}</p>
+          <p class="features">Price on quotation${w.min_months > 1 ? ` · min. ${w.min_months} months` : ""}</p>
         </div>
         <div class="side">
           <div><div class="big num">${fmt(w.pallets_available)}</div><span class="label">pallets free</span></div>
-          <a class="btn btn-primary" href="${href}">View &amp; book</a>
+          <a class="btn btn-primary" href="${href}">Get a quotation</a>
         </div>
       </article>`;
     }).join("");

@@ -86,12 +86,15 @@
       location.href = "login.html?next=" + encodeURIComponent("warehouse.html?id=" + id);
       return;
     }
+    const contact = $("input[name=b-contact]:checked", form);
+    $("#b-contact .err").hidden = !!contact;
+    if (!contact) { $("#b-contact input").focus(); return; }
     if (!form.reportValidity()) return;
     btn.disabled = true; btn.textContent = "Sending…";
     const { data, error } = await sb.from("bookings").insert({
       client_id: u.session.user.id, warehouse_id: w.id, storage_type: bType.value,
       pallets: +bPal.value, months: +bMonths.value, start_date: bStart.value,
-      notes: $("#b-notes").value.trim() || null
+      notes: $("#b-notes").value.trim() || null, contact_method: contact.value
     }).select("ref").single();
     btn.disabled = false; btn.textContent = label;
     if (error) {

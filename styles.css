@@ -424,3 +424,8 @@ code { font-family: var(--f-mono); font-size: .9em; background: color-mix(in srg
 .chat-actions button[type=submit] { margin-left: auto; }
 .chat-attach { cursor: pointer; }
 .chat-hint { font-size: .8rem; }
+
+/* Admin-only section inside partner/client forms */
+.private-box { border: 1px dashed color-mix(in srgb, var(--accent) 60%, var(--line)); border-radius: var(--radius); padding: .9rem 1rem 1rem; background: color-mix(in srgb, var(--accent) 6%, var(--surface)); gap: .8rem; }
+.private-box legend { padding: 0 .4rem; }
+.private-box legend em { font-style: normal; font-weight: 400; }

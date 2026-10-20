@@ -108,6 +108,8 @@
     $("#w-address").value = w.address || ""; $("#w-desc").value = w.description || "";
     $("#w-area").value = w.area_sqm || ""; $("#w-pallets").value = w.pallets_total;
     $("#w-min").value = w.min_months;
+    $("#w-cmethod").value = w.contact_method || ""; $("#w-cname").value = w.contact_name || "";
+    $("#w-cinfo").value = w.contact_info || ""; $("#w-ctime").value = w.contact_time || "";
     setChecks("w-types", w.storage_types); setChecks("w-features", w.features); setChecks("w-licenses", w.licenses);
     renderFiles();
   }
@@ -160,6 +162,8 @@
         address: $("#w-address").value.trim() || null, description: $("#w-desc").value.trim() || null,
         area_sqm: $("#w-area").value ? +$("#w-area").value : null,
         pallets_total: +$("#w-pallets").value,
+        contact_method: $("#w-cmethod").value || null, contact_name: $("#w-cname").value.trim() || null,
+        contact_info: $("#w-cinfo").value.trim() || null, contact_time: $("#w-ctime").value.trim() || null,
         min_months: +$("#w-min").value || 1,
         storage_types: types, features: checks("w-features"), licenses: checks("w-licenses"),
         photos: [...keptPhotos, ...newPhotos], documents: [...keptDocs, ...newDocs]

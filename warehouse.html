@@ -39,6 +39,15 @@
             <label class="ctrl"><span>Months</span><input id="b-months" type="number" min="1" value="1" required></label>
           </div>
           <label class="ctrl"><span>Start date</span><input id="b-start" type="date" required></label>
+          <fieldset id="b-contact">
+            <legend>How should we contact you?</legend>
+            <div class="checks">
+              <label class="check"><input type="radio" name="b-contact" value="whatsapp"> WhatsApp</label>
+              <label class="check"><input type="radio" name="b-contact" value="phone"> Phone call</label>
+              <label class="check"><input type="radio" name="b-contact" value="email"> Email</label>
+            </div>
+            <span class="err" hidden>Choose how we should contact you.</span>
+          </fieldset>
           <label class="ctrl"><span>Notes <em>optional</em></span><textarea id="b-notes" placeholder="Product type, handling needs"></textarea></label>
           <div class="form-status" hidden role="status"></div>
           <button class="btn btn-primary" type="submit" id="b-submit">Request quotation</button>

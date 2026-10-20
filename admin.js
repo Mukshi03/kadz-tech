@@ -12,6 +12,15 @@
     p.email && `<a href="mailto:${esc(p.email)}">${esc(p.email)}</a>`,
     p.phone && `<a href="tel:${esc(p.phone)}">${esc(p.phone)}</a>`
   ].filter(Boolean).join("<br>") : "<span class='muted'>Unknown</span>";
+  const METHOD = { whatsapp: "WhatsApp", phone: "Phone call", email: "Email" };
+  // WhatsApp / phone / email link for a number or address
+  function reach(method, value) {
+    if (!value) return "";
+    const v = String(value).trim();
+    if (method === "whatsapp" && /\d{6,}/.test(v.replace(/\D/g, ""))) return `<a href="https://wa.me/${v.replace(/\D/g, "")}" target="_blank" rel="noopener">${esc(v)}</a>`;
+    if (/@/.test(v)) return `<a href="mailto:${esc(v)}">${esc(v)}</a>`;
+    return `<a href="tel:${esc(v.replace(/\s/g, ""))}">${esc(v)}</a>`;
+  }
   const LIC = { "commercial-registration": "Commercial registration", baladiya: "Baladiya", "civil-defense": "Civil Defense", sfda: "SFDA" };
 
   /* ---------------- Desktop alerts ----------------
@@ -123,6 +132,9 @@
           <div><dt>Owner</dt><dd>${contact(w.owner)}</dd></div>
           <div><dt>Pallets free / total</dt><dd>${fmt(w.pallets_available)} / ${fmt(w.pallets_total)}</dd></div>
           <div><dt>Area · min. months</dt><dd>${w.area_sqm ? fmt(w.area_sqm) + " m²" : "–"} · ${w.min_months}</dd></div>
+          <div><dt>Site contact</dt><dd>${w.contact_method || w.contact_name || w.contact_info
+              ? [w.contact_method && `<strong>${esc(METHOD[w.contact_method])}</strong>`, w.contact_name && esc(w.contact_name), reach(w.contact_method, w.contact_info), w.contact_time && `<span class="muted">${esc(w.contact_time)}</span>`].filter(Boolean).join("<br>")
+              : "<span class='muted'>Not given</span>"}</dd></div>
           <div><dt>Licenses</dt><dd>${w.licenses.length ? w.licenses.map((l) => esc(LIC[l] || l)).join(", ") : "None stated"}</dd></div>
           ${w.map_url && /^https?:\/\//.test(w.map_url) ? `<div><dt>Location</dt><dd><a href="${esc(w.map_url)}" target="_blank" rel="noopener">Open map</a></dd></div>` : ""}
         </dl>
@@ -213,6 +225,9 @@
         </div>
         <dl class="kv">
           <div><dt>Client</dt><dd>${contact(b.client)}</dd></div>
+          <div><dt>Contact client by</dt><dd>${b.contact_method
+              ? `<strong>${esc(METHOD[b.contact_method])}</strong><br>${reach(b.contact_method, b.contact_method === "email" ? b.client?.email : b.client?.phone) || "<span class='muted'>No " + (b.contact_method === "email" ? "email" : "phone") + " on account</span>"}`
+              : "<span class='muted'>Not given</span>"}</dd></div>
           <div><dt>Warehouse owner</dt><dd>${contact(b.warehouse?.owner)}</dd></div>
           <div><dt>Storage · pallets</dt><dd>${esc(TYPES[b.storage_type]?.name || b.storage_type)} · ${fmt(b.pallets)}</dd></div>
           <div><dt>Start · duration</dt><dd>${date(b.start_date)} · ${b.months} mo</dd></div>

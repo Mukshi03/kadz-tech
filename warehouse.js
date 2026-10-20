@@ -78,6 +78,14 @@
   if (preview && w.status !== "approved") {
     btn.disabled = true;
     btn.textContent = "Not listed yet";
+  } else if (!(w.pallets_available > 0)) {
+    // Opened from an old link while fully booked
+    form.querySelectorAll("select, input, textarea").forEach((f) => (f.disabled = true));
+    btn.disabled = true;
+    btn.textContent = "Fully booked";
+    status.className = "form-status notice warn";
+    status.innerHTML = `This warehouse is fully booked right now. <a href="warehouses.html">See available warehouses →</a>`;
+    status.hidden = false;
   }
 
   // Show the form as "requested" so the client doesn't send the same request twice

@@ -16,8 +16,10 @@
     return;
   }
 
+  // Fully booked warehouses (0 pallets free) are hidden until space frees up
   const { data, error } = await sb.from("public_warehouses")
     .select("id,name,city,district,area_sqm,pallets_available,storage_types,features,min_months,photos")
+    .gt("pallets_available", 0)
     .order("created_at", { ascending: false });
 
   if (error) {

@@ -1,7 +1,7 @@
 /* Admin panel: approve warehouses, manage bookings, quote requests, users */
 (async function () {
   const { sb, C, TYPES, esc, fmt, money, date, $, $$, pill, bookingPill, typeChips, photoUrl, toast, errMsg,
-          requireRole, setupTabs } = window.KZ;
+          requireRole, setupTabs, loadUnread, threadButton, bindThreadButtons } = window.KZ;
   const u = await requireRole(["admin"]);
   if (!u) return;
   $("#who").textContent = u.profile?.full_name || u.session.user.email;
@@ -16,22 +16,25 @@
   /* ---------------- Summary ---------------- */
   async function loadStats() {
     const count = (t, f) => { let q = sb.from(t).select("id", { count: "exact", head: true }); if (f) q = f(q); return q; };
-    const [wh, bk, qd, qr, act] = await Promise.all([
+    const [wh, bk, qd, qr, act, unread] = await Promise.all([
       count("warehouses", (q) => q.eq("status", "pending")),
       count("bookings", (q) => q.eq("status", "pending")),
       count("bookings", (q) => q.eq("status", "quoted")),
       count("quote_requests", (q) => q.eq("status", "new")),
-      sb.from("bookings").select("pallets").eq("status", "confirmed")
+      sb.from("bookings").select("pallets").eq("status", "confirmed"),
+      loadUnread()
     ]);
+    const msgs = Object.values(unread).reduce((s, x) => s + x, 0);
     const n = { wh: wh.count || 0, bk: bk.count || 0, qd: qd.count || 0, q: qr.count || 0 };
     const pallets = (act.data || []).reduce((s, b) => s + b.pallets, 0);
     $("#stats").innerHTML = `
       <div class="stat"><span class="label">Warehouses to review</span><b>${n.wh}</b></div>
       <div class="stat"><span class="label">Quotations to send</span><b>${n.bk}</b></div>
       <div class="stat"><span class="label">Waiting for client</span><b>${n.qd}</b></div>
+      <div class="stat"><span class="label">Unread messages</span><b>${msgs}</b></div>
       <div class="stat"><span class="label">New quote requests</span><b>${n.q}</b></div>
       <div class="stat"><span class="label">Pallets in active bookings</span><b>${fmt(pallets)}</b></div>`;
-    [["c-wh", n.wh], ["c-bk", n.bk], ["c-q", n.q]].forEach(([id, v]) => { $("#" + id).textContent = v; $("#" + id).hidden = !v; });
+    [["c-wh", n.wh], ["c-bk", n.bk + msgs], ["c-q", n.q]].forEach(([id, v]) => { $("#" + id).textContent = v; $("#" + id).hidden = !v; });
   }
 
   /* ---------------- Warehouses ---------------- */
@@ -120,13 +123,14 @@
   };
 
   let bkData = [];
+  bindThreadButtons($("#bk-list"), { id: u.session.user.id, role: "admin" }, () => loadStats());
   async function loadBookings() {
     const box = $("#bk-list");
     let q = sb.from("bookings")
       .select("*, cost:booking_costs(partner_price_per_pallet), client:profiles(full_name, company, email, phone), warehouse:warehouses(id, name, city, pallets_available, owner:profiles(full_name, company, email, phone))")
       .order("created_at", { ascending: false });
     if ($("#bk-filter").value) q = q.eq("status", $("#bk-filter").value);
-    const { data, error } = await q;
+    const [{ data, error }, unread] = await Promise.all([q, loadUnread()]);
     if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
     bkData = data;
     if (!data.length) { box.innerHTML = `<div class="empty"><strong>Nothing here</strong><p>No requests or bookings with this status.</p></div>`; return; }
@@ -165,6 +169,11 @@
           <label class="ctrl" style="flex:3"><span class="label">Message to client</span><input data-f="admin_note" value="${esc(b.admin_note || "")}" placeholder="Shown with the quotation or booking"></label>
           ${(ACTIONS[b.status] || []).map(([st, label, cls]) => `<button class="btn btn-sm ${cls}" data-act="${st}">${label}</button>`).join("")}
         </div>
+        <div class="actions">
+          ${threadButton(b.id, "client", "Chat with client", unread[`${b.id}:client`])}
+          ${threadButton(b.id, "partner", "Chat with partner", unread[`${b.id}:partner`])}
+        </div>
+        <div data-chat></div>
       </article>`;
     }).join("");
     $$("#bk-list [data-id]").forEach(calc);

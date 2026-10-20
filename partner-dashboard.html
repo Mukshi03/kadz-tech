@@ -29,7 +29,7 @@
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" data-tab="warehouses" aria-selected="true">My warehouses</button>
         <button class="tab" role="tab" data-tab="form" aria-selected="false" id="form-tab">Add warehouse</button>
-        <button class="tab" role="tab" data-tab="bookings" aria-selected="false">Bookings</button>
+        <button class="tab" role="tab" data-tab="bookings" aria-selected="false">Bookings &amp; messages <span class="count" id="c-msg" hidden></span></button>
         <button class="tab" role="tab" data-tab="profile" aria-selected="false">My details</button>
       </div>
 
@@ -113,7 +113,7 @@
       </div>
 
       <div data-panel="bookings" hidden>
-        <p class="muted" style="margin-bottom:1rem">Confirmed bookings at your warehouses. We agree the price with you before confirming and handle client billing.</p>
+        <p class="muted" style="margin-bottom:1rem">Client requests we are discussing with you, and confirmed bookings at your warehouses. All communication goes through us, and client details stay private.</p>
         <div class="rows" id="bk-list"><p class="muted">Loading…</p></div>
       </div>
 
@@ -138,6 +138,7 @@
 <script src="config.js"></script>
 <script src="main.js"></script>
 <script src="dashboard-common.js"></script>
+<script src="chat.js"></script>
 <script src="partner-dashboard.js"></script>
 </body>
 </html>

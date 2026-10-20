@@ -401,3 +401,26 @@ code { font-family: var(--f-mono); font-size: .9em; background: color-mix(in srg
 
 .service-detail h2 { overflow-wrap: anywhere; }
 .service-detail > div:first-child { display: grid; gap: .4rem; }
+
+/* =================== Message threads =================== */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+.btn .count { display: inline-block; min-width: 1.4em; padding: 0 .35em; border-radius: 999px; background: var(--accent); color: var(--accent-ink); font-size: .75rem; text-align: center; }
+[data-chat]:empty { display: none; }
+.chat { border: 1px solid var(--line); border-radius: var(--radius); background: var(--bg); display: grid; }
+.chat-intro { font-size: .82rem; color: var(--muted); padding: .6rem .9rem; border-bottom: 1px solid var(--line); }
+.chat-log { max-height: 360px; overflow-y: auto; padding: .9rem; display: grid; gap: .7rem; align-content: start; }
+.msg { max-width: min(80%, 560px); justify-self: start; background: var(--surface); border: 1px solid var(--line); border-radius: 10px 10px 10px 2px; padding: .55rem .8rem; display: grid; gap: .25rem; }
+.msg.mine { justify-self: end; background: color-mix(in srgb, var(--accent) 16%, var(--surface)); border-color: color-mix(in srgb, var(--accent) 40%, var(--line)); border-radius: 10px 10px 2px 10px; }
+.msg-head { font-size: .75rem; color: var(--muted); display: flex; gap: .5rem; align-items: baseline; }
+.msg-head strong { color: var(--ink); font-weight: 600; }
+.msg-body { white-space: pre-wrap; overflow-wrap: anywhere; }
+.msg-files { display: flex; flex-wrap: wrap; gap: .3rem .8rem; font-size: .88rem; }
+.chat-form { border-top: 1px solid var(--line); padding: .7rem; display: grid; gap: .5rem; background: var(--surface); }
+.chat-form textarea { width: 100%; resize: vertical; min-height: 2.6rem; padding: .6rem .7rem; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); font: inherit; color: var(--ink); }
+.chat-form textarea:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
+.chat-files { display: flex; flex-wrap: wrap; gap: .4rem; }
+.chat-files:empty { display: none; }
+.chat-actions { display: flex; align-items: center; gap: .6rem; flex-wrap: wrap; }
+.chat-actions button[type=submit] { margin-left: auto; }
+.chat-attach { cursor: pointer; }
+.chat-hint { font-size: .8rem; }

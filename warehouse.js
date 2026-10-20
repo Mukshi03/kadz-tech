@@ -80,6 +80,34 @@
     btn.textContent = "Not listed yet";
   }
 
+  // Show the form as "requested" so the client doesn't send the same request twice
+  const fields = [...form.querySelectorAll("select, input, textarea")];
+  function showRequested(ref, st) {
+    fields.forEach((f) => (f.disabled = true));
+    btn.disabled = true;
+    btn.textContent = st === "quoted" ? "Quotation received" : "Quotation requested";
+    status.className = "form-status notice";
+    status.innerHTML = st === "quoted"
+      ? `Your quotation for request <strong>${esc(ref)}</strong> is ready. <a href="my-bookings.html">View and accept it →</a>`
+      : `Request <strong>${esc(ref)}</strong> sent. We'll send you a quotation soon. <a href="my-bookings.html">View my quotes →</a>`;
+    status.insertAdjacentHTML("beforeend", `<br><button type="button" class="linkbtn" id="b-again" style="margin-top:.4rem">Request another quotation</button>`);
+    status.hidden = false;
+    $("#b-again").addEventListener("click", () => {
+      fields.forEach((f) => (f.disabled = false));
+      btn.disabled = false; btn.textContent = label;
+      status.hidden = true;
+      bType.focus();
+    });
+  }
+
+  // Already asked for a quote on this warehouse? Show that instead of an empty form.
+  if (u.session && !preview) {
+    const { data: open } = await sb.from("bookings").select("ref, status")
+      .eq("client_id", u.session.user.id).eq("warehouse_id", w.id).in("status", ["pending", "quoted"])
+      .order("created_at", { ascending: false }).limit(1);
+    if (open && open.length) showRequested(open[0].ref, open[0].status);
+  }
+
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!u.session) {
@@ -96,15 +124,13 @@
       pallets: +bPal.value, months: +bMonths.value, start_date: bStart.value,
       notes: $("#b-notes").value.trim() || null, contact_method: contact.value
     }).select("ref").single();
-    btn.disabled = false; btn.textContent = label;
     if (error) {
+      btn.disabled = false; btn.textContent = label;
       status.className = "form-status notice warn";
       status.textContent = errMsg(error);
-    } else {
-      form.reset(); bStart.value = bStart.min; bMonths.value = w.min_months; bPal.value = Math.min(10, w.pallets_available || 1);
-      status.className = "form-status notice";
-      status.innerHTML = `Request <strong>${esc(data.ref)}</strong> sent. We'll send you a quotation soon. <a href="my-bookings.html">View my quotes →</a>`;
+      status.hidden = false;
+      return;
     }
-    status.hidden = false;
+    showRequested(data.ref, "pending");
   });
 })();

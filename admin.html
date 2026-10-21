@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610211453">
+  <link rel="stylesheet" href="styles.css?v=202610211521">
 </head>
 <body data-page="admin">
 
@@ -32,6 +32,7 @@
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" data-tab="warehouses" aria-selected="true">Warehouses <span class="count" id="c-wh" hidden></span></button>
         <button class="tab" role="tab" data-tab="bookings" aria-selected="false">Quotes &amp; bookings <span class="count" id="c-bk" hidden></span></button>
+        <button class="tab" role="tab" data-tab="services" aria-selected="false">Service requests <span class="count" id="c-sr" hidden></span></button>
         <button class="tab" role="tab" data-tab="quotes" aria-selected="false">Quote requests <span class="count" id="c-q" hidden></span></button>
         <button class="tab" role="tab" data-tab="users" aria-selected="false">Users</button>
       </div>
@@ -68,6 +69,32 @@
         <div class="rows" id="bk-list"></div>
       </div>
 
+      <div data-panel="services" hidden>
+        <div class="inline-form" style="margin-bottom:1rem">
+          <label class="ctrl" style="max-width:220px"><span class="label">Service</span>
+            <select id="sr-service" autocomplete="off">
+              <option value="">All</option>
+              <option value="transport">Transportation</option>
+              <option value="freight">Freight forwarding</option>
+              <option value="customs">Customs clearance</option>
+            </select>
+          </label>
+          <label class="ctrl" style="max-width:220px"><span class="label">Show</span>
+            <select id="sr-filter" autocomplete="off">
+              <option value="">All</option>
+              <option value="pending">Quote requested</option>
+              <option value="quoted">Quote sent</option>
+              <option value="confirmed">Accepted</option>
+              <option value="completed">Completed</option>
+              <option value="declined">Declined by client</option>
+              <option value="rejected">Rejected</option>
+              <option value="cancelled">Cancelled</option>
+            </select>
+          </label>
+        </div>
+        <div class="rows" id="sr-list"></div>
+      </div>
+
       <div data-panel="quotes" hidden><div class="rows" id="q-list"></div></div>
 
       <div data-panel="users" hidden>
@@ -84,10 +111,10 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=202610211453"></script>
-<script src="main.js?v=202610211453"></script>
-<script src="dashboard-common.js?v=202610211453"></script>
-<script src="quote-pdf.js?v=202610211453"></script>
-<script src="admin.js?v=202610211453"></script>
+<script src="config.js?v=202610211521"></script>
+<script src="main.js?v=202610211521"></script>
+<script src="dashboard-common.js?v=202610211521"></script>
+<script src="quote-pdf.js?v=202610211521"></script>
+<script src="admin.js?v=202610211521"></script>
 </body>
 </html>

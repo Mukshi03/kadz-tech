@@ -1,7 +1,7 @@
 /* Admin panel: approve warehouses, manage bookings, quote requests, users */
 (async function () {
   const { sb, C, TYPES, esc, fmt, money, date, $, $$, pill, bookingPill, typeChips, photoUrl, toast, errMsg,
-          requireRole, setupTabs, buildQuotePdf, loadQuoteLogo, openQuotePdf } = window.KZ;
+          requireRole, setupTabs, buildQuotePdf, loadQuoteLogo, openQuotePdf, SERVICES, serviceFacts, serviceLine } = window.KZ;
   const u = await requireRole(["admin"]);
   if (!u) return;
   $("#who").textContent = u.profile?.full_name || u.session.user.email;
@@ -71,6 +71,8 @@
       if (now.bk > prev.bk) news.push(plural(now.bk - prev.bk, "new quotation request", "new quotation requests"));
       if (now.accepted > prev.accepted) news.push(plural(now.accepted - prev.accepted, "quotation accepted", "quotations accepted"));
       if (now.wh > prev.wh) news.push(plural(now.wh - prev.wh, "warehouse to review", "warehouses to review"));
+      if (now.sr > prev.sr) news.push(plural(now.sr - prev.sr, "new service request", "new service requests"));
+      if (now.srOk > prev.srOk) news.push(plural(now.srOk - prev.srOk, "service quotation accepted", "service quotations accepted"));
       if (now.q > prev.q) news.push(plural(now.q - prev.q, "new quote form request", "new quote form requests"));
       if (news.length) {
         toast(news.join(" · "));
@@ -82,7 +84,7 @@
       }
     }
     prev = now;
-    const total = now.bk + now.wh + now.q;
+    const total = now.bk + now.wh + now.q + now.sr;
     document.title = (total ? `(${total}) ` : "") + `Admin | ${C.company}`;
   }
   showAlertBtn();
@@ -91,23 +93,27 @@
   /* ---------------- Summary ---------------- */
   async function loadStats() {
     const count = (t, f) => { let q = sb.from(t).select("id", { count: "exact", head: true }); if (f) q = f(q); return q; };
-    const [wh, bk, qd, qr, act] = await Promise.all([
+    const [wh, bk, qd, qr, act, sr, srOk] = await Promise.all([
       count("warehouses", (q) => q.eq("status", "pending")),
       count("bookings", (q) => q.eq("status", "pending")),
       count("bookings", (q) => q.eq("status", "quoted")),
       count("quote_requests", (q) => q.eq("status", "new")),
-      sb.from("bookings").select("pallets").eq("status", "confirmed")
+      sb.from("bookings").select("pallets").eq("status", "confirmed"),
+      count("service_requests", (q) => q.eq("status", "pending")),
+      count("service_requests", (q) => q.eq("status", "confirmed"))
     ]);
-    announce({ wh: wh.count || 0, bk: bk.count || 0, q: qr.count || 0, accepted: (act.data || []).length });
-    const n = { wh: wh.count || 0, bk: bk.count || 0, qd: qd.count || 0, q: qr.count || 0 };
+    announce({ wh: wh.count || 0, bk: bk.count || 0, q: qr.count || 0, accepted: (act.data || []).length,
+               sr: sr.count || 0, srOk: srOk.count || 0 });
+    const n = { wh: wh.count || 0, bk: bk.count || 0, qd: qd.count || 0, q: qr.count || 0, sr: sr.count || 0 };
     const pallets = (act.data || []).reduce((s, b) => s + b.pallets, 0);
     $("#stats").innerHTML = `
       <div class="stat"><span class="label">Warehouses to review</span><b>${n.wh}</b></div>
       <div class="stat"><span class="label">Quotations to send</span><b>${n.bk}</b></div>
+      <div class="stat"><span class="label">Service requests to quote</span><b>${n.sr}</b></div>
       <div class="stat"><span class="label">Waiting for client</span><b>${n.qd}</b></div>
       <div class="stat"><span class="label">New quote requests</span><b>${n.q}</b></div>
       <div class="stat"><span class="label">Pallets in active bookings</span><b>${fmt(pallets)}</b></div>`;
-    [["c-wh", n.wh], ["c-bk", n.bk], ["c-q", n.q]].forEach(([id, v]) => { $("#" + id).textContent = v; $("#" + id).hidden = !v; });
+    [["c-wh", n.wh], ["c-bk", n.bk], ["c-q", n.q], ["c-sr", n.sr]].forEach(([id, v]) => { $("#" + id).textContent = v; $("#" + id).hidden = !v; });
   }
 
   /* ---------------- Warehouses ---------------- */
@@ -354,6 +360,179 @@
   });
   $("#bk-filter").addEventListener("change", loadBookings);
 
+  /* ---------------- Service requests (transportation, freight, customs) ---------------- */
+  const SR_ACTIONS = {
+    pending:   [["quoted", "Send quotation", "btn-primary"], ["rejected", "Reject request", "btn-danger"]],
+    quoted:    [["quoted", "Update quotation", "btn-primary"], ["confirmed", "Mark as accepted", "btn-plain"], ["cancelled", "Withdraw quotation", "btn-danger"]],
+    confirmed: [["confirmed", "Save", "btn-primary"], ["completed", "Mark completed", "btn-plain"], ["cancelled", "Cancel job", "btn-danger"]],
+    completed: [["completed", "Save", "btn-primary"]],
+    declined:  [["declined", "Save", "btn-plain"]],
+    rejected:  [["rejected", "Save", "btn-plain"]],
+    cancelled: [["cancelled", "Save", "btn-plain"]]
+  };
+  const SR_CONFIRM = {
+    rejected: "Reject this request? The client will be told we can't offer it.",
+    cancelled: "Cancel this? The client will no longer be able to accept the quotation.",
+    confirmed: "Mark this quotation as accepted for the client?",
+    completed: "Mark this job as completed?"
+  };
+  const docName = (path) => path.split("/").pop().replace(/^\d+-/, "");
+
+  let srData = [];
+  async function loadServices() {
+    const box = $("#sr-list");
+    let q = sb.from("service_requests").select("*, cost:service_costs(cost)").order("created_at", { ascending: false });
+    if ($("#sr-service").value) q = q.eq("service", $("#sr-service").value);
+    if ($("#sr-filter").value) q = q.eq("status", $("#sr-filter").value);
+    const { data, error } = await q;
+    if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
+    srData = data;
+    if (!data.length) { box.innerHTML = `<div class="empty"><strong>Nothing here</strong><p>Requests from the Request a service page will show here.</p></div>`; return; }
+
+    box.innerHTML = data.map((r) => {
+      const cost = (Array.isArray(r.cost) ? r.cost[0] : r.cost)?.cost ?? "";
+      const quoting = ["pending", "quoted"].includes(r.status);
+      const facts = serviceFacts(r);
+      return `
+      <article class="row-card${r.status === "pending" ? " attention" : ""}" data-id="${esc(r.id)}">
+        <div class="row-top">
+          <div style="display:grid;gap:.3rem;min-width:0">
+            <span class="label">${esc(r.ref)}${r.quote_number ? " · " + esc(r.quote_number) : ""} · requested ${date(r.created_at)}</span>
+            <h3>${esc(SERVICES[r.service] || r.service)}</h3>
+            <span class="muted">${esc(serviceLine(r))}</span>
+          </div>
+          <div class="actions">${bookingPill(r)}${r.client_id ? ` <span class="pill muted">has account</span>` : ""}</div>
+        </div>
+        <dl class="kv">
+          <div><dt>Client</dt><dd>${contact({ full_name: r.name, company: r.company, email: r.email, phone: r.phone })}</dd></div>
+          <div><dt>Contact client by</dt><dd>${r.contact_method
+              ? `<strong>${esc(METHOD[r.contact_method])}</strong><br>${reach(r.contact_method, r.contact_method === "email" ? r.email : r.phone) || "<span class='muted'>Not given</span>"}`
+              : "<span class='muted'>Not given</span>"}</dd></div>
+          ${facts.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}
+          ${r.status === "quoted" ? `<div><dt>Quote valid until</dt><dd>${date(r.quote_valid_until)}</dd></div>` : ""}
+        </dl>
+        ${r.documents?.length ? `<ul class="files">${r.documents.map((d) => `<li><button type="button" class="linkbtn" data-sdoc="${esc(d)}">Open ${esc(docName(d))}</button></li>`).join("")}</ul>` : ""}
+        ${r.notes ? `<p class="note">Client note: ${esc(r.notes)}</p>` : ""}
+        <div class="inline-form">
+          <label class="ctrl"><span class="label">Supplier cost <em>admin only</em></span><input data-f="cost" type="number" min="0" step="0.01" value="${cost}" placeholder="${esc(C.currency)} total"></label>
+          <label class="ctrl"><span class="label">Client price</span><input data-f="client_price" type="number" min="0" step="0.01" value="${r.client_price ?? ""}" placeholder="${esc(C.currency)} total, excl. VAT"${quoting ? "" : " disabled"}></label>
+          ${quoting ? `<label class="ctrl"><span class="label">Valid until</span><input data-f="quote_valid_until" type="date" min="${inDays(0)}" value="${r.quote_valid_until && r.quote_valid_until >= inDays(0) ? r.quote_valid_until : inDays(7)}"></label>` : ""}
+        </div>
+        ${quoting ? `<div class="inline-form"><label class="ctrl" style="flex:1 1 100%;max-width:none"><span class="label">Description on quotation <em>optional</em></span><input data-f="price_description" maxlength="300" value="${esc(r.price_description || "")}" placeholder="${esc(SERVICES[r.service] + ": " + serviceLine(r))}"></label></div>` : ""}
+        <p class="muted" data-calc style="font-size:.9rem"></p>
+        <div class="inline-form">
+          ${(SR_ACTIONS[r.status] || []).map(([st, label, cls]) => `<button class="btn btn-sm ${cls}" data-act="${st}">${label}</button>`).join("")}
+        </div>
+        <div class="actions">
+          <button class="btn btn-sm btn-plain" data-preview>Preview PDF</button>
+          ${r.quote_pdf ? `<button class="btn btn-sm btn-plain" data-pdf="${esc(r.quote_pdf)}">Download ${esc(r.quote_number || "quotation")}</button>` : ""}
+        </div>
+      </article>`;
+    }).join("");
+    $$("#sr-list [data-id]").forEach(srCalc);
+  }
+
+  function srCalc(card) {
+    const n = (f) => { const el = $(`[data-f=${f}]`, card); return el && el.value !== "" ? +el.value : null; };
+    const client = n("client_price"), cost = n("cost"), parts = [];
+    if (client != null) parts.push(`Client price <strong>${money(client)}</strong>`);
+    if (cost != null) parts.push(`Supplier cost ${money(cost)}`);
+    if (client != null && cost != null) {
+      const m = client - cost;
+      parts.push(`Margin <strong style="color:var(${m < 0 ? "--bad" : "--ok"})">${money(m)}</strong>${client ? ` (${Math.round(m / client * 100)}%)` : ""}`);
+    }
+    $("[data-calc]", card).innerHTML = parts.length ? parts.join(" · ") + ` <span class="muted">(excl. VAT)</span>` : "Enter prices to see the margin.";
+  }
+  $("#sr-list").addEventListener("input", (e) => { const c = e.target.closest("[data-id]"); if (c) srCalc(c); });
+
+  // Build the quotation PDF for a service request. save=true stores it, which emails it to the client.
+  async function makeServicePdf(id, save, draft) {
+    const { data: row, error } = await sb.from("service_requests").select("*").eq("id", id).single();
+    if (error) throw error;
+    const r = { ...row, ...(draft || {}) };
+    const site = location.href.replace(/[^/]*$/, "");
+    const bytes = buildQuotePdf({
+      company: C, booking: r, client: { full_name: r.name, company: r.company, email: r.email, phone: r.phone },
+      serviceName: SERVICES[r.service], summary: serviceLine(r), facts: serviceFacts(r),
+      acceptUrl: `${site}service-quote.html?t=${r.access_token}`, siteUrl: site, logo: await loadQuoteLogo(C.logo)
+    });
+    const blob = new Blob([bytes], { type: "application/pdf" });
+    if (!save) return blob;
+    if (!row.quote_number) throw new Error("This quotation has no number yet. Make sure update-7-service-requests.sql was run in Supabase.");
+    const path = `services/${row.id}/${row.quote_number}-${Date.now()}.pdf`;
+    const up = await sb.storage.from("quotations").upload(path, blob, { contentType: "application/pdf" });
+    if (up.error) throw up.error;
+    const u2 = await sb.from("service_requests").update({ quote_pdf: path }).eq("id", row.id);
+    if (u2.error) throw u2.error;
+    return row.quote_number;
+  }
+
+  $("#sr-list").addEventListener("click", async (e) => {
+    const doc = e.target.closest("[data-sdoc]");
+    if (doc) {
+      const win = window.open("", "_blank");
+      const { data, error } = await sb.storage.from("service-docs").createSignedUrl(doc.dataset.sdoc, 300);
+      if (error) { win && win.close(); return toast(errMsg(error), true); }
+      if (win) win.location = data.signedUrl; else location.href = data.signedUrl;
+      return;
+    }
+    const pdf = e.target.closest("[data-pdf]");
+    if (pdf) return openQuotePdf(pdf.dataset.pdf);
+    const card = e.target.closest("[data-id]");
+    if (!card) return;
+    const r = srData.find((x) => x.id === card.dataset.id);
+    const val = (f) => { const el = $(`[data-f=${f}]`, card); return el ? el.value : undefined; };
+
+    if (e.target.closest("[data-preview]")) {
+      if (!val("client_price")) return toast("Enter the client price to preview the PDF.", true);
+      const win = window.open("", "_blank");
+      try {
+        const blob = await makeServicePdf(r.id, false, {
+          client_price: +val("client_price"), quote_valid_until: val("quote_valid_until") || r.quote_valid_until || null,
+          price_description: val("price_description") !== undefined ? (val("price_description").trim() || null) : r.price_description,
+          quote_number: r.quote_number || "DRAFT"
+        });
+        const url = URL.createObjectURL(blob);
+        if (win) win.location = url; else location.href = url;
+      } catch (err) { win && win.close(); toast(errMsg(err), true); }
+      return;
+    }
+
+    const btn = e.target.closest("[data-act]");
+    if (!btn) return;
+    const status = btn.dataset.act;
+    if (status === "quoted" && !val("client_price")) { $("[data-f=client_price]", card).focus(); return toast("Enter the client price first.", true); }
+    if (status !== r.status && SR_CONFIRM[status] && !confirm(SR_CONFIRM[status])) return;
+
+    const update = { status };
+    if (val("client_price") !== undefined && !$("[data-f=client_price]", card).disabled)
+      update.client_price = val("client_price") === "" ? null : +val("client_price");
+    if (val("quote_valid_until") !== undefined) update.quote_valid_until = val("quote_valid_until") || null;
+    if (val("price_description") !== undefined) update.price_description = val("price_description").trim() || null;
+
+    btn.disabled = true; const label = btn.textContent; btn.textContent = "Saving…";
+    let { error: err } = await sb.from("service_requests").update(update).eq("id", r.id);
+    if (!err) {
+      const cost = val("cost"), old = (Array.isArray(r.cost) ? r.cost[0] : r.cost)?.cost ?? "";
+      if (String(cost) !== String(old)) {
+        const c = await sb.from("service_costs").upsert({ request_id: r.id, cost: cost === "" ? null : +cost, updated_at: new Date().toISOString() });
+        err = c.error;
+      }
+    }
+    let number;
+    if (!err && status === "quoted") {
+      btn.textContent = "Creating PDF…";
+      try { number = await makeServicePdf(r.id, true); }
+      catch (pdfErr) { err = new Error("The quotation was saved, but the PDF couldn't be created: " + errMsg(pdfErr) + " Click Update quotation to try again."); }
+    }
+    btn.disabled = false; btn.textContent = label;
+    if (err) { loadServices(); return toast(errMsg(err), true); }
+    toast(status === "quoted" ? `Quotation ${number} ${r.status === "pending" ? "sent" : "updated"}` : "Saved");
+    loadServices(); loadStats();
+  });
+  $("#sr-service").addEventListener("change", loadServices);
+  $("#sr-filter").addEventListener("change", loadServices);
+
   /* ---------------- Quote requests ---------------- */
   async function loadQuotes() {
     const box = $("#q-list");
@@ -420,7 +599,7 @@
   });
 
   /* ---------------- Start ---------------- */
-  const loaders = { warehouses: loadWarehouses, bookings: loadBookings, quotes: loadQuotes, users: loadUsers };
+  const loaders = { warehouses: loadWarehouses, bookings: loadBookings, services: loadServices, quotes: loadQuotes, users: loadUsers };
   const loaded = {};
   setupTabs((name) => { if (!loaded[name]) { loaded[name] = true; loaders[name](); } });
   $("#refresh").addEventListener("click", () => {

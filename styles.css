@@ -489,3 +489,30 @@ code { font-family: var(--f-mono); font-size: .9em; background: color-mix(in srg
 .services-grid .service { display: flex; flex-direction: column; }
 .services-grid .service .more { margin-top: auto; padding-top: .3rem; }
 .service-detail ul { max-width: 56rem; }
+
+/* ---------- Request a service ---------- */
+.req-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); gap: clamp(1.5rem, 4vw, 3.5rem); align-items: start; }
+@media (max-width: 900px) { .req-layout { grid-template-columns: 1fr; } }
+.req-layout .tabs { margin-bottom: 1rem; }
+.svc-set { gap: 1rem; }
+.svc-set[hidden] { display: none; }
+.svc-set + .svc-set:not([hidden]), .svc-set[hidden] + .svc-set { border-top: 1px solid var(--line); padding-top: 1.2rem; }
+.svc-title { font: 700 1.25rem var(--f-display); letter-spacing: .02em; text-transform: uppercase; margin-bottom: .2rem; }
+.radio-set { min-width: 0; }
+.dropzone { position: relative; display: flex; flex-wrap: wrap; align-items: center; gap: .3rem .6rem; padding: 1rem; border: 1px dashed var(--line); border-radius: var(--radius); background: var(--bg); cursor: pointer; font-size: .9rem; }
+.dropzone:hover, .dropzone:focus-within { border-color: var(--accent); }
+.dropzone input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.dropzone b { text-decoration: underline; }
+.file-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .3rem; font-size: .9rem; }
+.file-list:empty { display: none; }
+.file-list li { display: flex; gap: .6rem; align-items: baseline; min-width: 0; }
+.file-list li > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.req-side { display: grid; gap: 1rem; position: sticky; top: 5.5rem; }
+@media (max-width: 900px) { .req-side { position: static; } }
+.mini-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: .9rem; counter-reset: ms; }
+.mini-steps li { counter-increment: ms; display: grid; grid-template-columns: 2rem 1fr; column-gap: .7rem; }
+.mini-steps li::before { content: counter(ms, decimal-leading-zero); grid-row: span 2; font: 600 .8rem var(--f-mono); color: var(--accent); padding-top: .2rem; }
+.mini-steps b { font-weight: 600; }
+.mini-steps span { color: var(--muted); font-size: .9rem; }
+.form-status { scroll-margin-top: 6rem; }
+.quote-total { border-radius: var(--radius); } .quote-total > .btn { justify-self: start; }

@@ -1,17 +1,17 @@
 /* KADZ Tech — quotation PDF, built in the browser with no outside library.
    Uses the standard PDF fonts Helvetica and Helvetica-Bold (Latin text). */
 (function () {
-  const CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u2013\u00b0\u00d7\u00b2\u00b7\u2019\u2022\u00e9";
+  const CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u2013\u00b0\u00d7\u00b2\u00b7\u2019\u2022\u00e9\u00b3";
   const WIDTHS = {
-    F1: [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,556,400,584,333,278,222,350,556],
-    F2: [278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,556,400,584,333,278,278,350,556]
+    F1: [278,278,355,556,556,889,667,191,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,278,278,584,584,584,556,1015,667,667,722,722,667,611,778,722,278,500,667,556,833,722,778,667,778,722,667,611,722,667,944,667,667,611,278,278,278,469,556,333,556,556,500,556,556,278,556,556,222,222,500,222,833,556,556,556,556,333,500,278,556,500,722,500,500,500,334,260,334,584,556,400,584,333,278,222,350,556,333],
+    F2: [278,333,474,556,556,889,722,238,333,333,389,584,278,333,278,278,556,556,556,556,556,556,556,556,556,556,333,333,584,584,584,611,975,722,722,722,722,667,611,778,722,278,556,722,611,833,722,778,667,778,722,667,611,722,667,944,667,667,611,333,278,333,584,556,333,556,611,556,611,556,333,611,611,278,278,556,278,889,611,611,611,611,389,556,333,611,556,778,556,556,500,389,280,389,584,556,400,584,333,278,278,350,556,333]
   };
   const IDX = {};
   [...CHARS].forEach((c, i) => (IDX[c] = i));
   // Characters outside plain ASCII, mapped to the PDF's WinAnsi codes
-  const WIN = { "–": 0x96, "°": 0xB0, "×": 0xD7, "²": 0xB2, "·": 0xB7, "’": 0x92, "•": 0x95, "é": 0xE9 };
+  const WIN = { "–": 0x96, "°": 0xB0, "×": 0xD7, "²": 0xB2, "·": 0xB7, "’": 0x92, "•": 0x95, "é": 0xE9, "³": 0xB3 };
   const clean = (s) => String(s ?? "").replace(/[−—]/g, "-").replace(/[‘]/g, "'").replace(/[“”]/g, '"')
-    .replace(/[^\x20-\x7e–°×²·’•é]/g, "?");
+    .replace(/[→]/g, "to").replace(/[^\x20-\x7e–°×²·’•é³]/g, "?");
 
   const width = (text, font, size) => [...clean(text)].reduce((s, c) => s + (WIDTHS[font][IDX[c]] ?? 556), 0) * size / 1000;
 
@@ -114,7 +114,9 @@
   const day = (d) => d ? new Date(d + (String(d).length === 10 ? "T00:00:00" : "")).toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" }) : "-";
 
   /* Build the quotation.
-     q = { company (config.js), booking, client, city, siteUrl, logo } */
+     q = { company (config.js), booking, client, city, siteUrl, logo }
+     For transportation / freight / customs: booking is the service request, plus
+     serviceName, summary, facts ([label, value] pairs) and acceptUrl. */
   function buildQuotePdf(q) {
     const C = q.company, L = C.legal || {}, b = q.booking, cur = C.currency || "SAR";
     const INK = "#15202b", MUTED = "#56636f", LINE = "#d3d9df", AMBER = "#e3a008", BAND = "#15202b";
@@ -157,36 +159,66 @@
     to.forEach((t, i) => wrap(t, i ? "F1" : "F2", 10, R - col2).forEach((l) => { d.text(l, col2, yr, { font: i ? "F1" : "F2", size: 10 }); yr += 14; }));
     y = Math.max(yl, yr) + 14;
 
-    // ---- Request details
-    d.line(M, y, R, y, LINE);
-    y += 20;
-    const facts = [["Request reference", b.ref], ["Location", q.city || "-"], ["Start date", day(b.start_date)],
-                   ["Duration", `${b.months} month${b.months > 1 ? "s" : ""}`]];
-    const fw = (R - M) / facts.length;
-    facts.forEach(([k, v], i) => {
-      d.text(k.toUpperCase(), M + i * fw, y, { font: "F2", size: 7.5, color: MUTED });
-      d.text(v, M + i * fw, y + 15, { size: 10.5 });
-    });
-    y += 38;
+    let sub;
+    if (b.service) {
+      // ---- Transportation / freight / customs: shipment details, then one price line
+      d.line(M, y, R, y, LINE);
+      y += 20;
+      const facts = [["Request reference", b.ref], ["Service", q.serviceName || b.service], ...(q.facts || [])];
+      const per = 4, fw = (R - M) / per;
+      for (let r = 0; r < facts.length; r += per) {
+        let rowH = 0;
+        facts.slice(r, r + per).forEach(([k, v], i) => {
+          d.text(k.toUpperCase(), M + i * fw, y, { font: "F2", size: 7.5, color: MUTED });
+          const lines = wrap(v, "F1", 10, fw - 12).slice(0, 3);
+          lines.forEach((l, j) => d.text(l, M + i * fw, y + 15 + j * 12.5, { size: 10 }));
+          rowH = Math.max(rowH, 15 + lines.length * 12.5);
+        });
+        y += rowH + 14;
+      }
+      y += 4;
+      d.rect(M, y, R - M, 24, BAND);
+      d.text("DESCRIPTION", M + 10, y + 16, { font: "F2", size: 8.5, color: "#ffffff" });
+      d.text(`AMOUNT (${cur})`, R - 10, y + 16, { font: "F2", size: 8.5, color: "#ffffff", align: "right" });
+      y += 24;
+      const desc = wrap(b.price_description || [q.serviceName, q.summary].filter(Boolean).join(": "), "F1", 10, R - M - 150);
+      desc.forEach((l, i) => d.text(l, M + 10, y + 19 + i * 13, { size: 10 }));
+      sub = Number(b.client_price || 0);
+      d.text(money(sub), R - 10, y + 19, { align: "right" });
+      y += Math.max(30, 14 + desc.length * 13);
+      d.line(M, y, R, y, LINE);
+    } else {
+      // ---- Request details
+      d.line(M, y, R, y, LINE);
+      y += 20;
+      const facts = [["Request reference", b.ref], ["Location", q.city || "-"], ["Start date", day(b.start_date)],
+                     ["Duration", `${b.months} month${b.months > 1 ? "s" : ""}`]];
+      const fw = (R - M) / facts.length;
+      facts.forEach(([k, v], i) => {
+        d.text(k.toUpperCase(), M + i * fw, y, { font: "F2", size: 7.5, color: MUTED });
+        d.text(v, M + i * fw, y + 15, { size: 10.5 });
+      });
+      y += 38;
 
-    // ---- Price table
-    // right edges of the number columns
-    const cPal = 338, cMon = 392, cUnit = 478, descMax = 300 - M - 10;
-    d.rect(M, y, R - M, 24, BAND);
-    const th = (t, x, align) => d.text(t, x, y + 16, { font: "F2", size: 8.5, color: "#ffffff", align });
-    th("DESCRIPTION", M + 10); th("PALLETS", cPal, "right"); th("MONTHS", cMon, "right");
-    th(`RATE (${cur})`, cUnit, "right"); th(`AMOUNT (${cur})`, R - 10, "right");
-    y += 24;
-    const desc = wrap(`${TYPE[b.storage_type] || b.storage_type}, pallet positions per month`, "F1", 10, descMax);
-    const rowH = Math.max(30, 14 + desc.length * 13);
-    desc.forEach((l, i) => d.text(l, M + 10, y + 19 + i * 13, { size: 10 }));
-    const unit = Number(b.price_per_pallet || 0), sub = unit * b.pallets * b.months;
-    d.text(String(b.pallets), cPal, y + 19, { align: "right" });
-    d.text(String(b.months), cMon, y + 19, { align: "right" });
-    d.text(money(unit), cUnit, y + 19, { align: "right" });
-    d.text(money(sub), R - 10, y + 19, { align: "right" });
-    y += rowH;
-    d.line(M, y, R, y, LINE);
+      // ---- Price table
+      // right edges of the number columns
+      const cPal = 338, cMon = 392, cUnit = 478, descMax = 300 - M - 10;
+      d.rect(M, y, R - M, 24, BAND);
+      const th = (t, x, align) => d.text(t, x, y + 16, { font: "F2", size: 8.5, color: "#ffffff", align });
+      th("DESCRIPTION", M + 10); th("PALLETS", cPal, "right"); th("MONTHS", cMon, "right");
+      th(`RATE (${cur})`, cUnit, "right"); th(`AMOUNT (${cur})`, R - 10, "right");
+      y += 24;
+      const desc = wrap(`${TYPE[b.storage_type] || b.storage_type}, pallet positions per month`, "F1", 10, descMax);
+      const rowH = Math.max(30, 14 + desc.length * 13);
+      desc.forEach((l, i) => d.text(l, M + 10, y + 19 + i * 13, { size: 10 }));
+      const unit = Number(b.price_per_pallet || 0); sub = unit * b.pallets * b.months;
+      d.text(String(b.pallets), cPal, y + 19, { align: "right" });
+      d.text(String(b.months), cMon, y + 19, { align: "right" });
+      d.text(money(unit), cUnit, y + 19, { align: "right" });
+      d.text(money(sub), R - 10, y + 19, { align: "right" });
+      y += rowH;
+      d.line(M, y, R, y, LINE);
+    }
 
     // ---- Totals
     const vat = Number(b.vat_rate ?? 15), vatAmt = sub * vat / 100, total = sub + vatAmt;
@@ -226,8 +258,13 @@
 
     ensure(60);
     d.rect(M, y, R - M, 40, "#eceff2");
-    d.text("To accept this quotation, log in to your account and click Accept quotation:", M + 12, y + 16, { size: 9.5 });
-    d.text(`${q.siteUrl || ""}my-bookings.html`, M + 12, y + 30, { font: "F2", size: 9.5 });
+    if (q.acceptUrl) {
+      d.text("To accept or decline this quotation, open this link:", M + 12, y + 16, { size: 9.5 });
+      d.text(q.acceptUrl, M + 12, y + 30, { font: "F2", size: width(q.acceptUrl, "F2", 9.5) > R - M - 24 ? 8 : 9.5 });
+    } else {
+      d.text("To accept this quotation, log in to your account and click Accept quotation:", M + 12, y + 16, { size: 9.5 });
+      d.text(`${q.siteUrl || ""}my-bookings.html`, M + 12, y + 30, { font: "F2", size: 9.5 });
+    }
 
     // ---- Footer on every page
     const foot = [L.legalName || C.company, L.crNumber && `CR ${L.crNumber}`, L.vatNumber && `VAT ${L.vatNumber}`].filter(Boolean).join("  \u00b7  ");

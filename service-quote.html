@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Your Quotation | KADZ Tech</title>
+  <meta name="robots" content="noindex">
+  <meta name="referrer" content="no-referrer">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="styles.css?v=202610211521">
+</head>
+<body data-page="service-quote">
+
+<main>
+  <div class="page-head">
+    <div class="wrap">
+      <span class="dock"><b>Quotation</b> <span id="sq-number">…</span></span>
+      <h1 id="sq-title">Your quotation</h1>
+      <p class="lead" id="sq-line"></p>
+    </div>
+  </div>
+
+  <section style="padding-top:2rem">
+    <div class="wrap" id="sq-body"><p class="muted">Loading…</p></div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script src="config.js?v=202610211521"></script>
+<script src="main.js?v=202610211521"></script>
+<script src="quote-pdf.js?v=202610211521"></script>
+<script src="service-quote.js?v=202610211521"></script>
+</body>
+</html>

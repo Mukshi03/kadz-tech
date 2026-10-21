@@ -313,7 +313,35 @@
     calc();
   }
 
+  /* ---------- Transportation / freight / customs requests ---------- */
+  const SERVICES = { transport: "Transportation", freight: "Freight forwarding", customs: "Customs clearance" };
+  const TRUCK = { standard: "Standard (dry)", refrigerated: "Refrigerated", frozen: "Frozen" };
+  const MODE = { air: "Air", sea: "Sea", land: "Land" };
+  const cap = (v) => v ? String(v)[0].toUpperCase() + String(v).slice(1) : v;
+  // The answers from the request form as [label, value] pairs (empty ones left out)
+  function serviceFacts(r) {
+    const d = r.details || {}, n = (v, unit) => v == null || v === "" ? null : `${Number(v).toLocaleString("en-US", { maximumFractionDigits: 2 })}${unit ? " " + unit : ""}`;
+    const day = (v) => v ? date(v) : null;
+    const rows = {
+      transport: [["Pickup city", d.from], ["Delivery city", d.to], ["Pickup date", day(d.date)], ["Truck type", TRUCK[d.truck] || d.truck],
+                  ["Pallets", n(d.pallets)], ["Total weight", n(d.weight_kg, "kg")]],
+      freight: [["Mode", MODE[d.mode] || d.mode], ["Direction", cap(d.direction)], ["Origin", d.origin], ["Destination", d.destination],
+                ["Cargo ready", day(d.ready_date)], ["Incoterm", d.incoterm], ["Cargo", d.cargo], ["Total weight", n(d.weight_kg, "kg")], ["Volume", n(d.volume_cbm, "m³")]],
+      customs: [["Direction", cap(d.direction)], ["Port or airport", d.port], ["Cargo", d.cargo], ["HS code", d.hs_code], ["Shipment value", n(d.value_sar, C.currency || "SAR")]]
+    }[r.service] || [];
+    return rows.filter(([, v]) => v != null && v !== "");
+  }
+  // One-line summary, e.g. "Jeddah to Riyadh" or "Sea import, Shanghai to Jeddah"
+  function serviceLine(r) {
+    const d = r.details || {};
+    if (r.service === "transport") return [d.from, d.to].filter(Boolean).join(" to ");
+    if (r.service === "freight") return [[MODE[d.mode], d.direction].filter(Boolean).join(" "), [d.origin, d.destination].filter(Boolean).join(" to ")].filter(Boolean).join(", ");
+    if (r.service === "customs") return [cap(d.direction), d.port].filter(Boolean).join(" at ");
+    return "";
+  }
+
   /* ---------- Shared API for page scripts ---------- */
   window.KZ = { C, sb, rememberLogin, TYPES, esc, fmt, money, date, $, $$, pill, bookingPill, quoteExpired, typeChips, photoUrl, errMsg,
-                getUser, requireRole, homeFor, safeNext, toast, showSetupNotice, ready };
+                getUser, requireRole, homeFor, safeNext, toast, showSetupNotice, ready,
+                SERVICES, serviceFacts, serviceLine };
 })();

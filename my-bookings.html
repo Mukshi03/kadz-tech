@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610211453">
+  <link rel="stylesheet" href="styles.css?v=202610211521">
 </head>
 <body data-page="my-bookings">
 
@@ -18,19 +18,27 @@
         <span class="dock"><b>Account</b> <span id="who">…</span></span>
         <h1>My quotes &amp; bookings</h1>
       </div>
-      <a class="btn btn-primary" href="warehouses.html">Request more space</a>
+      <div class="actions">
+        <a class="btn btn-primary" href="warehouses.html">Request more space</a>
+        <a class="btn btn-plain" href="request.html">Request a service</a>
+      </div>
     </div>
   </div>
 
   <section style="padding-top:2rem">
     <div class="wrap">
       <div class="tabs" role="tablist">
-        <button class="tab" role="tab" data-tab="bookings" aria-selected="true">Bookings</button>
+        <button class="tab" role="tab" data-tab="bookings" aria-selected="true">Storage <span class="count" id="c-bk" hidden></span></button>
+        <button class="tab" role="tab" data-tab="services" aria-selected="false">Transport, freight &amp; customs <span class="count" id="c-sr" hidden></span></button>
         <button class="tab" role="tab" data-tab="profile" aria-selected="false">My details</button>
       </div>
 
       <div data-panel="bookings">
         <div class="rows" id="bookings"><p class="muted">Loading…</p></div>
+      </div>
+
+      <div data-panel="services" hidden>
+        <div class="rows" id="services"><p class="muted">Loading…</p></div>
       </div>
 
       <div data-panel="profile" hidden>
@@ -51,10 +59,10 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=202610211453"></script>
-<script src="main.js?v=202610211453"></script>
-<script src="dashboard-common.js?v=202610211453"></script>
-<script src="quote-pdf.js?v=202610211453"></script>
-<script src="my-bookings.js?v=202610211453"></script>
+<script src="config.js?v=202610211521"></script>
+<script src="main.js?v=202610211521"></script>
+<script src="dashboard-common.js?v=202610211521"></script>
+<script src="quote-pdf.js?v=202610211521"></script>
+<script src="my-bookings.js?v=202610211521"></script>
 </body>
 </html>

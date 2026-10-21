@@ -568,3 +568,11 @@ h1 { overflow-wrap: anywhere; }
 .industry h3 { margin:.2rem 0 0; }
 .industry p { margin:0; color:var(--muted); }
 .industry .more { margin-top:.4rem; font-weight:600; font-size:.9rem; }
+
+/* ---------- Storage page: industries strip ---------- */
+.ind-strip { display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:.8rem; }
+.ind-tile { display:grid; justify-items:center; gap:.7rem; padding:1.4rem .8rem; text-align:center; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); color:var(--ink); text-decoration:none; font-weight:600; font-size:.95rem; transition:border-color .15s, transform .15s; }
+.ind-tile:hover { border-color:var(--accent); transform:translateY(-3px); }
+.ind-tile svg { width:38px; height:38px; color:var(--accent); }
+@media (max-width:960px) { .ind-strip { grid-template-columns:repeat(3,minmax(0,1fr)); } }
+@media (max-width:520px) { .ind-strip { grid-template-columns:repeat(2,minmax(0,1fr)); } }

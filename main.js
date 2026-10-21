@@ -293,6 +293,7 @@
     function openTab(name, focus) {
       htabs.forEach((t) => t.setAttribute("aria-selected", t.dataset.h === name));
       panels.forEach((p) => (p.hidden = p.dataset.hp !== name));
+      $$(".hero-img").forEach((i) => i.classList.toggle("on", i.dataset.bg === name));   // matching background photo
       if (focus) $("input, select", panels.find((p) => p.dataset.hp === name))?.focus();
     }
     htabs.forEach((t) => t.addEventListener("click", () => openTab(t.dataset.h, true)));

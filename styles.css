@@ -485,3 +485,7 @@ code { font-family: var(--f-mono); font-size: .9em; background: color-mix(in srg
 /* Buttons on the right of a two-column band (stack on the left on phones) */
 .cta-actions { display: flex; gap: 1rem; flex-wrap: wrap; justify-content: flex-end; }
 @media (max-width: 620px) { .cta-actions { justify-content: flex-start; } }
+/* Service cards: equal height, "details" link aligned at the bottom */
+.services-grid .service { display: flex; flex-direction: column; }
+.services-grid .service .more { margin-top: auto; padding-top: .3rem; }
+.service-detail ul { max-width: 56rem; }

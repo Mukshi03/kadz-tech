@@ -516,3 +516,4 @@ code { font-family: var(--f-mono); font-size: .9em; background: color-mix(in srg
 .mini-steps span { color: var(--muted); font-size: .9rem; }
 .form-status { scroll-margin-top: 6rem; }
 .quote-total { border-radius: var(--radius); } .quote-total > .btn { justify-self: start; }
+h1 { overflow-wrap: anywhere; }

@@ -1,46 +1,29 @@
-/* Request a service: transportation, freight forwarding, customs clearance.
+/* Service request pages: transportation, freight forwarding, customs clearance.
    Anyone can send. Saved through the submit_service_request() database function. */
 (async function () {
   const { sb, esc, $, $$, errMsg, ready } = window.KZ;
   const form = $("#req-form"), btn = $("#r-submit"), status = $(".form-status", form);
-  const tabs = $$(".tab[data-svc]");
-  const sets = $$("fieldset.svc-set[data-svc]");
-  const NAMES = { transport: "Transportation", freight: "Freight forwarding", customs: "Customs clearance" };
   const MAX_FILES = 5, MAX_SIZE = 10 * 1024 * 1024;
-  let svc = "transport";
+  // Each service has its own page: request-transport.html, request-freight.html, request-customs.html
+  const svc = document.body.dataset.service;
+  const scope = $(`fieldset.svc-set[data-svc="${svc}"]`);
   let files = [];
 
   // Dates can't be in the past
   const today = new Date(); today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
   $$("[data-min-today]", form).forEach((i) => (i.min = today.toISOString().slice(0, 10)));
 
-  /* ---------- Tabs ---------- */
-  function open(name, focus) {
-    if (!NAMES[name]) name = "transport";
-    svc = name;
-    tabs.forEach((t) => t.setAttribute("aria-selected", t.dataset.svc === name));
-    // On phones the tab row scrolls sideways: keep the chosen tab in view
-    const t = tabs.find((x) => x.dataset.svc === name), row = t.parentElement;
-    if (t.offsetLeft + t.offsetWidth > row.scrollLeft + row.clientWidth || t.offsetLeft < row.scrollLeft) row.scrollLeft = t.offsetLeft - 16;
-    // Hidden sections are also disabled so the browser skips their checks
-    sets.forEach((s) => { const on = s.dataset.svc === name; s.hidden = !on; s.disabled = !on || locked; });
-    try { history.replaceState(null, "", "#" + name); } catch (e) {}
-    document.title = `${NAMES[name]} request | ${window.KZ.C.company}`;
-    if (focus) $("input, select", sets.find((s) => s.dataset.svc === name))?.focus();
-  }
-  tabs.forEach((t) => t.addEventListener("click", () => { if (!locked) open(t.dataset.svc, true); }));
-  window.addEventListener("hashchange", () => { if (!locked) open(location.hash.slice(1)); });
   let locked = false;
-  open(location.hash.slice(1));
 
   /* ---------- Customs documents ---------- */
   const fileInput = $("#c-docs"), fileList = $("#c-doc-list");
   function showFiles() {
+    if (!fileList) return;
     fileList.innerHTML = files.map((f, i) => `<li><span>${esc(f.name)}</span>
       <span class="muted">${(f.size / 1048576).toFixed(1)} MB</span>
       <button type="button" class="linkbtn" data-rm="${i}">Remove</button></li>`).join("");
   }
-  fileInput.addEventListener("change", () => {
+  fileInput?.addEventListener("change", () => {
     const bad = [];
     [...fileInput.files].forEach((f) => {
       const okType = /^(application\/pdf|image\/(jpeg|png|webp))$/.test(f.type);
@@ -53,7 +36,7 @@
     showFiles();
     if (bad.length) window.KZ.toast(bad.join(" · "), true);
   });
-  fileList.addEventListener("click", (e) => {
+  fileList?.addEventListener("click", (e) => {
     const b = e.target.closest("[data-rm]"); if (!b || locked) return;
     files.splice(+b.dataset.rm, 1); showFiles();
   });
@@ -114,7 +97,7 @@
   /* ---------- Send ---------- */
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const scope = sets.find((s) => s.dataset.svc === svc), contact = $("#contact-set");
+    const contact = $("#contact-set");
     const okExtras = checkExtras(scope) && checkExtras(contact);
     if (!form.reportValidity() || !okExtras) return;
     if (!sb) return fail("This form isn't connected yet. Add your Supabase details to config.js.");
@@ -152,7 +135,6 @@
   function showSent(ref, email) {
     locked = true;
     $$("fieldset.svc-set", form).forEach((s) => (s.disabled = true));
-    tabs.forEach((t) => (t.disabled = true));
     btn.disabled = true; btn.textContent = "Request sent";
     status.className = "form-status notice";
     status.innerHTML = `<strong>Request ${esc(ref)} sent.</strong> We'll email your quotation to <strong>${esc(email)}</strong>.
@@ -166,11 +148,10 @@
       form.reset();
       ["name", "company", "email", "phone"].forEach((k) => { if (keep[k]) form.elements[k].value = keep[k]; });
       files = []; showFiles();
-      tabs.forEach((t) => (t.disabled = false));
-      $("#contact-set").disabled = false;
+      $$("fieldset.svc-set", form).forEach((s) => (s.disabled = false));
       btn.disabled = false; btn.textContent = "Send request";
       status.hidden = true;
-      open(svc, true);
+      $("input, select", scope)?.focus();
     });
   }
 })();

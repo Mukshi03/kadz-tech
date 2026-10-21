@@ -387,7 +387,7 @@
     const { data, error } = await q;
     if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
     srData = data;
-    if (!data.length) { box.innerHTML = `<div class="empty"><strong>Nothing here</strong><p>Requests from the Request a service page will show here.</p></div>`; return; }
+    if (!data.length) { box.innerHTML = `<div class="empty"><strong>Nothing here</strong><p>Requests from the transportation, freight and customs request pages will show here.</p></div>`; return; }
 
     box.innerHTML = data.map((r) => {
       const cost = (Array.isArray(r.cost) ? r.cost[0] : r.cost)?.cost ?? "";

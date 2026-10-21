@@ -10,7 +10,7 @@
     $("#sq-number").textContent = "Not found";
     body.innerHTML = `<div class="empty"><strong>${esc(msg)}</strong>
       <p>Check that you opened the full link from your email, or contact us for help.</p>
-      <a class="btn btn-primary" href="request.html">Request a service</a></div>`;
+      <a class="btn btn-primary" href="services.html#transportation">Our services</a></div>`;
   };
   if (!sb) { showSetupNotice($("main")); return bad("The database isn't connected yet."); }
   if (!/^[0-9a-f-]{36}$/i.test(token)) return bad("This link isn't complete.");
@@ -55,7 +55,7 @@
           </div>
           <dl class="kv">${serviceFacts(r).map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join("")}</dl>
           ${r.price_description ? `<p class="note">${esc(r.price_description)}</p>` : ""}
-          ${expired ? `<p class="notice warn">This quotation expired on ${date(r.quote_valid_until)}. <a href="request.html#${esc(r.service)}">Send a new request</a> and we'll quote again.</p>` : ""}
+          ${expired ? `<p class="notice warn">This quotation expired on ${date(r.quote_valid_until)}. <a href="request-${esc(r.service)}.html">Send a new request</a> and we'll quote again.</p>` : ""}
           ${msg && !expired ? `<p class="notice${["rejected", "cancelled", "declined"].includes(r.status) ? " warn" : ""}">${esc(msg)}</p>` : ""}
           <div class="form-status" hidden role="status"></div>
         </article>

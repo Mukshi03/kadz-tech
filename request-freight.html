@@ -3,21 +3,22 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>Request a Service | KADZ Tech</title>
-  <meta name="description" content="Request a quotation for transportation, freight forwarding or customs clearance.">
+  <title>Freight forwarding Request | KADZ Tech</title>
+  <meta name="description" content="Request a freight forwarding quotation.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610211521">
+  <link rel="stylesheet" href="styles.css?v=202610211527">
 </head>
-<body data-page="request">
+<body data-page="request" data-service="freight">
 
 <main>
   <div class="page-head">
     <div class="wrap">
+      <a class="label" href="services.html#freight" style="text-decoration:none">← Services</a>
       <span class="dock"><b>Request</b> Quotation</span>
-      <h1>Request a service</h1>
-      <p class="lead">Tell us what you need to move or clear. We'll email you a quotation you can accept online.</p>
+      <h1>Freight forwarding</h1>
+      <p class="lead">Air, sea or land shipments in and out of Saudi Arabia. Send your shipment details and we'll email you a quotation.</p>
     </div>
   </div>
 
@@ -25,41 +26,9 @@
     <div class="wrap req-layout">
 
       <div style="min-width:0">
-        <div class="tabs" role="tablist">
-          <button class="tab" type="button" role="tab" data-svc="transport">Transportation</button>
-          <button class="tab" type="button" role="tab" data-svc="freight">Freight forwarding</button>
-          <button class="tab" type="button" role="tab" data-svc="customs">Customs clearance</button>
-        </div>
-
         <form class="form" id="req-form" novalidate>
 
-          <!-- Transportation -->
-          <fieldset data-svc="transport" class="svc-set">
-            <legend class="svc-title">Shipment details</legend>
-            <div class="form-row">
-              <label class="ctrl"><span>Pickup city</span><input name="from" required list="city-list" autocomplete="off"></label>
-              <label class="ctrl"><span>Delivery city</span><input name="to" required list="city-list" autocomplete="off"></label>
-            </div>
-            <div class="form-row">
-              <label class="ctrl"><span>Pickup date</span><input name="date" type="date" required data-min-today></label>
-              <label class="ctrl"><span>Truck type</span>
-                <select name="truck" required>
-                  <option value="">Choose…</option>
-                  <option value="standard">Standard (dry)</option>
-                  <option value="refrigerated">Refrigerated (chilled)</option>
-                  <option value="frozen">Frozen</option>
-                </select>
-              </label>
-            </div>
-            <div class="form-row">
-              <label class="ctrl"><span>Number of pallets</span><input name="pallets" type="number" min="1" inputmode="numeric" data-one-of="t-load"></label>
-              <label class="ctrl"><span>Total weight <em>kg</em></span><input name="weight_kg" type="number" min="1" inputmode="numeric" data-one-of="t-load"></label>
-            </div>
-            <span class="err" data-err="t-load" hidden>Enter the number of pallets or the total weight.</span>
-          </fieldset>
-
-          <!-- Freight forwarding -->
-          <fieldset data-svc="freight" class="svc-set" hidden disabled>
+          <fieldset data-svc="freight" class="svc-set">
             <legend class="svc-title">Shipment details</legend>
             <div class="form-row">
               <fieldset class="radio-set" data-required>
@@ -103,35 +72,6 @@
             <span class="err" data-err="f-size" hidden>Enter the weight or the volume.</span>
           </fieldset>
 
-          <!-- Customs clearance -->
-          <fieldset data-svc="customs" class="svc-set" hidden disabled>
-            <legend class="svc-title">Shipment details</legend>
-            <fieldset class="radio-set" data-required>
-              <legend>Direction</legend>
-              <div class="checks">
-                <label class="check"><input type="radio" name="c-direction" data-key="direction" value="import"> Import</label>
-                <label class="check"><input type="radio" name="c-direction" data-key="direction" value="export"> Export</label>
-              </div>
-              <span class="err" hidden>Choose import or export.</span>
-            </fieldset>
-            <div class="form-row">
-              <label class="ctrl"><span>Port or airport</span><input name="port" required></label>
-              <label class="ctrl"><span>HS code <em>optional</em></span><input name="hs_code" inputmode="numeric" maxlength="20"></label>
-            </div>
-            <div class="form-row">
-              <label class="ctrl"><span>Cargo description</span><input name="cargo" required></label>
-              <label class="ctrl"><span>Shipment value <em>SAR</em></span><input name="value_sar" type="number" min="0" step="any" inputmode="decimal" required></label>
-            </div>
-            <div class="ctrl">
-              <span>Documents <em>optional · invoice, packing list, bill of lading, certificates</em></span>
-              <label class="dropzone">
-                <input type="file" id="c-docs" multiple accept=".pdf,.jpg,.jpeg,.png,.webp,application/pdf,image/*">
-                <b>Choose files</b> <span class="muted">PDF or image, up to 10 MB each, max 5 files</span>
-              </label>
-              <ul class="file-list" id="c-doc-list"></ul>
-            </div>
-          </fieldset>
-
           <!-- Contact (shared) -->
           <fieldset class="svc-set" id="contact-set">
             <legend class="svc-title">Your details</legend>
@@ -168,6 +108,7 @@
           <li><b>Get a PDF quotation</b><span>We email it to you with the full price.</span></li>
           <li><b>Accept online</b><span>Use the link in the email to accept or decline.</span></li>
         </ol>
+        <p class="note">Other services: <a href="request-transport.html">Transportation</a> · <a href="request-customs.html">Customs clearance</a></p>
         <p class="note">Need storage too? <a href="warehouses.html">Find a warehouse</a> or <a href="quote.html">estimate your space</a>.</p>
       </aside>
     </div>
@@ -175,8 +116,8 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=202610211521"></script>
-<script src="main.js?v=202610211521"></script>
-<script src="request.js?v=202610211521"></script>
+<script src="config.js?v=202610211527"></script>
+<script src="main.js?v=202610211527"></script>
+<script src="request.js?v=202610211527"></script>
 </body>
 </html>

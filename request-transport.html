@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Transportation Request | KADZ Tech</title>
+  <meta name="description" content="Request a transportation quotation.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="styles.css?v=202610211527">
+</head>
+<body data-page="request" data-service="transport">
+
+<main>
+  <div class="page-head">
+    <div class="wrap">
+      <a class="label" href="services.html#transportation" style="text-decoration:none">← Services</a>
+      <span class="dock"><b>Request</b> Quotation</span>
+      <h1>Transportation</h1>
+      <p class="lead">Book a truck between cities. Tell us the route, date and load and we'll email you a quotation you can accept online.</p>
+    </div>
+  </div>
+
+  <section style="padding-top:2rem">
+    <div class="wrap req-layout">
+
+      <div style="min-width:0">
+        <form class="form" id="req-form" novalidate>
+
+          <fieldset data-svc="transport" class="svc-set">
+            <legend class="svc-title">Shipment details</legend>
+            <div class="form-row">
+              <label class="ctrl"><span>Pickup city</span><input name="from" required list="city-list" autocomplete="off"></label>
+              <label class="ctrl"><span>Delivery city</span><input name="to" required list="city-list" autocomplete="off"></label>
+            </div>
+            <div class="form-row">
+              <label class="ctrl"><span>Pickup date</span><input name="date" type="date" required data-min-today></label>
+              <label class="ctrl"><span>Truck type</span>
+                <select name="truck" required>
+                  <option value="">Choose…</option>
+                  <option value="standard">Standard (dry)</option>
+                  <option value="refrigerated">Refrigerated (chilled)</option>
+                  <option value="frozen">Frozen</option>
+                </select>
+              </label>
+            </div>
+            <div class="form-row">
+              <label class="ctrl"><span>Number of pallets</span><input name="pallets" type="number" min="1" inputmode="numeric" data-one-of="t-load"></label>
+              <label class="ctrl"><span>Total weight <em>kg</em></span><input name="weight_kg" type="number" min="1" inputmode="numeric" data-one-of="t-load"></label>
+            </div>
+            <span class="err" data-err="t-load" hidden>Enter the number of pallets or the total weight.</span>
+          </fieldset>
+
+          <!-- Contact (shared) -->
+          <fieldset class="svc-set" id="contact-set">
+            <legend class="svc-title">Your details</legend>
+            <div class="form-row">
+              <label class="ctrl"><span>Full name</span><input id="r-name" name="name" required autocomplete="name"></label>
+              <label class="ctrl"><span>Company <em>optional</em></span><input id="r-company" name="company" autocomplete="organization"></label>
+            </div>
+            <div class="form-row">
+              <label class="ctrl"><span>Email <em>quotation is sent here</em></span><input id="r-email" name="email" type="email" required autocomplete="email"></label>
+              <label class="ctrl"><span>Phone</span><input id="r-phone" name="phone" type="tel" required autocomplete="tel" placeholder="+966"></label>
+            </div>
+            <fieldset class="radio-set" data-required>
+              <legend>How should we contact you?</legend>
+              <div class="checks">
+                <label class="check"><input type="radio" name="contact_method" value="whatsapp"> WhatsApp</label>
+                <label class="check"><input type="radio" name="contact_method" value="phone"> Phone call</label>
+                <label class="check"><input type="radio" name="contact_method" value="email"> Email</label>
+              </div>
+              <span class="err" hidden>Choose how we should contact you.</span>
+            </fieldset>
+            <label class="ctrl"><span>Notes <em>optional</em></span><textarea id="r-notes" name="notes" maxlength="3000"></textarea></label>
+          </fieldset>
+
+          <div class="form-status" hidden role="status"></div>
+          <div><button class="btn btn-primary" type="submit" id="r-submit">Send request</button></div>
+        </form>
+        <datalist id="city-list" data-cities></datalist>
+      </div>
+
+      <aside class="req-side">
+        <span class="label">How it works</span>
+        <ol class="mini-steps">
+          <li><b>Send your request</b><span>No account needed.</span></li>
+          <li><b>Get a PDF quotation</b><span>We email it to you with the full price.</span></li>
+          <li><b>Accept online</b><span>Use the link in the email to accept or decline.</span></li>
+        </ol>
+        <p class="note">Other services: <a href="request-freight.html">Freight forwarding</a> · <a href="request-customs.html">Customs clearance</a></p>
+        <p class="note">Need storage too? <a href="warehouses.html">Find a warehouse</a> or <a href="quote.html">estimate your space</a>.</p>
+      </aside>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
+<script src="config.js?v=202610211527"></script>
+<script src="main.js?v=202610211527"></script>
+<script src="request.js?v=202610211527"></script>
+</body>
+</html>

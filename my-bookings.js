@@ -113,7 +113,7 @@
     if (!data.length) {
       sbox.innerHTML = `<div class="empty"><strong>No requests yet</strong>
         <p>Need a truck, freight forwarding or customs clearance? Send a request and your quotations will show here.</p>
-        <a class="btn btn-primary" href="request.html">Request a service</a></div>`;
+        <a class="btn btn-primary" href="services.html#transportation">Request a service</a></div>`;
       return;
     }
     const order = { quoted: 0, pending: 1, confirmed: 2 };
@@ -141,7 +141,7 @@
           ${r.status === "quoted" && r.quote_valid_until ? `<div><dt>Valid until</dt><dd>${date(r.quote_valid_until)}</dd></div>` : ""}
         </dl>
         ${r.status === "pending" ? `<p class="note">We're preparing your quotation. We'll email it to ${esc(r.email)} and it will show here.</p>` : ""}
-        ${expired ? `<p class="note">This quotation has expired. <a href="request.html#${esc(r.service)}">Send a new request</a>.</p>` : ""}
+        ${expired ? `<p class="note">This quotation has expired. <a href="request-${esc(r.service)}.html">Send a new request</a>.</p>` : ""}
         ${waiting ? `<div class="actions">
             <button class="btn btn-primary" data-sreply="confirmed" data-id="${esc(r.id)}">Accept quotation</button>
             <button class="btn btn-plain" data-sreply="declined" data-id="${esc(r.id)}">Decline</button>

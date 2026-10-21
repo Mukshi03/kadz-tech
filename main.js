@@ -5,9 +5,9 @@
 
   /* ---------- Helpers ---------- */
   const TYPES = {
-    dry:     { name: "Dry",     range: "No control" },
-    ambient: { name: "Ambient", range: "15–25 °C" },
-    chilled: { name: "Chilled", range: "2–8 °C" },
+    dry:     { name: "Dry",     range: "25–32 °C" },
+    ambient: { name: "Ambient", range: "20–25 °C" },
+    chilled: { name: "Chilled", range: "0–5 °C" },
     frozen:  { name: "Frozen",  range: "−18 °C" }
   };
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) =>

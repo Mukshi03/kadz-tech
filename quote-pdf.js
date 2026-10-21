@@ -120,7 +120,7 @@
   function buildQuotePdf(q) {
     const C = q.company, L = C.legal || {}, b = q.booking, cur = C.currency || "SAR";
     const INK = "#15202b", MUTED = "#56636f", LINE = "#d3d9df", AMBER = "#e3a008", BAND = "#15202b";
-    const TYPE = { dry: "Dry storage", ambient: "Ambient storage (15–25 °C)", chilled: "Chilled storage (2–8 °C)", frozen: "Frozen storage (-18 °C)" };
+    const TYPE = { dry: "Dry storage (25–32 °C)", ambient: "Ambient storage (20–25 °C)", chilled: "Chilled storage (0–5 °C)", frozen: "Frozen storage (-18 °C)" };
     const d = Doc(); d.image = q.logo;
     const M = 42, R = d.W - M;
     let y;

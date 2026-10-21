@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>Request a Service | KADZ Tech</title>
+  <!-- Old address: each service now has its own request page -->
+  <script>
+    (function () {
+      var h = location.hash.slice(1), pages = { transport: 1, freight: 1, customs: 1 };
+      location.replace(pages[h] ? "request-" + h + ".html" : "services.html#transportation");
+    })();
+  </script>
+  <meta http-equiv="refresh" content="0; url=services.html#transportation">
+</head>
+<body><p><a href="services.html#transportation">Go to our services</a></p></body>
+</html>

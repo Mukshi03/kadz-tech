@@ -8,38 +8,55 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610211545">
+  <link rel="stylesheet" href="styles.css?v=202610211605">
 </head>
 <body data-page="home">
 
 <main>
   <section class="hero">
     <div class="wrap">
-      <h1>Warehouse space<br>when you <span>need it</span></h1>
-      <p class="hero-tagline">Find dry, chilled and frozen storage, and add transport, freight forwarding and customs clearance when you need them. Book by the pallet, by the month, with no long lease.</p>
+      <h1>Store, move and<br>clear your <span>goods</span></h1>
+      <p class="hero-tagline">Warehouse storage, transportation, freight forwarding and customs clearance in Saudi Arabia. Use one service or combine them, with online quotations you can accept in minutes.</p>
 
-      <form class="search" id="hero-search" role="search">
-        <div class="field">
-          <label class="label" for="hs-city">City</label>
-          <select id="hs-city" data-cities><option value="">All cities</option></select>
+      <div class="hero-box">
+        <div class="hero-tabs" role="tablist" aria-label="Choose a service">
+          <button class="htab" type="button" role="tab" data-h="storage" aria-selected="true"><svg class="icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 18 24 8l20 10v24H4z"/><path d="M12 42V26h24v16M12 32h24M12 37h24"/></svg>Storage</button>
+          <button class="htab" type="button" role="tab" data-h="transport" aria-selected="false"><svg class="icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M3 12h26v22H3zM29 20h9l7 7v7H29z"/><circle cx="12" cy="36" r="4"/><circle cx="36" cy="36" r="4"/></svg>Transportation</button>
+          <button class="htab" type="button" role="tab" data-h="freight" aria-selected="false"><svg class="icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M4 30h40l-5 10H9z"/><path d="M10 30V20h14v10M24 24h10v6"/><path d="M15 20v-6h5v6"/><path d="M4 44c3 0 3-2 6-2s3 2 6 2 3-2 6-2 3 2 6 2 3-2 6-2 3 2 6 2"/></svg>Freight</button>
+          <button class="htab" type="button" role="tab" data-h="customs" aria-selected="false"><svg class="icon" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M10 4h20l8 8v32H10z"/><path d="M30 4v8h8"/><path d="M16 20h16M16 26h16M16 32h8"/><circle cx="32" cy="36" r="6"/><path d="m29.5 36 2 2 3.5-4"/></svg>Customs</button>
         </div>
-        <div class="field">
-          <label class="label" for="hs-type">Storage type</label>
-          <select id="hs-type" data-types><option value="">Any type</option></select>
-        </div>
-        <div class="field">
-          <label class="label" for="hs-pallets">Pallets needed</label>
-          <input id="hs-pallets" type="number" min="1" inputmode="numeric" placeholder="e.g. 50">
-        </div>
-        <button class="btn btn-primary" type="submit">Search</button>
-      </form>
 
-      <div class="temps" aria-label="Temperature ranges">
-        <span class="temp"><i style="background:var(--dry)"></i>Dry</span>
-        <span class="temp"><i style="background:var(--ambient)"></i>Ambient 15–25 °C</span>
-        <span class="temp"><i style="background:var(--chilled)"></i>Chilled 2–8 °C</span>
-        <span class="temp"><i style="background:var(--frozen)"></i>Frozen −18 °C</span>
+        <form class="search" id="hero-search" data-hp="storage" role="search">
+          <div class="field"><label class="label" for="hs-city">City</label><select id="hs-city" data-cities><option value="">All cities</option></select></div>
+          <div class="field"><label class="label" for="hs-type">Storage type</label><select id="hs-type" data-types><option value="">Any type</option></select></div>
+          <div class="field"><label class="label" for="hs-pallets">Pallets needed</label><input id="hs-pallets" type="number" min="1" inputmode="numeric" placeholder="e.g. 50"></div>
+          <button class="btn btn-primary" type="submit">Search</button>
+        </form>
+
+        <form class="search hero-go" data-hp="transport" data-go="request-transport.html" hidden>
+          <div class="field"><label class="label" for="ht-from">From city</label><input id="ht-from" name="from" list="hero-cities" placeholder="e.g. Jeddah" autocomplete="off"></div>
+          <div class="field"><label class="label" for="ht-to">To city</label><input id="ht-to" name="to" list="hero-cities" placeholder="e.g. Riyadh" autocomplete="off"></div>
+          <div class="field"><label class="label" for="ht-date">Pickup date</label><input id="ht-date" name="date" type="date" data-min-today></div>
+          <button class="btn btn-primary" type="submit">Continue</button>
+        </form>
+
+        <form class="search hero-go" data-hp="freight" data-go="request-freight.html" hidden>
+          <div class="field"><label class="label" for="hf-mode">Mode</label><select id="hf-mode" name="mode"><option value="">Choose…</option><option value="sea">Sea</option><option value="air">Air</option><option value="land">Land</option></select></div>
+          <div class="field"><label class="label" for="hf-origin">Origin</label><input id="hf-origin" name="origin" placeholder="City, country"></div>
+          <div class="field"><label class="label" for="hf-dest">Destination</label><input id="hf-dest" name="destination" placeholder="City, country"></div>
+          <button class="btn btn-primary" type="submit">Continue</button>
+        </form>
+
+        <form class="search hero-go" data-hp="customs" data-go="request-customs.html" hidden>
+          <div class="field"><label class="label" for="hc-dir">Direction</label><select id="hc-dir" name="direction"><option value="">Choose…</option><option value="import">Import</option><option value="export">Export</option></select></div>
+          <div class="field"><label class="label" for="hc-port">Port or airport</label><input id="hc-port" name="port" placeholder="Where is the shipment?"></div>
+          <div class="field"><label class="label" for="hc-value">Shipment value <em>SAR</em></label><input id="hc-value" name="value_sar" type="number" min="0" inputmode="decimal" placeholder="e.g. 50000"></div>
+          <button class="btn btn-primary" type="submit">Continue</button>
+        </form>
+        <datalist id="hero-cities" data-cities></datalist>
       </div>
+
+      <p class="hero-mix">Need more than one service? <a href="quote.html">Get one quote for everything →</a></p>
     </div>
   </section>
 
@@ -131,7 +148,7 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=202610211545"></script>
-<script src="main.js?v=202610211545"></script>
+<script src="config.js?v=202610211605"></script>
+<script src="main.js?v=202610211605"></script>
 </body>
 </html>

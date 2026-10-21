@@ -41,6 +41,16 @@
     files.splice(+b.dataset.rm, 1); showFiles();
   });
 
+  /* ---------- Prefill from the home page quick form (?from=…&to=…) ---------- */
+  new URLSearchParams(location.search).forEach((value, key) => {
+    $$("input, select", scope).forEach((el) => {
+      if ((el.dataset.key || el.name) !== key || el.type === "file") return;
+      if (el.type === "radio") el.checked = el.value === value;
+      else if (el.tagName === "SELECT") { if ([...el.options].some((o) => o.value === value)) el.value = value; }
+      else el.value = value.slice(0, 200);
+    });
+  });
+
   /* ---------- Prefill for logged-in visitors ---------- */
   const u = await ready;
   if (u.session) {

@@ -287,6 +287,26 @@
       if (pal) p.set("pallets", pal);
       location.href = "warehouses.html" + (p.toString() ? "?" + p : "");
     });
+
+    // Service tabs: Storage | Transportation | Freight | Customs
+    const htabs = $$(".htab"), panels = $$(".hero-box [data-hp]");
+    function openTab(name, focus) {
+      htabs.forEach((t) => t.setAttribute("aria-selected", t.dataset.h === name));
+      panels.forEach((p) => (p.hidden = p.dataset.hp !== name));
+      if (focus) $("input, select", panels.find((p) => p.dataset.hp === name))?.focus();
+    }
+    htabs.forEach((t) => t.addEventListener("click", () => openTab(t.dataset.h, true)));
+
+    const today = new Date(); today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    $$(".hero-box [data-min-today]").forEach((i) => (i.min = today.toISOString().slice(0, 10)));
+
+    // "Continue" opens the service's request page with what was typed already filled in
+    $$(".hero-go").forEach((form) => form.addEventListener("submit", (e) => {
+      e.preventDefault();
+      const p = new URLSearchParams();
+      $$("input, select", form).forEach((el) => { if (el.value.trim()) p.set(el.name, el.value.trim()); });
+      location.href = form.dataset.go + (p.toString() ? "?" + p : "");
+    }));
   }
 
   /* ---------- Estimate page ---------- */

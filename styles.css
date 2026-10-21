@@ -527,3 +527,21 @@ h1 { overflow-wrap: anywhere; }
 .check-list li::before { content: ""; position: absolute; left: 1rem; top: 1.35rem; width: 9px; height: 9px; background: var(--accent); }
 @media (max-width: 620px) { .check-list { grid-template-columns: 1fr; } }
 .services-grid .service:not(:has(p)) { min-height: 0; }
+
+/* ---------- Home: service tabs above the search bar ---------- */
+.hero-box { display: grid; max-width: 1100px; }
+.hero-tabs { display: flex; gap: .4rem; flex-wrap: wrap; margin-bottom: -1px; position: relative; z-index: 1; }
+.htab { display: inline-flex; align-items: center; gap: .5rem; padding: .7rem 1.1rem; border: 1px solid var(--line); border-bottom: 0; border-radius: var(--radius) var(--radius) 0 0; background: transparent; color: var(--muted); font: 600 .95rem var(--f-body); cursor: pointer; }
+.htab svg { width: 22px; height: 22px; flex-shrink: 0; }
+.htab:hover { color: var(--ink); }
+.htab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: inset 0 3px 0 var(--accent); }
+.hero-box .search { border-top-left-radius: 0; }
+.search .label em { font-style: normal; text-transform: none; letter-spacing: 0; }
+.search input[type=date] { color-scheme: inherit; }
+.hero-mix { color: var(--muted); }
+.hero-mix a { color: var(--ink); font-weight: 600; }
+@media (max-width: 620px) {
+  .hero-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: .35rem; margin-bottom: .5rem; }
+  .htab { border-bottom: 1px solid var(--line); border-radius: var(--radius); justify-content: center; }
+  .hero-box .search { border-top-left-radius: var(--radius); }
+}

@@ -560,3 +560,11 @@ h1 { overflow-wrap: anywhere; }
 .hero .search { box-shadow: 0 18px 40px -20px rgba(0,0,0,.6); }
 .has-bg .htab:not([aria-selected="true"]) { background: color-mix(in srgb, var(--bg) 75%, transparent); backdrop-filter: blur(4px); }
 .quote-svc { display: grid; gap: .4rem; padding-top: .8rem; border-top: 1px dashed var(--line); }
+
+/* ---------- Home: industries we serve ---------- */
+.industry { display:grid; gap:.6rem; align-content:start; padding:1.6rem; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); color:var(--ink); text-decoration:none; transition:border-color .15s, transform .15s; }
+.industry:hover { border-color:var(--accent); transform:translateY(-3px); }
+.industry .icon { width:40px; height:40px; color:var(--accent); }
+.industry h3 { margin:.2rem 0 0; }
+.industry p { margin:0; color:var(--muted); }
+.industry .more { margin-top:.4rem; font-weight:600; font-size:.9rem; }

@@ -517,3 +517,13 @@ code { font-family: var(--f-mono); font-size: .9em; background: color-mix(in srg
 .form-status { scroll-margin-top: 6rem; }
 .quote-total { border-radius: var(--radius); } .quote-total > .btn { justify-self: start; }
 h1 { overflow-wrap: anywhere; }
+
+/* ---------- Single service pages ---------- */
+.svc-hero-title { display: flex; align-items: center; gap: 1rem; min-width: 0; }
+.svc-hero-icon { width: clamp(44px, 6vw, 64px); height: auto; flex-shrink: 0; color: var(--accent); }
+.svc-intro { align-items: start; gap: clamp(1.5rem, 4vw, 4rem); }
+.check-list { margin: 0; padding: 0; list-style: none; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .8rem 1.5rem; }
+.check-list li { padding: .9rem 1rem .9rem 2.4rem; position: relative; border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }
+.check-list li::before { content: ""; position: absolute; left: 1rem; top: 1.35rem; width: 9px; height: 9px; background: var(--accent); }
+@media (max-width: 620px) { .check-list { grid-template-columns: 1fr; } }
+.services-grid .service:not(:has(p)) { min-height: 0; }

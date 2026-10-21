@@ -188,7 +188,8 @@
           <ul>
             <li><a href="warehouses.html">Find a warehouse</a></li>
             <li><a href="services.html">Services</a></li>
-            <li><a href="quote.html">Price estimator</a></li>
+            <li><a href="estimate.html">Space estimator</a></li>
+            <li><a href="quote.html">Get a quote</a></li>
             <li><a href="partners.html">List your warehouse</a></li>
             <li><a href="login.html">Log in / Sign up</a></li>
           </ul>
@@ -206,8 +207,26 @@
     Object.entries(TYPES).forEach(([k, t]) => sel.add(new Option(`${t.name} (${t.range})`, k))));
   $$("datalist[data-cities]").forEach((dl) => (C.cities || []).forEach((c) => dl.append(new Option(c))));
 
+  /* ---------- Quote page: fill in numbers from the estimate page ---------- */
+  function fillFromEstimate(form) {
+    const q = new URLSearchParams(location.search);
+    const type = q.get("type"), pallets = +q.get("pallets") || 0, months = +q.get("months") || 0;
+    if (!type && !pallets && !months) return false;
+    if (type && TYPES[type]) $("#q-type", form).value = type;
+    if (pallets > 0) $("#q-pallets", form).value = Math.ceil(pallets);
+    if (months > 0) $("#q-months", form).value = Math.ceil(months);
+    return true;
+  }
+
   /* ---------- Public quote form → quote_requests table ---------- */
   $$("form[data-kind=quote]").forEach((form) => {
+    if (fillFromEstimate(form)) {
+      const n = $("#from-estimate");
+      if (n) {
+        n.innerHTML = `We've filled in your estimate. <a href="estimate.html">Change it</a>`;
+        n.hidden = false;
+      }
+    }
     const btn = $("button[type=submit]", form);
     const label = btn.textContent;
     const status = $(".form-status", form);
@@ -251,7 +270,7 @@
         fields.forEach((el) => (el.disabled = false));
         btn.disabled = false; btn.textContent = label;
         status.hidden = true;
-        $("#e-mode")?.dispatchEvent(new Event("input"));   // copy the estimate back into the form
+        fillFromEstimate(form);
         fields[0]?.focus();
       });
     });
@@ -270,8 +289,8 @@
     });
   }
 
-  /* ---------- Quote page: estimator ---------- */
-  if (page === "quote") {
+  /* ---------- Estimate page ---------- */
+  if (page === "estimate") {
     const PALLET_M3 = 1.2 * 1.0 * 1.5 * 0.85; // 1.2×1.0 m pallet, 1.5 m load, 85% fill
     const eMode = $("#e-mode"), boxesBlock = $("#e-boxes-block"), palBlock = $("#e-pallets-block");
     const fields = ["e-mode", "e-type", "e-pallets", "e-boxes", "e-l", "e-w", "e-h", "e-months"].map((id) => $("#" + id));
@@ -299,15 +318,16 @@
       if (rate == null || rate === "") {
         $("#r-rate").textContent = "On request";
         $("#r-total").textContent = "On request";
-        $("#r-note").textContent = "Send the form and we'll reply with a quotation.";
+        $("#r-note").textContent = "Ask for a quote and we'll reply with the price.";
       } else {
         $("#r-rate").textContent = `${fmt(rate)} ${C.currency} / pallet / month`;
         $("#r-total").textContent = money(pallets * rate * months);
         $("#r-note").textContent = "Estimate only, excluding handling, transport and VAT.";
       }
-      $("#q-type").value = type;
-      $("#q-pallets").value = pallets || "";
-      $("#q-months").value = months;
+      // "Get a quote for this estimate" carries the numbers to the quote page
+      const q = new URLSearchParams({ type, months });
+      if (pallets) q.set("pallets", pallets);
+      $("#e-quote").href = "quote.html?" + q;
     }
     fields.forEach((f) => f.addEventListener("input", calc));
     calc();

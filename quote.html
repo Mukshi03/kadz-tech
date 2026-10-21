@@ -4,80 +4,29 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Get a Quote | KADZ Tech</title>
-  <meta name="description" content="Estimate the warehouse space you need and request a quote.">
+  <meta name="description" content="Request a quote for warehouse space and logistics services.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610211527">
+  <link rel="stylesheet" href="styles.css?v=202610211539">
 </head>
 <body data-page="quote">
 
 <main>
   <div class="page-head">
     <div class="wrap">
-      <span class="dock"><b>Quote</b> Estimator</span>
+      <span class="dock"><b>Quote</b> Request</span>
       <h1>Get a quote</h1>
-      <p class="lead">Work out how many pallet positions you need, then send us your details.</p>
+      <p class="lead">Tell us what you need and our team will contact you with a quotation.</p>
     </div>
   </div>
 
   <section style="padding-top:2rem">
-    <div class="wrap" style="display:grid;gap:3rem">
-
-      <div class="estimator">
-        <div class="form">
-          <h3>1. Estimate your space</h3>
-          <div class="form-row">
-            <label class="ctrl"><span>I know my</span>
-              <select id="e-mode">
-                <option value="boxes">Box count and size</option>
-                <option value="pallets">Pallet count</option>
-              </select>
-            </label>
-            <label class="ctrl"><span>Storage type</span>
-              <select id="e-type" data-types></select>
-            </label>
-          </div>
-
-          <div id="e-boxes-block" style="display:grid;gap:1rem">
-            <label class="ctrl"><span>Number of boxes</span>
-              <input id="e-boxes" type="number" min="0" inputmode="numeric" value="400">
-            </label>
-            <div class="form-row cols-3">
-              <label class="ctrl"><span>Length <em>cm</em></span><input id="e-l" type="number" min="0" value="60"></label>
-              <label class="ctrl"><span>Width <em>cm</em></span><input id="e-w" type="number" min="0" value="40"></label>
-              <label class="ctrl"><span>Height <em>cm</em></span><input id="e-h" type="number" min="0" value="40"></label>
-            </div>
-          </div>
-          <div id="e-pallets-block" hidden>
-            <label class="ctrl"><span>Number of pallets</span>
-              <input id="e-pallets" type="number" min="0" inputmode="numeric" value="20">
-            </label>
-          </div>
-
-          <label class="ctrl"><span>Duration <em>months</em></span>
-            <input id="e-months" type="number" min="1" max="60" value="3">
-          </label>
-          <p class="label" style="text-transform:none;letter-spacing:0">Based on a 1.2 × 1.0 m pallet loaded to 1.5 m at 85% fill (1.53 m³ per pallet).</p>
-        </div>
-
-        <div class="estimate" aria-live="polite">
-          <span class="label">Your estimate</span>
-          <div class="row"><span>Pallet positions</span><strong id="r-pallets">0</strong></div>
-          <div class="row"><span>Volume</span><strong id="r-volume">0 m³</strong></div>
-          <div class="row"><span>Storage</span><strong id="r-type">–</strong></div>
-          <div class="row"><span>Duration</span><strong id="r-months">–</strong></div>
-          <div class="row"><span>Rate</span><strong id="r-rate">–</strong></div>
-          <div>
-            <span class="label">Estimated total</span>
-            <div class="total num" id="r-total">–</div>
-          </div>
-          <small id="r-note"></small>
-        </div>
-      </div>
-
+    <div class="wrap req-layout">
+      <div style="min-width:0">
+        <div class="notice" id="from-estimate" style="margin-bottom:1rem" hidden></div>
       <form class="form" data-kind="quote" novalidate>
-        <h3>2. Request a quote</h3>
+        <h3>Your details</h3>
         <div class="form-row">
           <label class="ctrl"><span>Full name</span><input id="q-name" name="name" required autocomplete="name"></label>
           <label class="ctrl"><span>Company</span><input id="q-company" name="company" required autocomplete="organization"></label>
@@ -114,12 +63,23 @@
         <div class="form-status" hidden role="status"></div>
         <div><button class="btn btn-primary" type="submit">Send request</button></div>
       </form>
+      </div>
+      <aside class="req-side">
+        <span class="label">How it works</span>
+        <ol class="mini-steps">
+          <li><b>Send your request</b><span>No account needed.</span></li>
+          <li><b>We contact you</b><span>Our team checks space and replies with a quotation.</span></li>
+          <li><b>Start storing</b><span>Book the space that suits you.</span></li>
+        </ol>
+        <p class="note">Not sure how many pallets you need? <a href="estimate.html">Estimate your space</a>.</p>
+        <p class="note">Need transport, freight or customs? <a href="services.html#transportation">See our services</a>.</p>
+      </aside>
     </div>
   </section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=202610211527"></script>
-<script src="main.js?v=202610211527"></script>
+<script src="config.js?v=202610211539"></script>
+<script src="main.js?v=202610211539"></script>
 </body>
 </html>

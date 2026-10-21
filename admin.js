@@ -534,6 +534,14 @@
   $("#sr-filter").addEventListener("change", loadServices);
 
   /* ---------------- Quote requests ---------------- */
+  // Details the client gave for transportation, freight and customs on the Get a quote form
+  function quoteDetails(r) {
+    const d = r.details || {}, KEY = { transportation: "transport", freight: "freight", customs: "customs" };
+    return Object.entries(KEY).filter(([k]) => d[k]).map(([k, svc]) => `
+      <div class="quote-svc"><span class="label">${esc(SERVICES[svc])}</span>
+        <dl class="kv">${serviceFacts({ service: svc, details: d[k] }).map(([a, b]) => `<div><dt>${esc(a)}</dt><dd>${esc(b)}</dd></div>`).join("")}</dl>
+      </div>`).join("");
+  }
   async function loadQuotes() {
     const box = $("#q-list");
     const { data, error } = await sb.from("quote_requests").select("*").order("created_at", { ascending: false }).limit(200);
@@ -548,9 +556,12 @@
         <dl class="kv">
           <div><dt>Contact</dt><dd>${contact({ full_name: r.name, email: r.email, phone: r.phone })}</dd></div>
           <div><dt>Services</dt><dd>${esc((r.services || []).join(", ") || "–")}</dd></div>
+          ${(r.services || []).includes("storage") ? `
           <div><dt>Storage · city</dt><dd>${esc(TYPES[r.storage_type]?.name || r.storage_type || "–")} · ${esc(r.city || "Any")}</dd></div>
           <div><dt>Pallets · months</dt><dd>${r.pallets ?? "–"} · ${r.months ?? "–"}</dd></div>
+          ${r.details?.storage?.start_date ? `<div><dt>Storage start</dt><dd>${date(r.details.storage.start_date)}</dd></div>` : ""}` : ""}
         </dl>
+        ${quoteDetails(r)}
         ${r.notes ? `<p class="note">${esc(r.notes)}</p>` : ""}
         <div class="actions"><button class="btn btn-sm btn-plain" data-q="${r.status === "new" ? "handled" : "new"}">${r.status === "new" ? "Mark as handled" : "Mark as new"}</button></div>
       </article>`).join("");

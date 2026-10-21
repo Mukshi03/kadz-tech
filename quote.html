@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610211622">
+  <link rel="stylesheet" href="styles.css?v=202610211630">
 </head>
 <body data-page="quote">
 
@@ -26,18 +26,9 @@
       <div style="min-width:0">
         <div class="notice" id="from-estimate" style="margin-bottom:1rem" hidden></div>
       <form class="form" data-kind="quote" novalidate>
-        <h3>Your details</h3>
-        <div class="form-row">
-          <label class="ctrl"><span>Full name</span><input id="q-name" name="name" required autocomplete="name"></label>
-          <label class="ctrl"><span>Company</span><input id="q-company" name="company" required autocomplete="organization"></label>
-        </div>
-        <div class="form-row">
-          <label class="ctrl"><span>Email</span><input id="q-email" name="email" type="email" required autocomplete="email"></label>
-          <label class="ctrl"><span>Phone</span><input id="q-phone" name="phone" type="tel" required autocomplete="tel" placeholder="+966"></label>
-        </div>
-
-        <fieldset data-name="services" data-required>
-          <legend>Services needed</legend>
+        <fieldset data-name="services" data-required class="svc-set" style="border:0;padding:0">
+          <legend class="svc-title">What do you need?</legend>
+          <p class="muted" style="margin:0;font-size:.9rem">Tick one or more. We'll ask a few details for each.</p>
           <div class="checks">
             <label class="check"><input type="checkbox" value="storage" checked> Storage</label>
             <label class="check"><input type="checkbox" value="transportation"> Transportation</label>
@@ -47,19 +38,93 @@
           <span class="err" hidden>Choose at least one service.</span>
         </fieldset>
 
-        <div class="form-row">
-          <label class="ctrl"><span>Storage type</span><select id="q-type" name="storageType" data-types></select></label>
-          <label class="ctrl"><span>City</span>
-            <select id="q-city" name="city" data-cities><option value="">Any / not sure</option></select>
+        <!-- Storage -->
+        <fieldset class="svc-set qsvc" data-for="storage">
+          <legend class="svc-title">Storage details</legend>
+          <div class="form-row">
+            <label class="ctrl"><span>Storage type</span><select id="q-type" name="storageType" data-types required></select></label>
+            <label class="ctrl"><span>City</span><select id="q-city" name="city" data-cities><option value="">Any / not sure</option></select></label>
+          </div>
+          <div class="form-row cols-3">
+            <label class="ctrl"><span>Pallet positions</span><input id="q-pallets" name="pallets" type="number" min="1" inputmode="numeric" required></label>
+            <label class="ctrl"><span>Duration <em>months</em></span><input id="q-months" name="months" type="number" min="1" required></label>
+            <label class="ctrl"><span>Start date <em>optional</em></span><input name="start_date" data-key="start_date" type="date" data-min-today></label>
+          </div>
+          <p class="note" style="margin:0">Not sure how many pallets? <a href="estimate.html">Estimate your space</a>.</p>
+        </fieldset>
+
+        <!-- Transportation -->
+        <fieldset class="svc-set qsvc" data-for="transportation" hidden disabled>
+          <legend class="svc-title">Transportation details</legend>
+          <div class="form-row">
+            <label class="ctrl"><span>Pickup city</span><input data-key="from" required list="q-city-list" autocomplete="off"></label>
+            <label class="ctrl"><span>Delivery city</span><input data-key="to" required list="q-city-list" autocomplete="off"></label>
+          </div>
+          <div class="form-row">
+            <label class="ctrl"><span>Pickup date</span><input data-key="date" type="date" required data-min-today></label>
+            <label class="ctrl"><span>Truck type</span>
+              <select data-key="truck" required><option value="">Choose…</option><option value="standard">Standard (dry)</option><option value="refrigerated">Refrigerated (chilled)</option><option value="frozen">Frozen</option></select></label>
+          </div>
+          <div class="form-row">
+            <label class="ctrl"><span>Number of pallets</span><input data-key="pallets" type="number" min="1" inputmode="numeric" data-one-of="q-t-load"></label>
+            <label class="ctrl"><span>Total weight <em>kg</em></span><input data-key="weight_kg" type="number" min="1" inputmode="numeric" data-one-of="q-t-load"></label>
+          </div>
+          <span class="err" data-err="q-t-load" hidden>Enter the number of pallets or the total weight.</span>
+        </fieldset>
+
+        <!-- Freight forwarding -->
+        <fieldset class="svc-set qsvc" data-for="freight" hidden disabled>
+          <legend class="svc-title">Freight forwarding details</legend>
+          <div class="form-row">
+            <fieldset class="radio-set" data-required><legend>Mode</legend><div class="checks"><label class="check"><input type="radio" name="q-f-mode" data-key="mode" value="air"> Air</label><label class="check"><input type="radio" name="q-f-mode" data-key="mode" value="sea"> Sea</label><label class="check"><input type="radio" name="q-f-mode" data-key="mode" value="land"> Land</label></div><span class="err" hidden>Choose air, sea or land.</span></fieldset>
+            <fieldset class="radio-set" data-required><legend>Direction</legend><div class="checks"><label class="check"><input type="radio" name="q-f-dir" data-key="direction" value="import"> Import</label><label class="check"><input type="radio" name="q-f-dir" data-key="direction" value="export"> Export</label></div><span class="err" hidden>Choose import or export.</span></fieldset>
+          </div>
+          <div class="form-row">
+            <label class="ctrl"><span>Origin <em>city, country</em></span><input data-key="origin" required></label>
+            <label class="ctrl"><span>Destination <em>city, country</em></span><input data-key="destination" required></label>
+          </div>
+          <div class="form-row">
+            <label class="ctrl"><span>Cargo ready date</span><input data-key="ready_date" type="date" required data-min-today></label>
+            <label class="ctrl"><span>Incoterm</span><select data-key="incoterm"><option value="">Not sure</option><option>EXW</option><option>FCA</option><option>FAS</option><option>FOB</option><option>CFR</option><option>CIF</option><option>CPT</option><option>CIP</option><option>DAP</option><option>DPU</option><option>DDP</option></select></label>
+          </div>
+          <label class="ctrl"><span>Cargo description</span><input data-key="cargo" required></label>
+          <div class="form-row">
+            <label class="ctrl"><span>Total weight <em>kg</em></span><input data-key="weight_kg" type="number" min="0" step="any" data-one-of="q-f-size"></label>
+            <label class="ctrl"><span>Volume <em>m³ (CBM)</em></span><input data-key="volume_cbm" type="number" min="0" step="any" data-one-of="q-f-size"></label>
+          </div>
+          <span class="err" data-err="q-f-size" hidden>Enter the weight or the volume.</span>
+        </fieldset>
+
+        <!-- Customs clearance -->
+        <fieldset class="svc-set qsvc" data-for="customs" hidden disabled>
+          <legend class="svc-title">Customs clearance details</legend>
+          <fieldset class="radio-set" data-required><legend>Direction</legend><div class="checks"><label class="check"><input type="radio" name="q-c-dir" data-key="direction" value="import"> Import</label><label class="check"><input type="radio" name="q-c-dir" data-key="direction" value="export"> Export</label></div><span class="err" hidden>Choose import or export.</span></fieldset>
+          <div class="form-row">
+            <label class="ctrl"><span>Port or airport</span><input data-key="port" required></label>
+            <label class="ctrl"><span>HS code <em>optional</em></span><input data-key="hs_code" maxlength="20"></label>
+          </div>
+          <div class="form-row">
+            <label class="ctrl"><span>Cargo description</span><input data-key="cargo" required></label>
+            <label class="ctrl"><span>Shipment value <em>SAR</em></span><input data-key="value_sar" type="number" min="0" step="any" required></label>
+          </div>
+        </fieldset>
+
+        <!-- Contact -->
+        <fieldset class="svc-set" id="q-contact">
+          <legend class="svc-title">Your details</legend>
+          <div class="form-row">
+            <label class="ctrl"><span>Full name</span><input id="q-name" name="name" required autocomplete="name"></label>
+            <label class="ctrl"><span>Company</span><input id="q-company" name="company" required autocomplete="organization"></label>
+          </div>
+          <div class="form-row">
+            <label class="ctrl"><span>Email</span><input id="q-email" name="email" type="email" required autocomplete="email"></label>
+            <label class="ctrl"><span>Phone</span><input id="q-phone" name="phone" type="tel" required autocomplete="tel" placeholder="+966"></label>
+          </div>
+          <label class="ctrl"><span>Anything else? <em>optional</em></span>
+            <textarea id="q-notes" name="notes" placeholder="Product type, handling needs, how the services connect"></textarea>
           </label>
-        </div>
-        <div class="form-row">
-          <label class="ctrl"><span>Pallet positions</span><input id="q-pallets" name="pallets" type="number" min="1"></label>
-          <label class="ctrl"><span>Duration <em>months</em></span><input id="q-months" name="months" type="number" min="1"></label>
-        </div>
-        <label class="ctrl"><span>What are you storing? <em>optional</em></span>
-          <textarea id="q-notes" name="notes" placeholder="Product type, start date, delivery needs"></textarea>
-        </label>
+        </fieldset>
+        <datalist id="q-city-list" data-cities></datalist>
         <div class="form-status" hidden role="status"></div>
         <div><button class="btn btn-primary" type="submit">Send request</button></div>
       </form>
@@ -68,18 +133,18 @@
         <span class="label">How it works</span>
         <ol class="mini-steps">
           <li><b>Send your request</b><span>No account needed.</span></li>
-          <li><b>We contact you</b><span>Our team checks space and replies with a quotation.</span></li>
-          <li><b>Start storing</b><span>Book the space that suits you.</span></li>
+          <li><b>We contact you</b><span>Our team checks your request and replies with one quotation.</span></li>
+          <li><b>We handle it</b><span>Accept the quotation and we arrange every service you chose.</span></li>
         </ol>
         <p class="note">Not sure how many pallets you need? <a href="estimate.html">Estimate your space</a>.</p>
-        <p class="note">Need transport, freight or customs? <a href="services.html#transportation">See our services</a>.</p>
+        <p class="note">Need only one service? <a href="services.html">See our services</a>.</p>
       </aside>
     </div>
   </section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="config.js?v=202610211622"></script>
-<script src="main.js?v=202610211622"></script>
+<script src="config.js?v=202610211630"></script>
+<script src="main.js?v=202610211630"></script>
 </body>
 </html>

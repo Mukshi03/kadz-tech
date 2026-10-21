@@ -230,12 +230,56 @@
     const btn = $("button[type=submit]", form);
     const label = btn.textContent;
     const status = $(".form-status", form);
+    const fs = $("fieldset[data-name=services]", form);
+    const sections = $$("fieldset.qsvc", form);
+
+    const today = new Date(); today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
+    $$("[data-min-today]", form).forEach((i) => (i.min = today.toISOString().slice(0, 10)));
+
+    // Show the detail section for each ticked service (hidden ones are skipped when checking the form)
+    function showSections() {
+      const on = $$("input:checked", fs).map((i) => i.value);
+      sections.forEach((sec) => { const show = on.includes(sec.dataset.for); sec.hidden = !show; sec.disabled = !show; });
+    }
+    fs.addEventListener("change", () => { showSections(); $(".err", fs).hidden = true; });
+    showSections();
+
+    // Radio groups and "one of these" pairs the browser can't check by itself
+    function checkExtras(scope) {
+      let ok = true;
+      $$("fieldset.radio-set[data-required]", scope).forEach((g) => {
+        const has = !!$("input:checked", g);
+        $(".err", g).hidden = has;
+        if (!has && ok) { $("input", g).focus(); ok = false; }
+      });
+      const groups = {};
+      $$("[data-one-of]", scope).forEach((i) => (groups[i.dataset.oneOf] ||= []).push(i));
+      Object.entries(groups).forEach(([g, inputs]) => {
+        const has = inputs.some((i) => i.value.trim() !== "");
+        $(`[data-err="${g}"]`, scope).hidden = has;
+        if (!has && ok) { inputs[0].focus(); ok = false; }
+      });
+      return ok;
+    }
+    // The answers in one section, e.g. { from: "Jeddah", to: "Riyadh", truck: "frozen" }
+    function collect(scope) {
+      const out = {};
+      $$("input[data-key], select[data-key]", scope).forEach((el) => {
+        if ((el.type === "radio" || el.type === "checkbox") && !el.checked) return;
+        const v = el.value.trim();
+        if (v !== "") out[el.dataset.key] = el.type === "number" ? Number(v) : v;
+      });
+      return out;
+    }
+
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const fs = $("fieldset[data-name=services]", form);
       const services = $$("input:checked", fs).map((i) => i.value);
       $(".err", fs).hidden = services.length > 0;
-      if (!services.length || !form.reportValidity()) return;
+      if (!services.length) { $("input", fs).focus(); return; }
+      const open = sections.filter((sec) => !sec.hidden);
+      const extrasOk = open.every((sec) => checkExtras(sec));
+      if (!form.reportValidity() || !extrasOk) return;
       if (!sb) {
         status.className = "form-status notice warn";
         status.textContent = "This form isn't connected yet. Add your Supabase details to config.js.";
@@ -243,11 +287,15 @@
         return;
       }
       const f = new FormData(form);
+      const storage = services.includes("storage");
+      const details = {};
+      open.forEach((sec) => { const d = collect(sec); if (Object.keys(d).length) details[sec.dataset.for] = d; });
       const row = {
         name: f.get("name"), company: f.get("company") || null, email: f.get("email"), phone: f.get("phone") || null,
-        services, storage_type: f.get("storageType") || null, city: f.get("city") || null,
-        pallets: f.get("pallets") ? Number(f.get("pallets")) : null,
-        months: f.get("months") ? Number(f.get("months")) : null, notes: f.get("notes") || null
+        services, notes: f.get("notes") || null, details,
+        storage_type: storage ? f.get("storageType") || null : null, city: storage ? f.get("city") || null : null,
+        pallets: storage && f.get("pallets") ? Number(f.get("pallets")) : null,
+        months: storage && f.get("months") ? Number(f.get("months")) : null
       };
       btn.disabled = true; btn.textContent = "Sending…";
       const { error } = await sb.from("quote_requests").insert(row);
@@ -259,7 +307,7 @@
         return;
       }
       // Lock the form and show "Request sent" so it isn't sent twice
-      const fields = $$("input, select, textarea", form);
+      const fields = $$("fieldset", form);
       fields.forEach((el) => (el.disabled = true));
       btn.textContent = "Request sent";
       status.className = "form-status notice";
@@ -267,11 +315,12 @@
       status.hidden = false;
       $("[data-again]", status).addEventListener("click", () => {
         form.reset();
-        fields.forEach((el) => (el.disabled = false));
+        $$("fieldset", form).forEach((el) => (el.disabled = false));
+        showSections();
+        fillFromEstimate(form);
         btn.disabled = false; btn.textContent = label;
         status.hidden = true;
-        fillFromEstimate(form);
-        fields[0]?.focus();
+        $("input", fs)?.focus();
       });
     });
   });

@@ -559,3 +559,4 @@ h1 { overflow-wrap: anywhere; }
 @media (prefers-reduced-motion: reduce) { .hero-img { transition: opacity .2s; transform: none !important; } }
 .hero .search { box-shadow: 0 18px 40px -20px rgba(0,0,0,.6); }
 .has-bg .htab:not([aria-selected="true"]) { background: color-mix(in srgb, var(--bg) 75%, transparent); backdrop-filter: blur(4px); }
+.quote-svc { display: grid; gap: .4rem; padding-top: .8rem; border-top: 1px dashed var(--line); }

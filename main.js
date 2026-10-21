@@ -232,16 +232,28 @@
       };
       btn.disabled = true; btn.textContent = "Sending…";
       const { error } = await sb.from("quote_requests").insert(row);
-      btn.disabled = false; btn.textContent = label;
       if (error) {
+        btn.disabled = false; btn.textContent = label;
         status.className = "form-status notice warn";
         status.textContent = "We couldn't send your request: " + errMsg(error);
-      } else {
-        form.reset();
-        status.className = "form-status notice";
-        status.textContent = "Thanks. Your request has been sent and our team will contact you soon.";
+        status.hidden = false;
+        return;
       }
+      // Lock the form and show "Request sent" so it isn't sent twice
+      const fields = $$("input, select, textarea", form);
+      fields.forEach((el) => (el.disabled = true));
+      btn.textContent = "Request sent";
+      status.className = "form-status notice";
+      status.innerHTML = `Thanks. Your request has been sent and our team will contact you soon.<br><button type="button" class="linkbtn" data-again style="margin-top:.4rem">Send another request</button>`;
       status.hidden = false;
+      $("[data-again]", status).addEventListener("click", () => {
+        form.reset();
+        fields.forEach((el) => (el.disabled = false));
+        btn.disabled = false; btn.textContent = label;
+        status.hidden = true;
+        $("#e-mode")?.dispatchEvent(new Event("input"));   // copy the estimate back into the form
+        fields[0]?.focus();
+      });
     });
   });
 

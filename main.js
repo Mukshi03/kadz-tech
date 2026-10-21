@@ -405,7 +405,7 @@
 
   /* ---------- Transportation / freight / customs requests ---------- */
   const SERVICES = { transport: "Transportation", freight: "Freight forwarding", customs: "Customs clearance" };
-  const TRUCK = { standard: "Standard (dry)", refrigerated: "Refrigerated", frozen: "Frozen" };
+  const TRUCK = { standard: "Standard (dry)", refrigerated: "Refrigerated (0–5 °C)", frozen: "Frozen (−18 °C)" };
   const MODE = { air: "Air", sea: "Sea", land: "Land" };
   const cap = (v) => v ? String(v)[0].toUpperCase() + String(v).slice(1) : v;
   // The answers from the request form as [label, value] pairs (empty ones left out)

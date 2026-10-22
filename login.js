@@ -155,8 +155,9 @@
     startCooldown();
   }
   codeIn.addEventListener("input", () => {
-    codeIn.value = codeIn.value.replace(/\D/g, "").slice(0, 6);
-    if (codeIn.value.length === 6) verifyF.requestSubmit();   // submit as soon as all 6 digits are in
+    // The code length is set in Supabase (6–8 digits); submit by itself once 8 are in
+    codeIn.value = codeIn.value.replace(/\D/g, "").slice(0, 8);
+    if (codeIn.value.length === 8) verifyF.requestSubmit();
   });
   resendB.addEventListener("click", async () => {
     if (cooldown > 0) return;

@@ -16,7 +16,7 @@
   if (lang !== "ar") return;
 
   var AR = {
-    "We sent a 6-digit code to": "أرسلنا رمزًا مكوّنًا من 6 أرقام إلى",
+    "We sent a verification code to": "أرسلنا رمز التحقق إلى",
     ". Enter it below to activate your account.": ". أدخله أدناه لتفعيل حسابك.",
     "A new code is on its way to": "رمز جديد في الطريق إلى",
     "An account with": "يوجد حساب مسجّل بالبريد",
@@ -25,7 +25,7 @@
     "Verify your email": "تأكيد بريدك الإلكتروني",
     "Enter the code": "أدخل الرمز",
     "Verification code": "رمز التحقق",
-    "6-digit code from the email": "الرمز المكوّن من 6 أرقام في البريد",
+    "The code from the email": "الرمز الموجود في البريد",
     "Verify email": "تأكيد البريد",
     "Verifying…": "جارٍ التحقق…",
     "Resend code": "إعادة إرسال الرمز",

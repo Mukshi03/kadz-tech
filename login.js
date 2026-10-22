@@ -34,6 +34,21 @@
   if (params.get("mode") === "signup") show("signup");
   if (params.get("role") === "partner") $('input[name=role][value=partner]').checked = true;
 
+  // "List my warehouse" asks for first and last name, company, CR and VAT numbers.
+  // Hidden fields are switched off so the browser doesn't check them.
+  function showRoleFields() {
+    const role = $("input[name=role]:checked").value;
+    $$("[data-for]", signF).forEach((box) => {
+      const on = box.dataset.for === role;
+      box.hidden = !on;
+      $$("input", box).forEach((i) => (i.disabled = !on));
+    });
+  }
+  $$("input[name=role]").forEach((r) => r.addEventListener("change", showRoleFields));
+  // Digits only in the CR and VAT boxes
+  ["#s-cr", "#s-vat"].forEach((id) => $(id).addEventListener("input", (e) => (e.target.value = e.target.value.replace(/\D/g, ""))));
+  showRoleFields();
+
   function say(form, msg, ok) {
     const s = $(".form-status", form);
     s.className = "form-status notice" + (ok ? "" : " warn");
@@ -95,13 +110,18 @@
       email, password: $("#s-pass").value,
       options: {
         emailRedirectTo: pageUrl + (next ? "?next=" + encodeURIComponent(next) : ""),
-        data: { role, full_name: $("#s-name").value.trim(), company: $("#s-company").value.trim(), phone: $("#s-phone").value.trim() }
+        data: role === "partner" ? {
+          role, first_name: $("#s-first").value.trim(), last_name: $("#s-last").value.trim(),
+          full_name: `${$("#s-first").value.trim()} ${$("#s-last").value.trim()}`,
+          company: $("#s-pcompany").value.trim(), cr_number: $("#s-cr").value.trim(), vat_number: $("#s-vat").value.trim(),
+          phone: $("#s-phone").value.trim()
+        } : { role, full_name: $("#s-name").value.trim(), company: $("#s-company").value.trim(), phone: $("#s-phone").value.trim() }
       }
     });
     busy(signF, false);
     if (error) return say(signF, esc(errMsg(error)));
     if (data.session) return goHome();   // email confirmation is turned off
-    signF.reset();
+    signF.reset(); showRoleFields();
     say(signF, `Account created. We sent a confirmation link to <strong>${esc(email)}</strong>. Click it, then log in.`, true);
   });
 

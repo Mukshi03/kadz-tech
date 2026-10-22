@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610221626">
+  <link rel="stylesheet" href="styles.css?v=202610221704">
 </head>
 <body data-page="login">
 
@@ -63,9 +63,22 @@
             <label class="check"><span><input type="radio" name="role" value="partner"> List my warehouse</span><small>I own or run a warehouse</small></label>
           </div>
         </fieldset>
-        <div class="form-row">
+        <!-- Rent storage -->
+        <div class="form-row" data-for="client">
           <label class="ctrl"><span>Full name</span><input id="s-name" required autocomplete="name"></label>
           <label class="ctrl"><span>Company</span><input id="s-company" autocomplete="organization"></label>
+        </div>
+        <!-- List my warehouse: a few more company details -->
+        <div class="partner-extra" data-for="partner" hidden>
+          <div class="form-row">
+            <label class="ctrl"><span>First name</span><input id="s-first" required autocomplete="given-name"></label>
+            <label class="ctrl"><span>Last name</span><input id="s-last" required autocomplete="family-name"></label>
+          </div>
+          <label class="ctrl"><span>Company name <em>as on your commercial registration</em></span><input id="s-pcompany" required autocomplete="organization"></label>
+          <div class="form-row">
+            <label class="ctrl"><span>CR number</span><input id="s-cr" required inputmode="numeric" maxlength="10" pattern="\d{10}" placeholder="10 digits" title="10-digit commercial registration number"></label>
+            <label class="ctrl"><span>VAT number</span><input id="s-vat" required inputmode="numeric" maxlength="15" pattern="3\d{13}3" placeholder="15 digits" title="15-digit VAT number that starts and ends with 3"></label>
+          </div>
         </div>
         <label class="ctrl"><span>Phone</span><input id="s-phone" type="tel" required autocomplete="tel" placeholder="+966"></label>
         <label class="ctrl"><span>Email</span><input id="s-email" type="email" required autocomplete="email" placeholder="you@company.com"></label>
@@ -92,9 +105,9 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="i18n.js?v=202610221626"></script>
-<script src="config.js?v=202610221626"></script>
-<script src="main.js?v=202610221626"></script>
-<script src="login.js?v=202610221626"></script>
+<script src="i18n.js?v=202610221704"></script>
+<script src="config.js?v=202610221704"></script>
+<script src="main.js?v=202610221704"></script>
+<script src="login.js?v=202610221704"></script>
 </body>
 </html>

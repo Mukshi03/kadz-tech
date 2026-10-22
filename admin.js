@@ -120,7 +120,7 @@
   let whData = [];
   async function loadWarehouses() {
     const box = $("#wh-list");
-    let q = sb.from("warehouses").select("*, owner:profiles!warehouses_owner_id_fkey(full_name, company, email, phone)").order("created_at", { ascending: false });
+    let q = sb.from("warehouses").select("*, owner:profiles!warehouses_owner_id_fkey(full_name, company, email, phone, cr_number, vat_number)").order("created_at", { ascending: false });
     if ($("#wh-filter").value) q = q.eq("status", $("#wh-filter").value);
     const { data, error } = await q;
     if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
@@ -138,7 +138,7 @@
           ${pill(w.status)}
         </div>
         <dl class="kv">
-          <div><dt>Owner</dt><dd>${contact(w.owner)}</dd></div>
+          <div><dt>Owner</dt><dd>${contact(w.owner)}${w.owner?.cr_number ? `<br><span class="muted">CR ${esc(w.owner.cr_number)}</span>` : ""}${w.owner?.vat_number ? `<br><span class="muted">VAT ${esc(w.owner.vat_number)}</span>` : ""}</dd></div>
           <div><dt>Pallets free / total</dt><dd>${fmt(w.pallets_available)} / ${fmt(w.pallets_total)}</dd></div>
           <div><dt>Area · min. months</dt><dd>${w.area_sqm ? fmt(w.area_sqm) + " m²" : "–"} · ${w.min_months}</dd></div>
           <div><dt>Partner price <span class="muted">/ pallet / month</span></dt><dd>${partnerPriceText(w) || "<span class='muted'>Not set</span>"}</dd></div>
@@ -587,7 +587,9 @@
     $("#u-list").innerHTML = rows.length ? rows.map((p) => `
       <article class="row-card" data-id="${esc(p.id)}">
         <div class="row-top">
-          <div>${contact(p)}<div class="label" style="margin-top:.3rem">Joined ${date(p.created_at)}</div></div>
+          <div>${contact(p)}
+            ${p.cr_number || p.vat_number ? `<div class="muted" style="margin-top:.3rem;font-size:.9rem">${[p.cr_number && `CR ${esc(p.cr_number)}`, p.vat_number && `VAT ${esc(p.vat_number)}`].filter(Boolean).join(" · ")}</div>` : ""}
+            <div class="label" style="margin-top:.3rem">Joined ${date(p.created_at)}</div></div>
           <div class="inline-form">
             <label class="ctrl" style="min-width:150px"><span class="label">Role</span>
               <select data-role>${["client", "partner", "admin"].map((x) => `<option${x === p.role ? " selected" : ""}>${x}</option>`).join("")}</select>

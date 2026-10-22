@@ -16,6 +16,16 @@
   if (lang !== "ar") return;
 
   var AR = {
+"First name": "الاسم الأول",
+"Last name": "اسم العائلة",
+"Company name": "اسم الشركة",
+"as on your commercial registration": "كما في السجل التجاري",
+"CR number": "رقم السجل التجاري",
+"VAT number": "الرقم الضريبي",
+"10 digits": "10 أرقام",
+"15 digits": "15 رقمًا",
+"10-digit commercial registration number": "رقم السجل التجاري المكوّن من 10 أرقام",
+"15-digit VAT number that starts and ends with 3": "رقم ضريبي من 15 رقمًا يبدأ وينتهي بالرقم 3",
 "What you can count on every time you store, move or clear goods with us.": "ما يمكنك الاعتماد عليه في كل مرة تخزّن أو تنقل أو تخلّص بضائعك معنا.",
 "Reliability": "الموثوقية",
 "Transparency": "الشفافية",

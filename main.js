@@ -350,20 +350,23 @@
     const counters = $$("[data-count]");
     const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     function countUp(el) {
-      const end = +el.dataset.count, t0 = performance.now(), dur = end > 100 ? 1800 : 900;
+      cancelAnimationFrame(el._raf);
+      const end = +el.dataset.count, t0 = performance.now(), dur = end > 100 ? 1800 : 1100;
       const tick = (t) => {
         const k = Math.min(1, (t - t0) / dur), eased = 1 - Math.pow(1 - k, 3);
         el.textContent = Math.round(end * eased).toLocaleString("en-US");
-        if (k < 1) requestAnimationFrame(tick);
+        if (k < 1) el._raf = requestAnimationFrame(tick);
       };
-      requestAnimationFrame(tick);
+      el._raf = requestAnimationFrame(tick);
     }
-    if (!still && "IntersectionObserver" in window) {
+    // Count up every time the band comes into view; reset to 0 once it has scrolled away
+    const band = $(".stats-band");
+    if (band && !still && "IntersectionObserver" in window) {
       counters.forEach((el) => (el.textContent = "0"));
-      const io = new IntersectionObserver((entries) => entries.forEach((e) => {
-        if (e.isIntersecting) { countUp(e.target); io.unobserve(e.target); }
-      }), { threshold: .6 });
-      counters.forEach((el) => io.observe(el));
+      new IntersectionObserver(([e]) => {
+        if (e.isIntersecting) counters.forEach(countUp);
+        else counters.forEach((el) => { cancelAnimationFrame(el._raf); el.textContent = "0"; });
+      }, { threshold: .35 }).observe(band);
     }
 
     // Client logos: repeat the row once so the sliding loop has no gap

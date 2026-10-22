@@ -578,8 +578,16 @@ h1 { overflow-wrap: anywhere; }
 @media (max-width:960px) { .ind-strip { grid-template-columns:repeat(3,minmax(0,1fr)); } }
 @media (max-width:520px) { .ind-strip { grid-template-columns:repeat(2,minmax(0,1fr)); } }
 
-/* ---------- Software: coming soon ---------- */
-.soon { display: flex; gap: 1.6rem; align-items: flex-start; padding: clamp(1.4rem, 4vw, 2.5rem); background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); max-width: 900px; }
-.soon .icon { width: 64px; height: 64px; flex-shrink: 0; color: var(--accent); }
-.soon h2 { margin: 0 0 .4rem; }
-@media (max-width: 560px) { .soon { flex-direction: column; } }
+/* ---------- Software: "something new is coming" teaser ---------- */
+.kb rect{fill:var(--accent)}.kb path{fill:var(--accent-ink)}
+.tz-chips{display:flex;flex-wrap:wrap;gap:.6rem}.tz-chips span{padding:.55rem .9rem;border:1px solid var(--line);border-radius:999px;background:color-mix(in srgb,var(--surface) 80%,transparent);font-size:.92rem;font-weight:500}
+.tz-eyebrow{font:600 .8rem var(--f-mono);letter-spacing:.25em;text-transform:uppercase;color:var(--accent)}
+@keyframes blink{50%{opacity:0}} @keyframes pulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--accent) 55%,transparent)}70%{box-shadow:0 0 0 22px transparent}}
+@keyframes scan{0%{top:0}100%{top:100%}} @keyframes load{0%{left:-40%}100%{left:100%}} @keyframes up{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.tz3{padding-block:clamp(3rem,7vw,6rem);position:relative;overflow:hidden}
+.tz3::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);background-size:60px 60px;opacity:.35;mask-image:radial-gradient(circle at 50% 45%,#000,transparent 70%)}
+.tz3-in{position:relative;display:grid;justify-items:center;gap:1.4rem;text-align:center}
+.tz3-badge{width:84px;height:84px;border-radius:14px;animation:pulse 2.2s infinite} .tz3-badge svg{width:100%;height:100%}
+.tz3-word{position:relative;display:grid;line-height:.92;font-family:var(--f-display);font-weight:900;font-size:clamp(3rem,10vw,8.5rem);letter-spacing:.01em;padding:.2em .3em;overflow:hidden}
+.tz3-word .o{color:transparent;-webkit-text-stroke:2px var(--accent)}
+.scan{position:absolute;left:0;right:0;height:3px;background:var(--accent);box-shadow:0 0 18px 4px color-mix(in srgb,var(--accent) 60%,transparent);animation:scan 2.6s ease-in-out infinite alternate}

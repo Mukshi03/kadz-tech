@@ -172,33 +172,53 @@
 
   /* ---------- Footer ---------- */
   const ct = C.contact || {};
-  const contactLines = [
-    ct.phone && `<li><a href="tel:${esc(ct.phone.replace(/\s/g, ""))}">${esc(ct.phone)}</a></li>`,
-    ct.email && `<li><a href="mailto:${esc(ct.email)}">${esc(ct.email)}</a></li>`,
-    ct.address && `<li>${esc(ct.address)}</li>`
-  ].filter(Boolean).join("");
+  // Footer: brand + cities + social links | Services | Company | Contact (empty settings are hidden)
+  const so = C.social || {};
+  const SOCIAL = {
+    linkedin: ["LinkedIn", '<path d="M6.5 9h3v9h-3zM8 4.5a1.75 1.75 0 1 1 0 3.5 1.75 1.75 0 0 1 0-3.5zM12 9h2.9v1.3c.4-.8 1.4-1.5 2.9-1.5 3 0 3.6 1.9 3.6 4.5V18h-3v-4.1c0-1-.1-2.3-1.5-2.3s-1.8 1.1-1.8 2.2V18H12z"/>'],
+    x: ["X", '<path d="M4 4h4.5l3.6 5 4.3-5h2.2l-5.5 6.3L19.5 20H15l-3.9-5.4L6.4 20H4.2l5.9-6.8z"/>'],
+    instagram: ["Instagram", '<rect x="4" y="4" width="16" height="16" rx="4.5" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="12" cy="12" r="3.6" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="16.8" cy="7.2" r="1.1"/>']
+  };
+  const socials = Object.entries(SOCIAL).filter(([k]) => /^https?:\/\//.test(so[k] || "")).map(([k, [label, path]]) =>
+    `<a class="soc" href="${esc(so[k])}" target="_blank" rel="noopener" aria-label="${label}"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">${path}</svg></a>`).join("");
+  const contactRows = [
+    ct.phone && ["Phone / WhatsApp", `<a href="tel:${esc(ct.phone.replace(/\s/g, ""))}">${esc(ct.phone)}</a>`],
+    ct.email && ["Email", `<a href="mailto:${esc(ct.email)}">${esc(ct.email)}</a>`],
+    ct.address && ["Head office", esc(ct.address)],
+    ct.hours && ["Hours", esc(ct.hours)]
+  ].filter(Boolean).map(([k, v]) => `<div class="foot-kv"><span>${k}</span><b>${v}</b></div>`).join("");
   const footer = document.createElement("footer");
   footer.className = "site-footer";
   footer.innerHTML = `
     <div class="wrap">
       <div class="foot-grid">
-        <div>
+        <div class="foot-brand">
           <a class="brand" href="index.html">${brand}</a>
-          ${C.tagline ? `<p style="margin-top:.8rem;opacity:.75;max-width:40ch">${esc(C.tagline)}</p>` : ""}
+          <p>${esc(C.tagline || "Warehouse storage, transportation, freight forwarding and customs clearance across Saudi Arabia.")}</p>
+          ${(C.cities || []).length ? `<div class="foot-chips">${C.cities.map((c) => `<span>${esc(c)}</span>`).join("")}</div>` : ""}
+          ${socials ? `<div class="foot-social">${socials}</div>` : ""}
         </div>
         <div>
-          <h4>Platform</h4>
+          <h4>Services</h4>
+          <ul>
+            <li><a href="service-storage.html">Warehouse storage</a></li>
+            <li><a href="service-transport.html">Transportation</a></li>
+            <li><a href="service-freight.html">Freight forwarding</a></li>
+            <li><a href="service-customs.html">Customs clearance</a></li>
+            <li><a href="estimate.html">Space estimator</a></li>
+          </ul>
+        </div>
+        <div>
+          <h4>Company</h4>
           <ul>
             <li><a href="warehouses.html">Find a warehouse</a></li>
-            <li><a href="services.html">Services</a></li>
-            <li><a href="estimate.html">Space estimator</a></li>
-            <li><a href="quote.html">Get a quote</a></li>
             <li><a href="partners.html">List your warehouse</a></li>
             <li><a href="software.html">Software</a></li>
+            <li><a href="quote.html">Get a quote</a></li>
             <li><a href="login.html">Log in / Sign up</a></li>
           </ul>
         </div>
-        ${contactLines ? `<div><h4>Contact</h4><ul>${contactLines}</ul></div>` : ""}
+        ${contactRows ? `<div><h4>Contact</h4><div class="foot-contact">${contactRows}</div></div>` : ""}
       </div>
       <div class="foot-bottom">© ${new Date().getFullYear()} ${esc(C.company)}. All rights reserved.</div>
     </div>`;

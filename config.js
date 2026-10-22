@@ -8,10 +8,14 @@ window.KADZ = {
   tagline: "",               // e.g. "Warehousing on demand"
 
   contact: {
-    phone: "",               // e.g. "+966 5X XXX XXXX"
-    email: "",               // e.g. "hello@kadztech.com"
-    address: ""              // e.g. "Jeddah, Saudi Arabia"
+    phone: "+966 5X XXX XXXX",
+    email: "sales@yourdomain.sa",
+    address: "Street, District, Jeddah 2XXXX",
+    hours: "Sun – Thu, 8:00 – 18:00"
   },
+
+  // Social media links (full https:// address). Empty ones are hidden.
+  social: { linkedin: "", x: "", instagram: "" },
 
   // Cities offered in search filters and the partner form,
   // e.g. ["Jeddah", "Riyadh", "Dammam"]

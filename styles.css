@@ -646,3 +646,7 @@ h1 { overflow-wrap: anywhere; }
   .kpi:nth-child(even) { padding-left: 1rem; border-left: 1px solid var(--line); }
   .kpi:nth-last-child(-n+2) { border-bottom: 0; }
 }
+
+/* ---------- Home: service card shape (rounded, like the reference) ---------- */
+.services-grid .service { border: 1px solid var(--line); border-radius: 16px; }
+.services-grid .service:hover { border-color: var(--accent); transform: translateY(-3px); }

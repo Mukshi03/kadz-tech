@@ -16,6 +16,15 @@
   if (lang !== "ar") return;
 
   var AR = {
+"What you can count on every time you store, move or clear goods with us.": "ما يمكنك الاعتماد عليه في كل مرة تخزّن أو تنقل أو تخلّص بضائعك معنا.",
+"Reliability": "الموثوقية",
+"Transparency": "الشفافية",
+"Flexibility": "المرونة",
+"Visibility": "الوضوح والمتابعة",
+"Your goods are handled with care and delivered on time. Licensed warehouses, trusted carriers and clear processes behind every booking.": "نتعامل مع بضائعك بعناية ونسلّمها في الوقت المحدد. مستودعات مرخّصة وناقلون موثوقون وإجراءات واضحة خلف كل حجز.",
+"Clear PDF quotations with the full price and VAT shown up front. No hidden fees and no surprises on the invoice.": "عروض أسعار PDF واضحة تُظهر السعر الكامل وضريبة القيمة المضافة مسبقًا. بلا رسوم خفية وبلا مفاجآت في الفاتورة.",
+"Book by the pallet and by the month. Scale your space up or down as your stock changes, without a long lease.": "احجز بالطبلية وبالشهر. وسّع مساحتك أو قلّصها مع تغيّر مخزونك، دون عقد طويل.",
+"Request, accept and track your quotations and bookings online, from one simple dashboard.": "اطلب عروض الأسعار واقبلها وتابع حجوزاتك إلكترونيًا من لوحة واحدة سهلة.",
 "Our values": "قيمنا",
 "Why KADZ Logistics": "لماذا KADZ Logistics",
 "The principles that shape how we work, who we partner with, and the standard we hold ourselves to.": "المبادئ التي تحدد طريقة عملنا، ومن نتعاون معهم، والمعايير التي نلتزم بها.",

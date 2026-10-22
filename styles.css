@@ -197,8 +197,10 @@ section { padding-block: clamp(3.5rem, 8vw, 6rem); }
 .step { display: grid; gap: .6rem; padding-top: 1.2rem; border-top: 2px solid color-mix(in srgb, var(--band-ink) 25%, transparent); }
 .step::before {
   counter-increment: step; content: "0" counter(step);
-  font-family: var(--f-display); font-weight: 800; font-size: 3rem; line-height: 1; color: var(--accent);
+  font-family: var(--f-display); font-weight: 800; font-size: 3.6rem; line-height: 1;
+  color: transparent; -webkit-text-stroke: 1.5px var(--accent);   /* outline numbers */
 }
+@supports not (-webkit-text-stroke: 1px black) { .step::before { color: var(--accent); } }
 
 /* ---------- Storage types ---------- */
 .types { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: var(--radius); background: var(--surface); }

@@ -14,7 +14,9 @@
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmt = (n) => Number(n || 0).toLocaleString("en-US");
   const money = (n) => (n == null || n === "") ? "On request" : `${Number(n).toLocaleString("en-US", { maximumFractionDigits: 2 })} ${C.currency || "SAR"}`;
-  const date = (d) => d ? new Date(d).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "–";
+  const AR = window.KZ_LANG === "ar";
+  // Arabic pages use Arabic month names with the Gregorian calendar and Western digits
+  const date = (d) => d ? new Date(d).toLocaleDateString(AR ? "ar-SA-u-ca-gregory-nu-latn" : "en-GB", { day: "numeric", month: "short", year: "numeric" }) : "–";
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => [...root.querySelectorAll(sel)];
 
@@ -146,10 +148,18 @@
         ${navItems.map(([href, label, key]) =>
           `<a href="${href}"${key === page ? ' aria-current="page"' : ""}>${label}</a>`).join("")}
         <span id="nav-account"><a href="login.html"${page === "login" ? ' aria-current="page"' : ""}>Log in</a></span>
+        ${window.KZ_LANG && !window.KZ_ENGLISH_ONLY ? `<div class="lang-switch" role="group" aria-label="Language">
+          <button type="button" data-lang="ar" lang="ar" aria-pressed="${window.KZ_LANG === "ar"}">العربية</button>
+          <button type="button" data-lang="en" lang="en" aria-pressed="${window.KZ_LANG !== "ar"}">EN</button>
+        </div>` : ""}
         <a class="btn btn-primary" href="quote.html">Get a quote</a>
       </nav>
     </div>`;
   document.body.prepend(header);
+  header.addEventListener("click", (e) => {
+    const b = e.target.closest("[data-lang]");
+    if (b && b.dataset.lang !== window.KZ_LANG) window.KZ_setLang(b.dataset.lang);
+  });
   const toggle = $(".nav-toggle", header), nav = $(".nav", header);
   toggle.addEventListener("click", () => {
     const open = nav.classList.toggle("open");

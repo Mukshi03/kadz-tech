@@ -82,21 +82,30 @@
     setTimeout(() => { if (!recovering) goHome(); }, 300);
   }
 
+  // Log in = password, then a code sent by email (every time)
   loginF.addEventListener("submit", async (e) => {
     e.preventDefault();
     if (!loginF.reportValidity()) return;
-    busy(loginF, true, "Logging in…");
-    const { error } = await sb.auth.signInWithPassword({ email: $("#l-email").value.trim(), password: $("#l-pass").value });
-    busy(loginF, false);
+    const email = $("#l-email").value.trim();
+    busy(loginF, true, "Checking…");
+    const { error } = await sb.auth.signInWithPassword({ email, password: $("#l-pass").value });
     if (error && /not confirmed/i.test(error.message || "")) {
-      // Signed up but never verified: send a fresh code and ask for it
-      await sb.auth.resend({ type: "signup", email: $("#l-email").value.trim() });
-      return askCode($("#l-email").value.trim(), true);
+      // Signed up but never verified: send a fresh sign-up code and ask for it
+      await sb.auth.resend({ type: "signup", email });
+      busy(loginF, false);
+      return askCode(email, "signup", "Your email isn't verified yet. We've sent you a new code.");
     }
-    if (error) return say(loginF, esc(errMsg(error)));
-    window.KZ.rememberLogin($("#l-keep").checked);
-    goHome();
+    if (error) { busy(loginF, false); return say(loginF, esc(errMsg(error))); }
+    // Password is right. Don't keep this session: log in only after the email code.
+    await sb.auth.signOut({ scope: "local" });
+    busy(loginF, true, "Sending code…");
+    const sent = await sendLoginCode(email);
+    busy(loginF, false);
+    if (sent.error) return say(loginF, esc(errMsg(sent.error)));
+    $("#l-pass").value = "";
+    askCode(email, "login");
   });
+  const sendLoginCode = (email) => sb.auth.signInWithOtp({ email, options: { shouldCreateUser: false } });
 
   $("#forgot").addEventListener("click", async () => {
     const email = $("#l-email").value.trim();
@@ -131,11 +140,11 @@
     if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0)
       return say(signF, `An account with <strong>${esc(email)}</strong> already exists. <button type="button" class="linkbtn auth-link" data-show="login">Log in</button> instead.`);
     signF.reset(); showRoleFields();
-    askCode(email);
+    askCode(email, "signup");
   });
 
-  /* ---------- Email verification with a 6-digit code ---------- */
-  let codeEmail = "", cooldown = 0, timer;
+  /* ---------- Email code: after sign-up ("signup") and at every log in ("login") ---------- */
+  let codeEmail = "", codeFor = "signup", cooldown = 0, timer;
   const resendB = $("#v-resend"), codeIn = $("#v-code");
   function startCooldown() {
     cooldown = 60; clearInterval(timer);
@@ -146,12 +155,16 @@
     };
     tick(); timer = setInterval(tick, 1000);
   }
-  function askCode(email, fromLogin) {
-    codeEmail = email;
+  function askCode(email, kind, note) {
+    codeEmail = email; codeFor = kind;
     $("#v-email").textContent = email;
+    $("#v-label").textContent = kind === "login" ? "Two-step log in" : "Verify your email";
+    $("#v-intro").textContent = kind === "login" ? ". Enter it below to finish logging in." : ". Enter it below to activate your account.";
+    $("#v-submit").textContent = kind === "login" ? "Log in" : "Verify email";
+    $("#v-back").dataset.show = kind === "login" ? "login" : "signup";
     codeIn.value = ""; $(".form-status", verifyF).hidden = true;
     show("verify");
-    if (fromLogin) say(verifyF, "Your email isn't verified yet. We've sent you a new code.", true);
+    if (note) say(verifyF, note, true);
     startCooldown();
   }
   codeIn.addEventListener("input", () => {
@@ -161,7 +174,7 @@
   });
   resendB.addEventListener("click", async () => {
     if (cooldown > 0) return;
-    const { error } = await sb.auth.resend({ type: "signup", email: codeEmail });
+    const { error } = codeFor === "login" ? await sendLoginCode(codeEmail) : await sb.auth.resend({ type: "signup", email: codeEmail });
     if (error) return say(verifyF, esc(errMsg(error)));
     say(verifyF, `A new code is on its way to <strong>${esc(codeEmail)}</strong>.`, true);
     startCooldown();
@@ -170,7 +183,7 @@
     e.preventDefault();
     if (!verifyF.reportValidity()) return;
     busy(verifyF, true, "Verifying…");
-    const { data, error } = await sb.auth.verifyOtp({ email: codeEmail, token: codeIn.value, type: "signup" });
+    const { data, error } = await sb.auth.verifyOtp({ email: codeEmail, token: codeIn.value, type: codeFor === "login" ? "email" : "signup" });
     busy(verifyF, false);
     if (error || !data?.session) {
       codeIn.select();
@@ -178,7 +191,8 @@
         ? "That code is wrong or has expired. Check the latest email, or resend a new code."
         : esc(errMsg(error || { message: "We couldn't verify the code. Try again." })));
     }
-    say(verifyF, "Email verified. Taking you to your account…", true);
+    if (codeFor === "login") window.KZ.rememberLogin($("#l-keep").checked);
+    say(verifyF, codeFor === "login" ? "Logged in. Taking you to your account…" : "Email verified. Taking you to your account…", true);
     setTimeout(goHome, 900);
   });
 

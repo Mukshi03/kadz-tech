@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610221806">
+  <link rel="stylesheet" href="styles.css?v=202610221817">
 </head>
 <body data-page="login">
 
@@ -92,18 +92,18 @@
 
       <!-- Verify email: 6-digit code sent after sign-up -->
       <form class="auth-form" id="verify-form" novalidate hidden>
-        <span class="label">Verify your email</span>
+        <span class="label" id="v-label">Verify your email</span>
         <h2>Enter the code</h2>
-        <p class="muted otp-sent">We sent a verification code to <strong id="v-email"></strong>. Enter it below to activate your account.</p>
+        <p class="muted otp-sent">We sent a verification code to <strong id="v-email"></strong><span id="v-intro">. Enter it below to activate your account.</span></p>
         <label class="ctrl"><span>Verification code</span>
           <input id="v-code" class="otp-input" required inputmode="numeric" autocomplete="one-time-code" maxlength="8" pattern="\d{6,8}" placeholder="••••••••" title="The code from the email"></label>
         <div class="form-status" hidden role="status"></div>
-        <button class="btn btn-primary auth-submit" type="submit">Verify email</button>
+        <button class="btn btn-primary auth-submit" type="submit" id="v-submit">Verify email</button>
         <div class="auth-row otp-row">
           <span class="muted">Didn't get it? Check spam, or</span>
           <button class="linkbtn auth-link" type="button" id="v-resend">Resend code</button>
         </div>
-        <p class="auth-switch">Wrong email? <button type="button" class="linkbtn auth-link" data-show="signup">Go back</button></p>
+        <p class="auth-switch">Wrong email? <button type="button" class="linkbtn auth-link" id="v-back" data-show="signup">Go back</button></p>
       </form>
 
       <!-- Reset password (after clicking the email link) -->
@@ -121,9 +121,9 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="i18n.js?v=202610221806"></script>
-<script src="config.js?v=202610221806"></script>
-<script src="main.js?v=202610221806"></script>
-<script src="login.js?v=202610221806"></script>
+<script src="i18n.js?v=202610221817"></script>
+<script src="config.js?v=202610221817"></script>
+<script src="main.js?v=202610221817"></script>
+<script src="login.js?v=202610221817"></script>
 </body>
 </html>

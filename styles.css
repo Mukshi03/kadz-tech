@@ -650,3 +650,15 @@ h1 { overflow-wrap: anywhere; }
 /* ---------- Home: service card shape (rounded, like the reference) ---------- */
 .services-grid .service { border: 1px solid var(--line); border-radius: 16px; }
 .services-grid .service:hover { border-color: var(--accent); transform: translateY(-3px); }
+
+/* ---------- All cards: rounded shape with one thin border (matches the service cards) ---------- */
+:root { --card-radius: 16px; }
+.service, .industry, .ind-tile, .listing, .row-card, .stat, .form, .filters, .estimator, .types, .spec,
+.empty, .quote-total, .gallery .main, .soon, .term { border-radius: var(--card-radius); }
+.service { border: 1px solid var(--line); }
+.service:hover { border-color: var(--accent); transform: translateY(-3px); }
+.estimator, .types, .spec, .listing { overflow: hidden; }
+.estimator .form { border-radius: 0; }
+.check-list li { border-radius: 12px; }
+.listing .ph { border-radius: 12px; overflow: hidden; }
+.thumb, .gallery .thumbs button { border-radius: 10px; }

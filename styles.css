@@ -773,3 +773,31 @@ html[dir="rtl"] a[href^="tel:"], html[dir="rtl"] a[href^="mailto:"] { direction:
 html[dir="rtl"] .value:nth-child(odd) { border-right: 0; border-left: 1px solid rgba(255,255,255,.1); }
 html[dir="rtl"] .values-mark { right: auto; left: -2vw; }
 .value h3 span { color: transparent; -webkit-text-stroke: 1.3px var(--accent); font-size: 2.3rem; }   /* outlined numbers, same as the steps */
+
+/* ---------- Partner form: photos and license uploads ---------- */
+.upload-box { display: grid; gap: .9rem; padding: 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }
+.upload-head { display: grid; gap: .2rem; }
+.upload-title { font-weight: 600; }
+.upload-head em { font-style: normal; color: var(--muted); font-size: .85rem; }
+.req { color: var(--bad); font-weight: 600; }
+.thumb-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: .8rem; }
+.pthumb { position: relative; aspect-ratio: 4 / 3; border-radius: 10px; overflow: hidden; border: 1px solid var(--line); background: var(--surface); }
+.pthumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.pthumb.cover { outline: 2px solid var(--accent); outline-offset: -2px; }
+.pthumb button { position: absolute; top: 6px; right: 6px; width: 26px; height: 26px; border-radius: 50%; border: 0; background: rgba(0,0,0,.65); color: #fff; font-size: 1rem; line-height: 1; cursor: pointer; }
+.pthumb .badge { position: absolute; left: 6px; bottom: 6px; padding: .15rem .45rem; border-radius: 6px; font: 600 .7rem var(--f-body); background: var(--accent); color: var(--accent-ink); }
+.badge.new { background: #3b82f6; color: #fff; }
+.add-tile { display: grid; place-items: center; align-content: center; gap: .3rem; border-style: dashed; cursor: pointer; color: var(--muted); font-size: .85rem; font-weight: 600; }
+.add-tile:hover, .add-file:hover { border-color: var(--accent); color: var(--ink); }
+.add-tile input, .add-file input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+.add-tile svg, .add-file svg { width: 26px; height: 26px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.doc-list { list-style: none; margin: 0; padding: 0; display: grid; gap: .5rem; }
+.doc-list:empty { display: none; }
+.doc-list li { display: flex; align-items: center; gap: .7rem; padding: .6rem .8rem; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); min-width: 0; }
+.doc-list li svg { width: 20px; height: 20px; flex-shrink: 0; fill: none; stroke: var(--accent); stroke-width: 1.8; stroke-linejoin: round; }
+.doc-list .dname { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.doc-list .badge { position: static; padding: .1rem .4rem; border-radius: 6px; font-size: .7rem; font-weight: 600; }
+.add-file { position: relative; display: inline-flex; align-items: center; justify-content: center; gap: .5rem; padding: .8rem 1rem; border: 1px dashed var(--line); border-radius: 10px; color: var(--muted); font-weight: 600; cursor: pointer; justify-self: start; }
+.add-file[hidden] { display: none; }
+html[dir="rtl"] .pthumb button { right: auto; left: 6px; }
+html[dir="rtl"] .pthumb .badge { left: auto; right: 6px; }

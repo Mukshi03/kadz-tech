@@ -11,6 +11,8 @@
   let warehouses = [];
   let editing = null;          // warehouse being edited, or null for a new one
   let keptPhotos = [], keptDocs = [], removed = { photos: [], docs: [] };
+  let newPhotos = [], newDocs = [];   // files picked but not uploaded yet
+  const MAX_FILES = 10, PHOTO_MB = 5, DOC_MB = 10;
 
   const openTab = setupTabs((name) => { if (name === "bookings") loadBookings(); });
   $("#new-wh").addEventListener("click", () => { resetForm(); openTab("form"); });
@@ -88,6 +90,8 @@
 
   function resetForm() {
     editing = null; keptPhotos = []; keptDocs = []; removed = { photos: [], docs: [] };
+    newPhotos.forEach((f) => URL.revokeObjectURL(f._url)); newPhotos = []; newDocs = [];
+    $("#photos-err").hidden = true; $("#docs-err").hidden = true;
     form.reset();
     $("#form-title").textContent = "Add a warehouse";
     $("#form-tab").textContent = "Add warehouse";
@@ -119,20 +123,60 @@
   }
   $("#cancel-edit").addEventListener("click", () => { resetForm(); openTab("warehouses"); });
 
+  const fileName = (p) => p.split("/").pop().replace(/^[0-9a-f-]{36}-/, "");
+  const sizeText = (b) => b > 1048576 ? (b / 1048576).toFixed(1) + " MB" : Math.max(1, Math.round(b / 1024)) + " KB";
+  const DOC_ICON = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5"/></svg>`;
+
+  // Photos: saved ones, then new ones (marked "New"), then the "Add photos" tile
   function renderFiles() {
-    $("#photo-list").innerHTML = keptPhotos.map((p, i) =>
-      `<div class="thumb"><img src="${esc(photoUrl(p))}" alt=""><button type="button" data-rm-photo="${i}" aria-label="Remove photo">×</button></div>`).join("");
-    $("#doc-list").innerHTML = keptDocs.map((p, i) =>
-      `<li><span class="label">File</span> ${esc(p.split("/").pop().replace(/^[0-9a-f-]{36}-/, ""))} <button type="button" class="linkbtn" data-rm-doc="${i}">Remove</button></li>`).join("");
+    const all = [...keptPhotos.map((p, i) => ({ src: photoUrl(p), rm: `k${i}` })),
+                 ...newPhotos.map((f, i) => ({ src: f._url, rm: `n${i}`, isNew: true }))];
+    $("#photo-list").innerHTML = all.map((p, i) => `
+      <div class="pthumb${i === 0 ? " cover" : ""}"><img src="${esc(p.src)}" alt="">
+        ${i === 0 ? `<span class="badge">Cover</span>` : p.isNew ? `<span class="badge new">New</span>` : ""}
+        <button type="button" data-rm-photo="${p.rm}" aria-label="Remove photo">×</button></div>`).join("") +
+      (all.length < MAX_FILES ? `<label class="pthumb add-tile"><input id="w-photos" type="file" accept="image/jpeg,image/png,image/webp" multiple>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg><span>Add photos</span></label>` : "");
+    const docs = [...keptDocs.map((p, i) => ({ name: fileName(p), rm: `k${i}` })),
+                  ...newDocs.map((f, i) => ({ name: f.name, size: sizeText(f.size), rm: `n${i}`, isNew: true }))];
+    $("#doc-list").innerHTML = docs.map((d) => `
+      <li>${DOC_ICON}<span class="dname">${esc(d.name)}</span>${d.size ? `<span class="muted">${d.size}</span>` : ""}
+        ${d.isNew ? `<span class="badge new">New</span>` : ""}<button type="button" class="linkbtn" data-rm-doc="${d.rm}">Remove</button></li>`).join("");
+    $("#docs-box .add-file").hidden = docs.length >= MAX_FILES;
   }
+
+  // Picking files adds to the list (it doesn't replace earlier picks)
+  function addFiles(list, files, mb, types, kind) {
+    const total = () => (kind === "photo" ? keptPhotos.length + newPhotos.length : keptDocs.length + newDocs.length);
+    const skipped = [];
+    [...files].forEach((f) => {
+      if (!types.includes(f.type)) skipped.push(`${f.name} (file type)`);
+      else if (f.size > mb * 1048576) skipped.push(`${f.name} (over ${mb} MB)`);
+      else if (total() >= MAX_FILES) skipped.push(`${f.name} (max ${MAX_FILES})`);
+      else { if (kind === "photo") f._url = URL.createObjectURL(f); list.push(f); }
+    });
+    if (skipped.length) toast("Not added: " + skipped.join(", "), true);
+    $(kind === "photo" ? "#photos-err" : "#docs-err").hidden = true;
+    renderFiles();
+  }
+  form.addEventListener("change", (e) => {
+    if (e.target.id === "w-photos") { addFiles(newPhotos, e.target.files, PHOTO_MB, ["image/jpeg", "image/png", "image/webp"], "photo"); }
+    if (e.target.id === "w-docs") { addFiles(newDocs, e.target.files, DOC_MB, ["application/pdf", "image/jpeg", "image/png"], "doc"); e.target.value = ""; }
+  });
   $("#photo-list").addEventListener("click", (e) => {
     const b = e.target.closest("[data-rm-photo]"); if (!b) return;
-    removed.photos.push(...keptPhotos.splice(+b.dataset.rmPhoto, 1)); renderFiles();
+    const k = b.dataset.rmPhoto, i = +k.slice(1);
+    if (k[0] === "k") removed.photos.push(...keptPhotos.splice(i, 1));
+    else URL.revokeObjectURL(newPhotos.splice(i, 1)[0]._url);
+    renderFiles();
   });
   $("#doc-list").addEventListener("click", (e) => {
     const b = e.target.closest("[data-rm-doc]"); if (!b) return;
-    removed.docs.push(...keptDocs.splice(+b.dataset.rmDoc, 1)); renderFiles();
+    const k = b.dataset.rmDoc, i = +k.slice(1);
+    if (k[0] === "k") removed.docs.push(...keptDocs.splice(i, 1)); else newDocs.splice(i, 1);
+    renderFiles();
   });
+  renderFiles();
 
   async function upload(bucket, files) {
     const paths = [];
@@ -155,11 +199,15 @@
     const types = checks("w-types");
     $("#w-types .err").hidden = types.length > 0;
     if (!types.length || !form.reportValidity()) return;
+    // At least one photo and one license document
+    const noPhoto = keptPhotos.length + newPhotos.length === 0, noDoc = keptDocs.length + newDocs.length === 0;
+    $("#photos-err").hidden = !noPhoto; $("#docs-err").hidden = !noDoc;
+    if (noPhoto || noDoc) { $(noPhoto ? "#photos-box" : "#docs-box").scrollIntoView({ behavior: "smooth", block: "center" }); return; }
     const status = $(".form-status", form), btn = $("#w-submit"), label = btn.textContent;
     btn.disabled = true; btn.textContent = "Saving…"; status.hidden = true;
     try {
-      const newPhotos = await upload("warehouse-photos", $("#w-photos").files);
-      const newDocs = await upload("warehouse-docs", $("#w-docs").files);
+      const upPhotos = await upload("warehouse-photos", newPhotos);
+      const upDocs = await upload("warehouse-docs", newDocs);
       const row = {
         name: $("#w-name").value.trim(), city: $("#w-city").value.trim(),
         district: $("#w-district").value.trim() || null, map_url: $("#w-map").value.trim() || null,
@@ -171,12 +219,12 @@
         contact_info: $("#w-cinfo").value.trim() || null, contact_time: $("#w-ctime").value.trim() || null,
         min_months: +$("#w-min").value || 1,
         storage_types: types, features: checks("w-features"), licenses: checks("w-licenses"),
-        photos: [...keptPhotos, ...newPhotos], documents: [...keptDocs, ...newDocs]
+        photos: [...keptPhotos, ...upPhotos], documents: [...keptDocs, ...upDocs]
       };
       const { error } = editing
         ? await sb.from("warehouses").update(row).eq("id", editing.id)
         : await sb.from("warehouses").insert({ ...row, owner_id: uid });
-      if (error) { await removeFiles(newPhotos, newDocs); throw error; }
+      if (error) { await removeFiles(upPhotos, upDocs); throw error; }
       await removeFiles(removed.photos, removed.docs);
       toast(editing ? "Changes saved" : "Warehouse submitted for review");
       resetForm();

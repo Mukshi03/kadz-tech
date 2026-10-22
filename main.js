@@ -127,7 +127,8 @@
     ["index.html", "Home", "home"],
     ["warehouses.html", "Find a warehouse", "warehouses"],
     ["services.html", "Services", "services"],
-    ["partners.html", "List your warehouse", "partners"]
+    ["partners.html", "List your warehouse", "partners"],
+    ["software.html", "Software", "software"]
   ];
   // Logo: yellow K badge + first word of the company name, the rest as a small line under it
   const [brandMain, ...brandRest] = (C.company || "KADZ").trim().split(/\s+/);
@@ -193,6 +194,7 @@
             <li><a href="estimate.html">Space estimator</a></li>
             <li><a href="quote.html">Get a quote</a></li>
             <li><a href="partners.html">List your warehouse</a></li>
+            <li><a href="software.html">Software</a></li>
             <li><a href="login.html">Log in / Sign up</a></li>
           </ul>
         </div>

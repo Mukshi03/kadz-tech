@@ -749,3 +749,26 @@ html[dir="rtl"] .tz1-bg, html[dir="rtl"] .hero-tabs { }
 html[dir="rtl"] .kpi b { direction: ltr; unicode-bidi: isolate; justify-self: start; }
 html[dir="rtl"] .foot-kv b { unicode-bidi: plaintext; text-align: right; }   /* phone and email read left-to-right, Arabic right-to-left */
 html[dir="rtl"] a[href^="tel:"], html[dir="rtl"] a[href^="mailto:"] { direction: ltr; unicode-bidi: isolate; }
+
+/* ---------- Home: our values ---------- */
+.values { position: relative; overflow: hidden; background: #12203a; color: #eef2f6; }
+.values-in { position: relative; z-index: 1; display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 2fr); gap: clamp(2rem, 5vw, 5rem); align-items: start; }
+.values-head { display: grid; gap: 1.2rem; }
+.values-head h2 { margin: 0; color: #fff; }
+.values-head .lead { color: #aab8cb; margin: 0; }
+.values .eyebrow { display: inline-flex; align-items: center; gap: .9rem; font: 600 .8rem var(--f-mono); letter-spacing: .24em; text-transform: uppercase; color: var(--accent); }
+.values .eyebrow::before { content: ""; width: 34px; height: 2px; background: currentColor; }
+.values-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.value { padding: clamp(1.6rem, 3vw, 2.6rem); border-bottom: 1px solid rgba(255,255,255,.1); transition: background .3s ease; }
+.value:nth-child(odd) { border-right: 1px solid rgba(255,255,255,.1); }
+.value:nth-child(n+3) { border-bottom: 0; }
+.value:first-child, .value:hover { background: rgba(255,255,255,.08); }
+.values-grid:hover .value:first-child:not(:hover) { background: transparent; }
+.value h3 { display: flex; align-items: baseline; gap: .9rem; margin: 0 0 1rem; color: #fff; text-transform: none; font-family: var(--f-body); font-weight: 600; font-size: 1.35rem; }
+.value h3 span { font-family: var(--f-display); font-weight: 800; font-size: 1.9rem; color: var(--accent); }
+.value p { margin: 0; color: #aab8cb; line-height: 1.75; }
+.values-mark { position: absolute; right: -2vw; bottom: -.15em; font: 900 clamp(4rem, 9vw, 8rem)/1 var(--f-display); letter-spacing: .25em; color: rgba(255,255,255,.04); pointer-events: none; white-space: nowrap; }
+@media (max-width: 900px) { .values-in { grid-template-columns: 1fr; } }
+@media (max-width: 620px) { .values-grid { grid-template-columns: 1fr; } .value:nth-child(odd) { border-right: 0; } .value:nth-child(3) { border-bottom: 1px solid rgba(255,255,255,.1); } }
+html[dir="rtl"] .value:nth-child(odd) { border-right: 0; border-left: 1px solid rgba(255,255,255,.1); }
+html[dir="rtl"] .values-mark { right: auto; left: -2vw; }

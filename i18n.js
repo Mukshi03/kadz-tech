@@ -16,6 +16,17 @@
   if (lang !== "ar") return;
 
   var AR = {
+"Our values": "قيمنا",
+"Why KADZ Logistics": "لماذا KADZ Logistics",
+"The principles that shape how we work, who we partner with, and the standard we hold ourselves to.": "المبادئ التي تحدد طريقة عملنا، ومن نتعاون معهم، والمعايير التي نلتزم بها.",
+"Excellence": "التميّز",
+"Integrity": "النزاهة",
+"Innovation": "الابتكار",
+"Partnership": "الشراكة",
+"We hold every warehouse, truck and shipment to the same high standard, with clear processes and careful handling so the job is done right the first time.": "نلتزم بنفس المعايير العالية في كل مستودع وشاحنة وشحنة، بإجراءات واضحة ومناولة دقيقة لننجز العمل بشكل صحيح من المرة الأولى.",
+"We work with transparency and honest pricing. Clear quotations, no hidden fees, and partners and clients who can rely on what we promise.": "نعمل بشفافية وأسعار عادلة: عروض أسعار واضحة، بلا رسوم خفية، وشركاء وعملاء يمكنهم الاعتماد على وعودنا.",
+"We use modern systems to make logistics simpler: online quotations, live stock visibility and smarter warehouse management.": "نستخدم أنظمة حديثة لتبسيط الخدمات اللوجستية: عروض أسعار إلكترونية، ورؤية لحظية للمخزون، وإدارة أذكى للمستودعات.",
+"We build long-term relationships with clients and warehouse owners, growing together through responsive service and shared success.": "نبني علاقات طويلة الأمد مع العملاء وملاك المستودعات، وننمو معًا من خلال خدمة سريعة الاستجابة ونجاح مشترك.",
 "Menu": "القائمة",
 "Home": "الرئيسية",
 "Find a warehouse": "ابحث عن مستودع",

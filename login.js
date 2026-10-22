@@ -3,14 +3,15 @@
   const { sb, $, $$, esc, errMsg, getUser, homeFor, safeNext, showSetupNotice } = window.KZ;
   const params = new URLSearchParams(location.search);
   const next = safeNext(params.get("next"));
-  const loginF = $("#login-form"), signF = $("#signup-form"), resetF = $("#reset-form");
+  const loginF = $("#login-form"), signF = $("#signup-form"), resetF = $("#reset-form"), verifyF = $("#verify-form");
   const pageUrl = location.href.split(/[?#]/)[0];
   function show(which) {
     loginF.hidden = which !== "login";
     signF.hidden = which !== "signup";
     resetF.hidden = which !== "reset";
-    document.title = (which === "signup" ? "Create account" : which === "reset" ? "Set a new password" : "Log in") + " | " + window.KZ.C.company;
-    const f = which === "signup" ? signF : which === "reset" ? resetF : loginF;
+    verifyF.hidden = which !== "verify";
+    document.title = ({ signup: "Create account", reset: "Set a new password", verify: "Verify your email" }[which] || "Log in") + " | " + window.KZ.C.company;
+    const f = { signup: signF, reset: resetF, verify: verifyF }[which] || loginF;
     $("input:not([type=radio]):not([type=checkbox])", f)?.focus();
   }
   $$("[data-show]").forEach((b) => b.addEventListener("click", () => show(b.dataset.show)));
@@ -87,6 +88,11 @@
     busy(loginF, true, "Logging in…");
     const { error } = await sb.auth.signInWithPassword({ email: $("#l-email").value.trim(), password: $("#l-pass").value });
     busy(loginF, false);
+    if (error && /not confirmed/i.test(error.message || "")) {
+      // Signed up but never verified: send a fresh code and ask for it
+      await sb.auth.resend({ type: "signup", email: $("#l-email").value.trim() });
+      return askCode($("#l-email").value.trim(), true);
+    }
     if (error) return say(loginF, esc(errMsg(error)));
     window.KZ.rememberLogin($("#l-keep").checked);
     goHome();
@@ -121,8 +127,58 @@
     busy(signF, false);
     if (error) return say(signF, esc(errMsg(error)));
     if (data.session) return goHome();   // email confirmation is turned off
+    // Supabase returns a user with no identities when the email is already registered
+    if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0)
+      return say(signF, `An account with <strong>${esc(email)}</strong> already exists. <button type="button" class="linkbtn auth-link" data-show="login">Log in</button> instead.`);
     signF.reset(); showRoleFields();
-    say(signF, `Account created. We sent a confirmation link to <strong>${esc(email)}</strong>. Click it, then log in.`, true);
+    askCode(email);
+  });
+
+  /* ---------- Email verification with a 6-digit code ---------- */
+  let codeEmail = "", cooldown = 0, timer;
+  const resendB = $("#v-resend"), codeIn = $("#v-code");
+  function startCooldown() {
+    cooldown = 60; clearInterval(timer);
+    const tick = () => {
+      resendB.disabled = cooldown > 0;
+      resendB.textContent = cooldown > 0 ? `Resend code (${cooldown}s)` : "Resend code";
+      if (cooldown-- <= 0) clearInterval(timer);
+    };
+    tick(); timer = setInterval(tick, 1000);
+  }
+  function askCode(email, fromLogin) {
+    codeEmail = email;
+    $("#v-email").textContent = email;
+    codeIn.value = ""; $(".form-status", verifyF).hidden = true;
+    show("verify");
+    if (fromLogin) say(verifyF, "Your email isn't verified yet. We've sent you a new code.", true);
+    startCooldown();
+  }
+  codeIn.addEventListener("input", () => {
+    codeIn.value = codeIn.value.replace(/\D/g, "").slice(0, 6);
+    if (codeIn.value.length === 6) verifyF.requestSubmit();   // submit as soon as all 6 digits are in
+  });
+  resendB.addEventListener("click", async () => {
+    if (cooldown > 0) return;
+    const { error } = await sb.auth.resend({ type: "signup", email: codeEmail });
+    if (error) return say(verifyF, esc(errMsg(error)));
+    say(verifyF, `A new code is on its way to <strong>${esc(codeEmail)}</strong>.`, true);
+    startCooldown();
+  });
+  verifyF.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (!verifyF.reportValidity()) return;
+    busy(verifyF, true, "Verifying…");
+    const { data, error } = await sb.auth.verifyOtp({ email: codeEmail, token: codeIn.value, type: "signup" });
+    busy(verifyF, false);
+    if (error || !data?.session) {
+      codeIn.select();
+      return say(verifyF, /expired|invalid/i.test(error?.message || "")
+        ? "That code is wrong or has expired. Check the latest email, or resend a new code."
+        : esc(errMsg(error || { message: "We couldn't verify the code. Try again." })));
+    }
+    say(verifyF, "Email verified. Taking you to your account…", true);
+    setTimeout(goHome, 900);
   });
 
   resetF.addEventListener("submit", async (e) => {

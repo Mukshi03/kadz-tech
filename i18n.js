@@ -16,6 +16,25 @@
   if (lang !== "ar") return;
 
   var AR = {
+    "We sent a 6-digit code to": "أرسلنا رمزًا مكوّنًا من 6 أرقام إلى",
+    ". Enter it below to activate your account.": ". أدخله أدناه لتفعيل حسابك.",
+    "A new code is on its way to": "رمز جديد في الطريق إلى",
+    "An account with": "يوجد حساب مسجّل بالبريد",
+    "already exists.": "بالفعل.",
+    "instead.": "بدلًا من ذلك.",
+    "Verify your email": "تأكيد بريدك الإلكتروني",
+    "Enter the code": "أدخل الرمز",
+    "Verification code": "رمز التحقق",
+    "6-digit code from the email": "الرمز المكوّن من 6 أرقام في البريد",
+    "Verify email": "تأكيد البريد",
+    "Verifying…": "جارٍ التحقق…",
+    "Resend code": "إعادة إرسال الرمز",
+    "Didn't get it? Check spam, or": "لم يصلك؟ تحقق من البريد غير المرغوب فيه، أو",
+    "Wrong email?": "البريد غير صحيح؟",
+    "Go back": "رجوع",
+    "Email verified. Taking you to your account…": "تم تأكيد البريد. جارٍ نقلك إلى حسابك…",
+    "That code is wrong or has expired. Check the latest email, or resend a new code.": "الرمز غير صحيح أو منتهي الصلاحية. تحقق من آخر رسالة أو أعد إرسال رمز جديد.",
+    "Your email isn't verified yet. We've sent you a new code.": "لم يتم تأكيد بريدك بعد. أرسلنا لك رمزًا جديدًا.",
 "First name": "الاسم الأول",
 "Last name": "اسم العائلة",
 "Company name": "اسم الشركة",
@@ -548,6 +567,7 @@
   var ARROW = { "→": "←", "←": "→" };
   // Text with numbers or names in it
   var PATTERNS = [
+    [/^Resend code \((\d+)s\)$/, function (m) { return "إعادة إرسال الرمز (" + m[1] + " ث)"; }],
     [/^(\d[\d,]*) of (\d[\d,]*) warehouses?$/, function (m) { return m[1] + " من " + m[2] + " مستودع"; }],
     [/^(\d[\d,]*) warehouses?$/, function (m) { return m[1] + " مستودع"; }],
     [/^Cities?: (.+)$/, function (m) { return "المدن: " + m[1].split(" · ").map(t).join(" · "); }],

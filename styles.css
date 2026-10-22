@@ -804,3 +804,10 @@ html[dir="rtl"] .pthumb .badge { left: auto; right: 6px; }
 /* ---------- Sign up: extra company details for warehouse owners ---------- */
 .partner-extra { display: grid; gap: 1.05rem; padding: 1rem; border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--line)); border-radius: 12px; background: color-mix(in srgb, var(--accent) 5%, transparent); }
 .partner-extra[hidden] { display: none; }
+
+/* ---------- Sign-up: email verification code ---------- */
+.otp-sent { margin: -.3rem 0 0; }
+.otp-sent strong { color: var(--ink); overflow-wrap: anywhere; }
+.auth-form .otp-input { font: 600 1.7rem/1 var(--f-mono); letter-spacing: .55em; text-align: center; padding-block: .9rem !important; direction: ltr; }
+.otp-row { justify-content: center; gap: .35rem; }
+#v-resend:disabled { color: var(--muted); cursor: default; text-decoration: none; }

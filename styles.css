@@ -98,12 +98,12 @@ body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-a
 }
 .site-header .wrap { display: flex; align-items: center; justify-content: space-between; gap: 1rem; padding-block: .8rem; }
 .brand { display: flex; align-items: center; gap: .6rem; text-decoration: none; }
-.brand-mark {
-  width: 34px; height: 34px; display: grid; place-items: center;
-  background: var(--accent); color: var(--accent-ink);
-  font-family: var(--f-display); font-weight: 900; font-size: 1.3rem;
-}
-.brand-name { font-family: var(--f-display); font-weight: 800; font-size: 1.6rem; letter-spacing: .04em; text-transform: uppercase; }
+.brand-mark { width: 38px; height: 38px; flex-shrink: 0; }
+.brand-mark rect { fill: var(--accent); }
+.brand-mark path { fill: var(--accent-ink); }
+.brand-text { display: grid; line-height: 1; }
+.brand-name { font-family: var(--f-display); font-weight: 900; font-size: 1.65rem; letter-spacing: .03em; text-transform: uppercase; }
+.brand-sub { font-family: var(--f-mono); font-weight: 600; font-size: .62rem; letter-spacing: .32em; text-transform: uppercase; opacity: .7; margin-top: .2rem; }
 .nav { display: flex; align-items: center; gap: 1.6rem; }
 .nav a { text-decoration: none; font-size: .95rem; opacity: .85; }
 .nav a:hover, .nav a[aria-current="page"] { opacity: 1; color: var(--accent); }

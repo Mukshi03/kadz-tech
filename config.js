@@ -1,10 +1,10 @@
 /* ==========================================================
-   KADZ Tech — site settings
+   KADZ Logistics — site settings
    Edit this file to fill in your details. Empty values are
    hidden on the site automatically.
    ========================================================== */
 window.KADZ = {
-  company: "KADZ Tech",
+  company: "KADZ Logistics",
   tagline: "",               // e.g. "Warehousing on demand"
 
   contact: {
@@ -23,7 +23,7 @@ window.KADZ = {
      Empty values are left off the PDF. */
   logo: "",                  // image file in this folder, e.g. "logo.png"
   legal: {
-    legalName: "",           // e.g. "KADZ Tech Trading Est."
+    legalName: "",           // e.g. "KADZ Logistics Est."
     crNumber: "",            // Commercial Registration number
     vatNumber: "",           // 15-digit VAT number
     address: "",

@@ -1,4 +1,4 @@
-/* KADZ Tech — shared site script (loaded on every page) */
+/* KADZ Logistics — shared site script (loaded on every page) */
 (function () {
   const C = window.KADZ || {};
   const page = document.body.dataset.page;
@@ -129,14 +129,16 @@
     ["services.html", "Services", "services"],
     ["partners.html", "List your warehouse", "partners"]
   ];
-  const initial = (C.company || "K").trim().charAt(0).toUpperCase();
+  // Logo: yellow K badge + first word of the company name, the rest as a small line under it
+  const [brandMain, ...brandRest] = (C.company || "KADZ").trim().split(/\s+/);
+  const badge = `<svg class="brand-mark" viewBox="0 0 58 58" aria-hidden="true"><rect x="2" y="2" width="54" height="54" rx="6"/><path d="M14 12h7v34h-7zM21 27 34 12h9L21 37zM26 31l5-6 13 21h-9z"/></svg>`;
+  const brand = `${badge}<span class="brand-text"><span class="brand-name">${esc(brandMain)}</span>${brandRest.length ? `<span class="brand-sub">${esc(brandRest.join(" "))}</span>` : ""}</span>`;
   const header = document.createElement("header");
   header.className = "site-header";
   header.innerHTML = `
     <div class="wrap">
       <a class="brand" href="index.html" aria-label="${esc(C.company)} home">
-        <span class="brand-mark">${esc(initial)}</span>
-        <span class="brand-name">${esc(C.company)}</span>
+        ${brand}
       </a>
       <button class="nav-toggle" aria-expanded="false" aria-controls="site-nav">Menu</button>
       <nav class="nav" id="site-nav">
@@ -180,7 +182,7 @@
     <div class="wrap">
       <div class="foot-grid">
         <div>
-          <a class="brand" href="index.html"><span class="brand-mark">${esc(initial)}</span><span class="brand-name">${esc(C.company)}</span></a>
+          <a class="brand" href="index.html">${brand}</a>
           ${C.tagline ? `<p style="margin-top:.8rem;opacity:.75;max-width:40ch">${esc(C.tagline)}</p>` : ""}
         </div>
         <div>

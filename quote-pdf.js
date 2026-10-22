@@ -1,4 +1,4 @@
-/* KADZ Tech — quotation PDF, built in the browser with no outside library.
+/* KADZ Logistics — quotation PDF, built in the browser with no outside library.
    Uses the standard PDF fonts Helvetica and Helvetica-Bold (Latin text). */
 (function () {
   const CHARS = " !\"#$%&'()*+,-./0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvwxyz{|}~\u2013\u00b0\u00d7\u00b2\u00b7\u2019\u2022\u00e9\u00b3";
@@ -59,6 +59,8 @@
       },
       // Run fn(pageNumber, pageCount) on every page (used for footers)
       eachPage(fn) { pages.forEach((p, i) => { ops = p; fn(i + 1, pages.length); }); },
+      // Filled shape from a list of [x, y] points (top-left coordinates)
+      poly(pts, color) { ops.push(`${hex(color)} rg ` + pts.map(([x, y], i) => `${x.toFixed(2)} ${(H - y).toFixed(2)} ${i ? "l" : "m"}`).join(" ") + " h f"); },
       img(x, y, w, h) { if (doc.image) ops.push(`q ${w.toFixed(2)} 0 0 ${h.toFixed(2)} ${x.toFixed(2)} ${(H - y - h).toFixed(2)} cm /Im1 Do Q`); },
       output() {
         const objs = [];
@@ -135,8 +137,12 @@
       d.img(M, 56 - h / 2, w, h);
       nameX = M + w + 12;
     } else {
-      d.rect(M, 36, 40, 40, AMBER);
-      d.text((C.company || "K").trim().charAt(0).toUpperCase(), M + 20, 63, { font: "F2", size: 22, color: "#1a1405", align: "center" });
+      // K badge logo (same shape as the website logo, drawn on a 58 x 58 grid)
+      const k = 40 / 58, P = (pts) => pts.map(([x, y]) => [M + x * k, 36 + y * k]);
+      d.rect(M + 2 * k, 36 + 2 * k, 54 * k, 54 * k, AMBER);
+      d.poly(P([[14, 12], [21, 12], [21, 46], [14, 46]]), "#14100a");
+      d.poly(P([[21, 27], [34, 12], [43, 12], [21, 37]]), "#14100a");
+      d.poly(P([[26, 31], [31, 25], [44, 46], [35, 46]]), "#14100a");
       nameX = M + 52;
     }
     d.text((L.legalName || C.company || "").toUpperCase(), nameX, 54, { font: "F2", size: 15, color: "#ffffff" });

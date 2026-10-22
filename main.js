@@ -341,6 +341,35 @@
       location.href = "warehouses.html" + (p.toString() ? "?" + p : "");
     });
 
+    // Numbers band: city count from config.js, and numbers that count up when scrolled into view
+    const cities = C.cities || [];
+    if (cities.length && $("#kpi-cities")) {
+      $("#kpi-cities-n").dataset.count = cities.length;
+      $("#kpi-cities").textContent = `${cities.length === 1 ? "City" : "Cities"}: ${cities.join(" · ")}`;
+    }
+    const counters = $$("[data-count]");
+    const still = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    function countUp(el) {
+      const end = +el.dataset.count, t0 = performance.now(), dur = end > 100 ? 1800 : 900;
+      const tick = (t) => {
+        const k = Math.min(1, (t - t0) / dur), eased = 1 - Math.pow(1 - k, 3);
+        el.textContent = Math.round(end * eased).toLocaleString("en-US");
+        if (k < 1) requestAnimationFrame(tick);
+      };
+      requestAnimationFrame(tick);
+    }
+    if (!still && "IntersectionObserver" in window) {
+      counters.forEach((el) => (el.textContent = "0"));
+      const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+        if (e.isIntersecting) { countUp(e.target); io.unobserve(e.target); }
+      }), { threshold: .6 });
+      counters.forEach((el) => io.observe(el));
+    }
+
+    // Client logos: repeat the row once so the sliding loop has no gap
+    const track = $(".marquee-track");
+    if (track) [...track.children].forEach((el) => { const c = el.cloneNode(true); c.setAttribute("aria-hidden", "true"); track.append(c); });
+
     // Service tabs: Storage | Transportation | Freight | Customs
     const htabs = $$(".htab"), panels = $$(".hero-box [data-hp]");
     function openTab(name, focus) {

@@ -772,7 +772,6 @@ html[dir="rtl"] a[href^="tel:"], html[dir="rtl"] a[href^="mailto:"] { direction:
 @media (max-width: 620px) { .values-grid { grid-template-columns: 1fr; } .value:nth-child(odd) { border-right: 0; } .value:nth-child(3) { border-bottom: 1px solid rgba(255,255,255,.1); } }
 html[dir="rtl"] .value:nth-child(odd) { border-right: 0; border-left: 1px solid rgba(255,255,255,.1); }
 html[dir="rtl"] .values-mark { right: auto; left: -2vw; }
-.value h3 span { color: transparent; -webkit-text-stroke: 1.3px var(--accent); font-size: 2.3rem; }   /* outlined numbers, same as the steps */
 
 /* ---------- Partner form: photos and license uploads ---------- */
 .upload-box { display: grid; gap: .9rem; padding: 1.2rem; border: 1px solid var(--line); border-radius: 14px; background: var(--bg); }

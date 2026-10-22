@@ -593,3 +593,27 @@ h1 { overflow-wrap: anywhere; }
 .tz3-word{position:relative;display:grid;line-height:.92;font-family:var(--f-display);font-weight:900;font-size:clamp(3rem,10vw,8.5rem);letter-spacing:.01em;padding:.2em .3em;overflow:hidden}
 .tz3-word .o{color:transparent;-webkit-text-stroke:2px var(--accent)}
 .scan{position:absolute;left:0;right:0;height:3px;background:var(--accent);box-shadow:0 0 18px 4px color-mix(in srgb,var(--accent) 60%,transparent);animation:scan 2.6s ease-in-out infinite alternate}
+/* ---------- Steps: one connected line that lights up yellow on hover ---------- */
+.steps { --gap: 1.5rem; position: relative; }
+@media (min-width: 621px) {
+  .steps { border-top: 2px solid color-mix(in srgb, var(--band-ink) 25%, transparent); }
+  .step { border-top: 0; position: relative; padding-top: calc(1.2rem + 2px); }
+  /* each step owns its part of the line, including the gap after it */
+  .step::after { content: ""; position: absolute; top: -2px; left: 0; right: calc(-1 * var(--gap)); height: 2px;
+    background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .35s ease; }
+  .step:last-child::after { right: 0; }
+  /* hovering a step fills the line from the start up to that step */
+  .steps:has(.step:nth-child(n+1):hover) .step:nth-child(1)::after,
+  .steps:has(.step:nth-child(n+2):hover) .step:nth-child(2)::after,
+  .steps:has(.step:nth-child(n+3):hover) .step:nth-child(3)::after,
+  .steps:has(.step:nth-child(n+4):hover) .step:nth-child(4)::after { transform: scaleX(1); }
+  .steps:has(.step:nth-child(n+2):hover) .step:nth-child(2)::after { transition-delay: .1s; }
+  .steps:has(.step:nth-child(n+3):hover) .step:nth-child(3)::after { transition-delay: .2s; }
+  .steps:has(.step:nth-child(n+4):hover) .step:nth-child(4)::after { transition-delay: .3s; }
+}
+@media (max-width: 620px) {
+  .step { position: relative; }
+  .step::after { content: ""; position: absolute; top: -2px; left: 0; right: 0; height: 2px; background: var(--accent); transform: scaleX(0); transform-origin: left; transition: transform .35s ease; }
+  .step:hover::after, .step:focus-within::after { transform: scaleX(1); }
+}
+@media (prefers-reduced-motion: reduce) { .step::after { transition: none; } }

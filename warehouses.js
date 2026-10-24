@@ -58,6 +58,20 @@
       list.innerHTML = `<div class="empty"><strong>No matches</strong><p>Try another city or storage type, or lower the pallet count.</p></div>`;
       return;
     }
+    list.dataset.view = view;
+    if (view === "table") {
+      list.innerHTML = `<div class="wh-table-wrap"><table class="wh-table">
+        <thead><tr><th>Warehouse</th><th>City</th><th>Storage</th><th class="r">Area</th><th class="r">Pallets free</th><th></th></tr></thead>
+        <tbody>${rows.map((w) => {
+          const href = `warehouse.html?id=${encodeURIComponent(w.id)}`;
+          return `<tr><td><a class="wh-name" href="${href}">${esc(w.name)}</a><small>${esc(w.district || "")}</small></td>
+            <td>${esc(w.city)}</td><td><div class="chips">${typeChips(w.storage_types)}</div></td>
+            <td class="r num">${w.area_sqm ? fmt(w.area_sqm) + " m²" : "—"}</td>
+            <td class="r"><b class="num">${fmt(w.pallets_available)}</b></td>
+            <td class="r"><a class="btn btn-primary btn-sm" href="${href}">Get a quotation</a></td></tr>`;
+        }).join("")}</tbody></table></div>`;
+      return;
+    }
     list.innerHTML = rows.map((w) => {
       const href = `warehouse.html?id=${encodeURIComponent(w.id)}`;
       const img = w.photos?.[0] ? `<img src="${esc(photoUrl(w.photos[0]))}" alt="" loading="lazy">` : "";
@@ -77,6 +91,19 @@
       </article>`;
     }).join("");
   }
+  /* ---------- View: list, grid or table (remembered on this browser) ---------- */
+  let view = "list";
+  try { view = localStorage.getItem("kz-wh-view") || "list"; } catch (e) {}
+  const viewBtns = document.querySelectorAll("[data-view]");
+  function setView(v) {
+    view = ["list", "grid", "table"].includes(v) ? v : "list";
+    viewBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
+    try { localStorage.setItem("kz-wh-view", view); } catch (e) {}
+    render();
+  }
+  viewBtns.forEach((b) => b.addEventListener("click", () => setView(b.dataset.view)));
+  viewBtns.forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.view === view)));
+
   [fCity, fType, fPal, fSort].forEach((el) => el.addEventListener("input", render));
   render();
 })();

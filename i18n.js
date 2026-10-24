@@ -16,6 +16,9 @@
   if (lang !== "ar") return;
 
   var AR = {
+    "List": "قائمة", "Grid": "شبكة", "Table": "جدول", "View": "العرض",
+    "List view": "عرض القائمة", "Grid view": "عرض الشبكة", "Table view": "عرض الجدول",
+    "Warehouse": "المستودع", "Pallets free": "طبليات متاحة",
     "Learn more": "اعرف المزيد",
     "We sent a verification code to": "أرسلنا رمز التحقق إلى",
     ". Enter it below to activate your account.": ". أدخله أدناه لتفعيل حسابك.",

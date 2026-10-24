@@ -826,7 +826,8 @@ html[dir="rtl"] .pthumb .badge { left: auto; right: 6px; }
 .sxc-row:first-child { border-top: 0; }
 .sxc-row.flip .sxc-ph { order: 2; }
 .sxc-ph { position: relative; min-height: 360px; border-radius: var(--card-radius, 16px); background: var(--surface) center / cover no-repeat; border: 1px solid var(--line); }
-.sxc-n { position: absolute; left: 1.2rem; bottom: .6rem; font: 900 5rem/1 var(--f-display); color: #fff; opacity: .9; text-shadow: 0 2px 20px rgba(0,0,0,.5); }
+.sxc-n { position: absolute; left: 1.2rem; bottom: .6rem; font: 800 5rem/1 var(--f-display); color: transparent; -webkit-text-stroke: 2px var(--accent); }   /* outlined yellow, like the steps */
+@supports not (-webkit-text-stroke: 1px black) { .sxc-n { color: var(--accent); } }
 @media (max-width: 900px) { .sxc-row { grid-template-columns: minmax(0, 1fr); } .sxc-row.flip .sxc-ph { order: 0; } .sxc-ph { min-height: 240px; } .sx-list { grid-template-columns: 1fr; } }
 html[dir="rtl"] .sx-list li { padding-left: 0; padding-right: 1.2rem; }
 html[dir="rtl"] .sx-list li::before { left: auto; right: 0; }

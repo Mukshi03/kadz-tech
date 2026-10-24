@@ -16,6 +16,7 @@
   if (lang !== "ar") return;
 
   var AR = {
+    "Learn more": "اعرف المزيد",
     "We sent a verification code to": "أرسلنا رمز التحقق إلى",
     ". Enter it below to activate your account.": ". أدخله أدناه لتفعيل حسابك.",
     "A new code is on its way to": "رمز جديد في الطريق إلى",

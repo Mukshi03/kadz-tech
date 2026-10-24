@@ -811,3 +811,23 @@ html[dir="rtl"] .pthumb .badge { left: auto; right: 6px; }
 .auth-form .otp-input { font: 600 1.7rem/1 var(--f-mono); letter-spacing: .4em; text-align: center; padding-block: .9rem !important; direction: ltr; }
 .otp-row { justify-content: center; gap: .35rem; }
 #v-resend:disabled { color: var(--muted); cursor: default; text-decoration: none; }
+
+/* ---------- Services page: alternating photo and detail rows ---------- */
+.sx-ic { width: 44px; height: 44px; color: var(--accent); flex-shrink: 0; }
+.sxa-top { display: flex; align-items: center; gap: 1rem; }
+.sxa-top > div { min-width: 0; }
+.sxa-top h2 { font-size: clamp(2rem, 3.6vw, 2.8rem); overflow-wrap: anywhere; }
+.sx-list { list-style: none; margin: 1.2rem 0 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem 1.5rem; }
+.sx-list li { position: relative; padding-left: 1.2rem; }
+.sx-list li::before { content: ""; position: absolute; left: 0; top: .6em; width: 8px; height: 8px; background: var(--accent); }
+.sx-btns { display: flex; flex-wrap: wrap; gap: .7rem; margin-top: 1.6rem; }
+.sxc { padding-top: 1rem; }
+.sxc-row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: center; padding-block: 2.6rem; border-top: 1px solid var(--line); scroll-margin-top: 90px; }
+.sxc-row:first-child { border-top: 0; }
+.sxc-row.flip .sxc-ph { order: 2; }
+.sxc-ph { position: relative; min-height: 360px; border-radius: var(--card-radius, 16px); background: var(--surface) center / cover no-repeat; border: 1px solid var(--line); }
+.sxc-n { position: absolute; left: 1.2rem; bottom: .6rem; font: 900 5rem/1 var(--f-display); color: #fff; opacity: .9; text-shadow: 0 2px 20px rgba(0,0,0,.5); }
+@media (max-width: 900px) { .sxc-row { grid-template-columns: minmax(0, 1fr); } .sxc-row.flip .sxc-ph { order: 0; } .sxc-ph { min-height: 240px; } .sx-list { grid-template-columns: 1fr; } }
+html[dir="rtl"] .sx-list li { padding-left: 0; padding-right: 1.2rem; }
+html[dir="rtl"] .sx-list li::before { left: auto; right: 0; }
+html[dir="rtl"] .sxc-n { left: auto; right: 1.2rem; }

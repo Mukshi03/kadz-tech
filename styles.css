@@ -1128,3 +1128,11 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 #bid-form select { width: 100%; padding: .7rem .8rem; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); }
 .mv-form select { width: 100%; padding: .7rem .8rem; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); font: inherit; }
 @media (max-width: 560px) { .bid-stats { grid-template-columns: 1fr 1fr; } }
+
+/* Partner dashboard: work-area layout (logo only, log out in the side menu) */
+.app-mode .site-header .wrap { justify-content: flex-start; }
+.app-mode .pd { min-height: calc(100vh - 80px); min-height: calc(100dvh - 80px); }
+.pd-logout { display: flex; align-items: center; gap: .7rem; width: 100%; padding: .7rem .8rem; margin-top: -.2rem; border: 0; border-top: 1px solid var(--line); border-radius: 0 0 10px 10px; background: none; color: var(--muted); font: 600 .95rem var(--f-body); cursor: pointer; text-align: left; padding-top: 1rem; }
+.pd-logout svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+.pd-logout:hover { color: var(--bad, #e5484d); }
+@media (max-width: 900px) { .pd-logout { width: auto; border-top: 0; padding: .5rem .8rem; justify-self: end; } }

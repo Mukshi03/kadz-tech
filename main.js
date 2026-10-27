@@ -137,9 +137,15 @@
   const [brandMain, ...brandRest] = (C.company || "KADZ").trim().split(/\s+/);
   const badge = `<svg class="brand-mark" viewBox="0 0 58 58" aria-hidden="true"><rect x="2" y="2" width="54" height="54" rx="6"/><path d="M14 12h7v34h-7zM21 27 34 12h9L21 37zM26 31l5-6 13 21h-9z"/></svg>`;
   const brand = `${badge}<span class="brand-text"><span class="brand-name">${esc(brandMain)}</span>${brandRest.length ? `<span class="brand-sub">${esc(brandRest.join(" "))}</span>` : ""}</span>`;
+  // Partner dashboard is a work area: just the logo, no site menu or footer
+  const appMode = page === "partner-dash";
+  if (appMode) document.body.classList.add("app-mode");
   const header = document.createElement("header");
   header.className = "site-header";
-  header.innerHTML = `
+  header.innerHTML = appMode ? `
+    <div class="wrap">
+      <a class="brand" href="partner-dashboard.html" aria-label="${esc(C.company)} partner dashboard">${brand}</a>
+    </div>` : `
     <div class="wrap">
       <a class="brand" href="index.html" aria-label="${esc(C.company)} home">
         ${brand}
@@ -162,13 +168,13 @@
     if (b && b.dataset.lang !== window.KZ_LANG) window.KZ_setLang(b.dataset.lang);
   });
   const toggle = $(".nav-toggle", header), nav = $(".nav", header);
-  toggle.addEventListener("click", () => {
+  toggle?.addEventListener("click", () => {
     const open = nav.classList.toggle("open");
     toggle.setAttribute("aria-expanded", open);
   });
 
   const ready = getUser().then((u) => {
-    if (u.session) {
+    if (u.session && !appMode) {
       const dash = homeFor(u.profile?.role);
       const label = u.profile?.role === "admin" ? "Admin" : u.profile?.role === "partner" ? "Partner dashboard" : "My bookings";
       $("#nav-account").innerHTML = `<a href="${dash}"${["admin", "partner-dash", "my-bookings"].includes(page) ? ' aria-current="page"' : ""}>${label}</a><a href="#" id="logout">Log out</a>`;
@@ -234,7 +240,7 @@
       <div class="foot-bottom">© ${new Date().getFullYear()} ${esc(C.company)}. All rights reserved.</div>
     </div>`;
   // No footer on the log in / sign up / reset password page
-  if (page !== "login") document.body.append(footer);
+  if (page !== "login" && !appMode) document.body.append(footer);
 
   /* ---------- Fill city & storage-type selects ---------- */
   $$("select[data-cities]").forEach((sel) => (C.cities || []).forEach((c) => sel.add(new Option(c, c))));

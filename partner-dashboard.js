@@ -10,6 +10,10 @@
   if (!isOwner) $("#team-tab").hidden = true;
   $("#who").textContent = u.profile?.company || u.profile?.full_name || u.session.user.email;
   setupProfileForm(u.profile);
+  $("#pd-logout").addEventListener("click", async () => {
+    await sb.auth.signOut();
+    location.href = "login.html";
+  });
 
   let warehouses = [];
   let editing = null;          // warehouse being edited, or null for a new one

@@ -25,7 +25,7 @@
     const ids = [...new Set(data.map((b) => b.warehouse_id))];
     const whs = {};
     if (ids.length) {
-      const { data: w } = await sb.from("public_warehouses").select("id, name, city, district").in("id", ids);
+      const { data: w } = await sb.from("public_warehouses").select("id, ref, city, district").in("id", ids);
       (w || []).forEach((x) => (whs[x.id] = x));
     }
 
@@ -50,7 +50,7 @@
         <div class="row-top">
           <div style="display:grid;gap:.3rem;min-width:0">
             <span class="label">${esc(b.quote_number || b.ref)} · requested ${date(b.created_at)}</span>
-            <h3>${w ? `<a href="warehouse.html?id=${esc(w.id)}" style="text-decoration:none">${esc(w.name)}</a>` : "Warehouse"}</h3>
+            <h3>${w ? `<a href="warehouse.html?id=${esc(w.id)}" style="text-decoration:none">${esc(w.ref)}</a>` : "Warehouse"}</h3>
             ${w ? `<span class="muted">${esc([w.district, w.city].filter(Boolean).join(", "))}</span>` : ""}
           </div>
           <div class="actions">${bookingPill(b)} ${["confirmed", "completed"].includes(b.status) ? pill(b.payment_status) : ""}</div>

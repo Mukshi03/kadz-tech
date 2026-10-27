@@ -34,6 +34,7 @@
       <article class="row-card${w.status === "rejected" ? " attention" : ""}">
         <div class="row-top">
           <div style="display:grid;gap:.3rem;min-width:0">
+            ${w.ref ? `<span class="label">${esc(w.ref)} · shown to clients</span>` : ""}
             <h3>${esc(w.name)}</h3>
             <span class="muted">${esc([w.district, w.city].filter(Boolean).join(", "))}</span>
             <div class="chips" style="display:flex;gap:.35rem;flex-wrap:wrap">${typeChips(w.storage_types)}</div>
@@ -118,7 +119,7 @@
     $("#w-price").value = Object.values(w.partner_prices || {})[0] ?? "";
     $("#w-cmethod").value = w.contact_method || ""; $("#w-cname").value = w.contact_name || "";
     $("#w-cinfo").value = w.contact_info || ""; $("#w-ctime").value = w.contact_time || "";
-    setChecks("w-types", w.storage_types); setChecks("w-features", w.features); setChecks("w-licenses", w.licenses);
+    setChecks("w-types", w.storage_types); setChecks("w-features", w.features); setChecks("w-licenses", w.licenses); setChecks("w-vas", w.vas);
     renderFiles();
   }
   $("#cancel-edit").addEventListener("click", () => { resetForm(); openTab("warehouses"); });
@@ -218,7 +219,7 @@
         contact_method: $("#w-cmethod").value || null, contact_name: $("#w-cname").value.trim() || null,
         contact_info: $("#w-cinfo").value.trim() || null, contact_time: $("#w-ctime").value.trim() || null,
         min_months: +$("#w-min").value || 1,
-        storage_types: types, features: checks("w-features"), licenses: checks("w-licenses"),
+        storage_types: types, features: checks("w-features"), licenses: checks("w-licenses"), vas: checks("w-vas"),
         photos: [...keptPhotos, ...upPhotos], documents: [...keptDocs, ...upDocs]
       };
       const { error } = editing

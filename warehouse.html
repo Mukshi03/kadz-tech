@@ -8,31 +8,60 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610241408">
+  <link rel="stylesheet" href="styles.css?v=202610271300">
 </head>
 <body data-page="warehouse">
 
 <main>
-  <div class="page-head">
+  <section class="wd">
     <div class="wrap">
-      <a href="warehouses.html" class="label" style="text-decoration:none">← All warehouses</a>
-      <h1 id="wh-name">Loading…</h1>
-      <p class="lead" id="wh-place"></p>
-      <div class="chips" id="wh-types" style="display:flex;gap:.4rem;flex-wrap:wrap"></div>
-    </div>
-  </div>
+      <nav class="crumbs" aria-label="Breadcrumb"><a href="index.html">Home</a><span aria-hidden="true">›</span><a href="warehouses.html">Find a warehouse</a><span aria-hidden="true">›</span><b id="wh-crumb">Warehouse</b></nav>
 
-  <section style="padding-top:2rem">
-    <div class="wrap wh-layout" id="wh-body">
-      <div style="display:grid;gap:1.8rem;min-width:0">
-        <div class="gallery" id="gallery"><div class="main"></div></div>
-        <div class="spec" id="spec"></div>
-        <div id="wh-desc" style="display:grid;gap:1rem"></div>
+      <div class="wd-top">
+        <!-- Main photo with name, location and badges -->
+        <div class="wd-hero" id="wd-hero">
+          <div class="wd-hero-txt">
+            <h1 id="wh-name">Loading…</h1>
+            <div class="chips" id="wh-types"></div>
+            <p class="wd-place"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span id="wh-place"></span></p>
+            <span class="wd-verified" id="wd-verified"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.3 8 11 4.6-1.7 8-6 8-11V5z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg>Approved by KADZ</span>
+          </div>
+          <a class="wd-photos-btn" href="#photos" id="wd-photos-btn" hidden></a>
+        </div>
+
+        <!-- Summary card -->
+        <aside class="wd-sum" id="wd-sum">
+          <span class="label">Pallets free now</span>
+          <b class="wd-big num" id="wd-free">–</b>
+          <span class="muted" id="wd-of"></span>
+          <p class="wd-price">Price on quotation<small>Depends on storage type, quantity and months</small></p>
+          <a class="btn btn-primary" href="#quote" id="wd-quote-btn">Request quotation</a>
+          <button type="button" class="btn" id="wd-share"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="18" cy="5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="19" r="2.5"/><path d="m8.2 10.8 7.6-4.4M8.2 13.2l7.6 4.4"/></svg>Share</button>
+        </aside>
       </div>
 
-      <aside class="book-box">
-        <form class="form" id="book-form" novalidate>
-          <h3>Request a quotation</h3>
+      <!-- Section tabs -->
+      <nav class="wd-tabs" aria-label="Sections" id="wd-tabs">
+        <a href="#overview" class="on">Overview</a><a href="#facilities">Facilities</a><a href="#vas">Services</a><a href="#licenses">Licenses</a><a href="#photos">Photos</a><a href="#quote">Request quotation</a>
+      </nav>
+
+      <div class="wd-body" id="wh-body">
+        <div class="wd-main">
+          <div class="wd-row">
+            <section class="wd-card" id="overview"><h2>Warehouse overview</h2><dl class="wd-dl" id="wd-overview"></dl></section>
+            <section class="wd-card" id="facilities"><h2>Facilities &amp; features</h2><ul class="wd-checks" id="wd-features"></ul></section>
+          </div>
+          <section class="wd-card" id="vas" hidden><h2>Value added services</h2><ul class="wd-vas" id="wd-vas"></ul></section>
+          <div class="wd-row">
+            <section class="wd-card" id="about" hidden><h2>About this warehouse</h2><p id="wd-about"></p></section>
+            <section class="wd-card" id="licenses"><h2>Licenses</h2><ul class="wd-checks" id="wd-licenses"></ul></section>
+          </div>
+          <section class="wd-card" id="photos"><h2>Photos</h2><div class="wd-gallery" id="gallery"></div></section>
+        </div>
+
+        <aside class="book-box">
+          <form class="form" id="book-form" novalidate>
+          <h3 id="quote">Request a quotation</h3>
           <p class="muted" style="font-size:.92rem">Tell us what you need. We'll send you a price, and you can accept it online.</p>
           <label class="ctrl"><span>Storage type</span><select id="b-type" required></select></label>
           <div class="form-row">
@@ -53,15 +82,19 @@
           <div class="form-status" hidden role="status"></div>
           <button class="btn btn-primary" type="submit" id="b-submit">Request quotation</button>
         </form>
-      </aside>
+        </aside>
+      </div>
     </div>
   </section>
+
+  <!-- Full-size photo viewer -->
+  <div class="wd-viewer" id="wd-viewer" hidden><button type="button" class="wd-x" aria-label="Close">×</button><button type="button" class="wd-prev" aria-label="Previous photo">‹</button><img alt=""><button type="button" class="wd-next" aria-label="Next photo">›</button></div>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="i18n.js?v=202610241408"></script>
-<script src="config.js?v=202610241408"></script>
-<script src="main.js?v=202610241408"></script>
-<script src="warehouse.js?v=202610241408"></script>
+<script src="i18n.js?v=202610271300"></script>
+<script src="config.js?v=202610271300"></script>
+<script src="main.js?v=202610271300"></script>
+<script src="warehouse.js?v=202610271300"></script>
 </body>
 </html>

@@ -117,6 +117,7 @@
   }
 
   /* ---------------- Warehouses ---------------- */
+  const VAS_NAMES = { receiving: "Receiving / unloading", picking: "Picking & packing", palletizing: "Palletizing", "shrink-wrapping": "Shrink wrapping" };
   let whData = [];
   async function loadWarehouses() {
     const box = $("#wh-list");
@@ -130,7 +131,7 @@
       <article class="row-card${w.status === "pending" ? " attention" : ""}" data-id="${esc(w.id)}">
         <div class="row-top">
           <div style="display:grid;gap:.3rem;min-width:0">
-            <span class="label">Submitted ${date(w.created_at)}</span>
+            <span class="label">${w.ref ? esc(w.ref) + " · " : ""}Submitted ${date(w.created_at)}</span>
             <h3>${esc(w.name)}</h3>
             <span class="muted">${esc([w.address, w.district, w.city].filter(Boolean).join(", "))}</span>
             <div style="display:flex;gap:.35rem;flex-wrap:wrap">${typeChips(w.storage_types)}</div>
@@ -145,6 +146,7 @@
           <div><dt>Site contact</dt><dd>${w.contact_method || w.contact_name || w.contact_info
               ? [w.contact_method && `<strong>${esc(METHOD[w.contact_method])}</strong>`, w.contact_name && esc(w.contact_name), reach(w.contact_method, w.contact_info), w.contact_time && `<span class="muted">${esc(w.contact_time)}</span>`].filter(Boolean).join("<br>")
               : "<span class='muted'>Not given</span>"}</dd></div>
+          <div><dt>Value added services</dt><dd>${(w.vas || []).length ? w.vas.map((v) => esc(VAS_NAMES[v] || v)).join(", ") : "None"}</dd></div>
           <div><dt>Licenses</dt><dd>${w.licenses.length ? w.licenses.map((l) => esc(LIC[l] || l)).join(", ") : "None stated"}</dd></div>
           ${w.map_url && /^https?:\/\//.test(w.map_url) ? `<div><dt>Location</dt><dd><a href="${esc(w.map_url)}" target="_blank" rel="noopener">Open map</a></dd></div>` : ""}
         </dl>
@@ -208,7 +210,7 @@
   async function loadBookings() {
     const box = $("#bk-list");
     let q = sb.from("bookings")
-      .select("*, cost:booking_costs(partner_price_per_pallet), client:profiles!bookings_client_id_fkey(full_name, company, email, phone), warehouse:warehouses!bookings_warehouse_id_fkey(id, name, city, pallets_available, partner_prices, handling_in, handling_out, owner:profiles!warehouses_owner_id_fkey(full_name, company, email, phone))")
+      .select("*, cost:booking_costs(partner_price_per_pallet), client:profiles!bookings_client_id_fkey(full_name, company, email, phone), warehouse:warehouses!bookings_warehouse_id_fkey(id, ref, name, city, pallets_available, partner_prices, handling_in, handling_out, owner:profiles!warehouses_owner_id_fkey(full_name, company, email, phone))")
       .order("created_at", { ascending: false });
     if ($("#bk-filter").value) q = q.eq("status", $("#bk-filter").value);
     const { data, error } = await q;
@@ -229,7 +231,7 @@
         <div class="row-top">
           <div style="display:grid;gap:.3rem;min-width:0">
             <span class="label">${esc(b.ref)}${b.quote_number ? " · " + esc(b.quote_number) : ""} · requested ${date(b.created_at)}</span>
-            <h3>${b.warehouse ? `<a href="warehouse.html?id=${esc(b.warehouse.id)}" style="text-decoration:none">${esc(b.warehouse.name)}</a>` : "Deleted warehouse"}</h3>
+            <h3>${b.warehouse ? `<a href="warehouse.html?id=${esc(b.warehouse.id)}" style="text-decoration:none">${esc(b.warehouse.name)}</a> <span class="muted" style="font-size:.8em">${esc(b.warehouse.ref || "")}</span>` : "Deleted warehouse"}</h3>
             ${b.warehouse ? `<span class="muted">${esc(b.warehouse.city)} · ${fmt(b.warehouse.pallets_available)} pallets free now</span>` : ""}
           </div>
           <div class="actions">${bookingPill(b)} ${booked ? pill(b.payment_status) : ""}</div>

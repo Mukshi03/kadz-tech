@@ -16,6 +16,28 @@
   if (lang !== "ar") return;
 
   var AR = {
+    "Shrink wrapping": "التغليف الحراري",
+    "Palletizing": "التحميل على الطبليات",
+    "Picking & packing": "الانتقاء والتغليف",
+    "Receiving / unloading": "الاستلام / التفريغ",
+    "Value added services": "خدمات القيمة المضافة",
+    "Pallets free now": "طبليات متاحة الآن",
+    "Depends on storage type, quantity and months": "يعتمد على نوع التخزين والكمية والمدة",
+    "Share": "مشاركة",
+    "Link copied": "تم نسخ الرابط",
+    "Approved by KADZ": "معتمد من KADZ",
+    "Overview": "نظرة عامة", "Location": "الموقع", "Photos": "الصور",
+    "Warehouse overview": "نظرة عامة على المستودع",
+    "Facilities & features": "المرافق والمزايا",
+    "About this warehouse": "عن المستودع",
+    "Total capacity": "السعة الإجمالية", "Available capacity": "السعة المتاحة", "Temperature range": "نطاق الحرارة",
+"Warehouse area": "مساحة المستودع",
+    "Racking system": "نظام أرفف",
+    "View on map →": "عرض على الخريطة ←",
+    "View photo": "عرض الصورة",
+    "No photos yet.": "لا توجد صور بعد.",
+    "Ask us about facilities in your quotation request.": "اسألنا عن المرافق في طلب عرض السعر.",
+    "Licenses are checked by KADZ before a warehouse is listed.": "تتحقق KADZ من التراخيص قبل إدراج أي مستودع.",
     "List": "قائمة", "Grid": "شبكة", "Table": "جدول", "View": "العرض",
     "List view": "عرض القائمة", "Grid view": "عرض الشبكة", "Table view": "عرض الجدول",
     "Warehouse": "المستودع", "Pallets free": "طبليات متاحة",
@@ -576,6 +598,10 @@
   var ARROW = { "→": "←", "←": "→" };
   // Text with numbers or names in it
   var PATTERNS = [
+    [/^View all (\d+) photos$/, function (m) { return "عرض كل الصور (" + m[1] + ")"; }],
+    [/^of ([\d,]+) pallet positions$/, function (m) { return "من أصل " + m[1] + " موقع طبلية"; }],
+    [/^([\d,]+) pallets$/, function (m) { return m[1] + " طبلية"; }],
+    [/^([\d,]+) m²$/, function (m) { return m[1] + " م²"; }],
     [/^Resend code \((\d+)s\)$/, function (m) { return "إعادة إرسال الرمز (" + m[1] + " ث)"; }],
     [/^(\d[\d,]*) of (\d[\d,]*) warehouses?$/, function (m) { return m[1] + " من " + m[2] + " مستودع"; }],
     [/^(\d[\d,]*) warehouses?$/, function (m) { return m[1] + " مستودع"; }],

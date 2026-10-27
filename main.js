@@ -138,13 +138,16 @@
   const badge = `<svg class="brand-mark" viewBox="0 0 58 58" aria-hidden="true"><rect x="2" y="2" width="54" height="54" rx="6"/><path d="M14 12h7v34h-7zM21 27 34 12h9L21 37zM26 31l5-6 13 21h-9z"/></svg>`;
   const brand = `${badge}<span class="brand-text"><span class="brand-name">${esc(brandMain)}</span>${brandRest.length ? `<span class="brand-sub">${esc(brandRest.join(" "))}</span>` : ""}</span>`;
   // Partner and client dashboards are work areas: just the logo, no site menu or footer
-  const appMode = page === "partner-dash" || page === "my-bookings";
+  // Service request pages opened from the client's account keep the same look, with a way back
+  const fromAccount = ["request", "warehouses", "warehouse", "estimate"].includes(page)
+    && new URLSearchParams(location.search).get("via") === "account";
+  const appMode = page === "partner-dash" || page === "my-bookings" || fromAccount;
   if (appMode) document.body.classList.add("app-mode");
   const header = document.createElement("header");
   header.className = "site-header";
   header.innerHTML = appMode ? `
     <div class="wrap">
-      <a class="brand" href="${page === "my-bookings" ? "my-bookings.html" : "partner-dashboard.html"}" aria-label="${esc(C.company)} dashboard">${brand}</a>
+      <a class="brand" href="${page === "partner-dash" ? "partner-dashboard.html" : "my-bookings.html"}" aria-label="${esc(C.company)} dashboard">${brand}</a>
     </div>` : `
     <div class="wrap">
       <a class="brand" href="index.html" aria-label="${esc(C.company)} home">
@@ -163,6 +166,19 @@
       </nav>
     </div>`;
   document.body.prepend(header);
+  if (fromAccount) {
+    const back = page === "request" ? "my-bookings.html#request" : "my-bookings.html#overview";
+    $$("[data-back]").forEach((a) => { a.href = back; a.textContent = page === "warehouse" ? "My account" : "← Back to my account"; a.hidden = false; });
+    // Links between these pages (also ones added later, like search results) keep the account look
+    const keep = /^(request-[a-z]+|warehouses?|estimate)\.html/;
+    document.addEventListener("click", (e) => {
+      const a = e.target.closest("a[href]");
+      const href = a?.getAttribute("href") || "";
+      if (!keep.test(href) || /[?&]via=account/.test(href)) return;
+      const [path, hash = ""] = href.split("#");
+      a.href = path + (path.includes("?") ? "&" : "?") + "via=account" + (hash ? "#" + hash : "");
+    }, true);
+  }
   header.addEventListener("click", (e) => {
     const b = e.target.closest("[data-lang]");
     if (b && b.dataset.lang !== window.KZ_LANG) window.KZ_setLang(b.dataset.lang);

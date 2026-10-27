@@ -35,7 +35,7 @@
     if (!data.length) {
       box.innerHTML = `<div class="empty"><strong>No requests yet</strong>
         <p>Find a warehouse and request a quotation. Your quotations and bookings will show here.</p>
-        <a class="btn btn-primary" href="warehouses.html">Find a warehouse</a></div>`;
+        <a class="btn btn-primary" href="warehouses.html?via=account">Find a warehouse</a></div>`;
       return;
     }
 
@@ -53,7 +53,7 @@
         <div class="row-top">
           <div style="display:grid;gap:.3rem;min-width:0">
             <span class="label">${esc(b.quote_number || b.ref)} · requested ${date(b.created_at)}</span>
-            <h3>${w ? `<a href="warehouse.html?id=${esc(w.id)}" style="text-decoration:none">${esc(w.ref)}</a>` : "Warehouse"}</h3>
+            <h3>${w ? `<a href="warehouse.html?id=${esc(w.id)}&via=account" style="text-decoration:none">${esc(w.ref)}</a>` : "Warehouse"}</h3>
             ${w ? `<span class="muted">${esc([w.district, w.city].filter(Boolean).join(", "))}</span>` : ""}
           </div>
           <div class="actions">${bookingPill(b)} ${["confirmed", "completed"].includes(b.status) ? pill(b.payment_status) : ""}</div>
@@ -116,7 +116,7 @@
     if (!data.length) {
       sbox.innerHTML = `<div class="empty"><strong>No requests yet</strong>
         <p>Need a truck, freight forwarding or customs clearance? Send a request and your quotations will show here.</p>
-        <a class="btn btn-primary" href="services.html#transportation">Request a service</a></div>`;
+        <button type="button" class="btn btn-primary" data-go="request">Request a service</button></div>`;
       return;
     }
     const order = { quoted: 0, pending: 1, confirmed: 2 };
@@ -303,7 +303,7 @@
     const latest = bookings.slice(0, 5);
     $("#ov-recent").innerHTML = latest.length ? `<ul class="pd-recent">${latest.map((b) => `
       <li><span><b>${esc(b.quote_number || b.ref)}</b> · ${esc(TYPES[b.storage_type]?.name || b.storage_type)}<small>${fmt(b.pallets)} pallets · from ${date(b.start_date)} · ${b.months} month${b.months > 1 ? "s" : ""}</small></span>${bookingPill(b)}</li>`).join("")}</ul>`
-      : `<p class="muted">No storage yet. <a href="warehouses.html">Find a warehouse →</a></p>`;
+      : `<p class="muted">No storage yet. <a href="warehouses.html?via=account">Find a warehouse →</a></p>`;
   }
   loadOverview();
 })();

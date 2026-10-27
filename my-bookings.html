@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610271539">
+  <link rel="stylesheet" href="styles.css?v=202610271549">
 </head>
 <body data-page="my-bookings">
 
@@ -23,11 +23,11 @@
           <button class="tab" role="tab" data-tab="bookings" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10 12 4l9 6v10H3z"/><path d="M7 20v-6h10v6M7 17h10"/></svg><span>Storage</span><em id="c-bk" hidden></em></button>
           <button class="tab" role="tab" data-tab="moves" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v14M3 14l4 4 4-4M17 20V6M13 10l4-4 4 4"/></svg><span>Inbound / outbound</span><em id="c-mv" hidden></em></button>
           <button class="tab" role="tab" data-tab="services" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7z"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg><span>Transport, freight &amp; customs</span><em id="c-sr" hidden></em></button>
+          <button class="tab" role="tab" data-tab="request" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span>Request a service</span></button>
           <button class="tab" role="tab" data-tab="profile" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>My details</span></button>
         </nav>
         <div class="pd-links">
-          <a href="warehouses.html"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Find a warehouse</span></a>
-          <a href="services.html#transportation"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span>Request a service</span></a>
+          <a href="warehouses.html?via=account"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg><span>Find a warehouse</span></a>
         </div>
         <button type="button" class="pd-logout" id="pd-logout"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3"/><path d="M10 16l-4-4 4-4M6 12h10"/></svg><span>Log out</span></button>
       </aside>
@@ -35,7 +35,7 @@
       <div class="pd-main">
         <div class="pd-top">
           <div><span class="label">My account</span><h1 id="hello">Welcome back</h1></div>
-          <div class="actions"><a class="btn btn-primary" href="warehouses.html">+ Request storage</a><a class="btn btn-plain" href="services.html#transportation">Request a service</a></div>
+          <div class="actions"><a class="btn btn-primary" href="warehouses.html?via=account">+ Request storage</a><button type="button" class="btn btn-plain" data-go="request">Request a service</button></div>
         </div>
 
       <div data-panel="overview">
@@ -59,6 +59,15 @@
         <div class="rows" id="services"><p class="muted">Loading…</p></div>
       </div>
 
+      <div data-panel="request" hidden>
+        <p class="muted" style="margin-bottom:1rem">Choose a service. Fill in the details and we'll send you a quotation you can accept here.</p>
+        <div class="grid-3 services-grid rq-grid">
+          <a class="service sv-c" href="request-transport.html?via=account"><span class="sv-bg" style="background-image:url('https://images.unsplash.com/photo-1766785368863-f2188a8c8b32?auto=format&fit=crop&w=800&q=70')"></span><span class="sv-txt"><h3>Transportation</h3><p>Book a truck between cities, including refrigerated trucks. Tell us the route, date and load.</p><span class="more">Request a quotation →</span></span></a>
+          <a class="service sv-c" href="request-freight.html?via=account"><span class="sv-bg" style="background-image:url('https://images.unsplash.com/photo-1606185540834-d6e7483ee1a4?auto=format&fit=crop&w=800&q=70')"></span><span class="sv-txt"><h3>Freight forwarding</h3><p>Air, sea and land freight for imports and exports, door to door.</p><span class="more">Request a quotation →</span></span></a>
+          <a class="service sv-c" href="request-customs.html?via=account"><span class="sv-bg" style="background-image:url('https://images.unsplash.com/photo-1590497008432-598f04441de8?auto=format&fit=crop&w=800&q=70')"></span><span class="sv-txt"><h3>Customs clearance</h3><p>Import and export clearance. Upload your documents and we'll handle the rest.</p><span class="more">Request a quotation →</span></span></a>
+        </div>
+      </div>
+
       <div data-panel="profile" hidden>
         <form class="form" id="profile-form" style="max-width:640px" novalidate>
           <div class="form-row">
@@ -78,11 +87,11 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="i18n.js?v=202610271539"></script>
-<script src="config.js?v=202610271539"></script>
-<script src="main.js?v=202610271539"></script>
-<script src="dashboard-common.js?v=202610271539"></script>
-<script src="quote-pdf.js?v=202610271539"></script>
-<script src="my-bookings.js?v=202610271539"></script>
+<script src="i18n.js?v=202610271549"></script>
+<script src="config.js?v=202610271549"></script>
+<script src="main.js?v=202610271549"></script>
+<script src="dashboard-common.js?v=202610271549"></script>
+<script src="quote-pdf.js?v=202610271549"></script>
+<script src="my-bookings.js?v=202610271549"></script>
 </body>
 </html>

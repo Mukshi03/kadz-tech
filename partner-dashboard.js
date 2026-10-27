@@ -20,6 +20,7 @@
   const openTab = setupTabs((name) => {
     if (name === "bookings") loadBookings();
     if (name === "moves") loadMoves();
+    if (name === "bids") loadBids();
     if (name === "team") loadTeam();
   });
   $("#new-wh").addEventListener("click", () => { resetForm(); openTab("form"); });
@@ -40,6 +41,7 @@
     }
     renderList();
     renderOverview();
+    if (bidRows.length) renderBids();   // the bid form lists your approved warehouses
   }
 
   /* Free / total for each storage type, or one shared count for older listings */
@@ -477,4 +479,84 @@
   });
 
   loadMoves();
+
+  /* ---------------- Bidding ---------------- */
+  let pbf = "open", bidRows = [];
+  $$("[data-pbf]").forEach((b) => b.addEventListener("click", () => {
+    pbf = b.dataset.pbf;
+    $$("[data-pbf]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    renderBids();
+  }));
+  async function loadBids() {
+    const { data, error } = await sb.rpc("partner_bid_requests");
+    if (error) { $("#bid-list").innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
+    bidRows = data || [];
+    const open = bidRows.filter((r) => r.status === "open" && !r.my_bid_id).length;
+    $("#n-bid").textContent = open || "";
+    renderBids();
+  }
+  function renderBids() {
+    const box = $("#bid-list");
+    const rows = bidRows.filter((r) => pbf === "open" ? r.status === "open" : r.status !== "open");
+    if (!rows.length) { box.innerHTML = `<div class="empty"><strong>${pbf === "open" ? "No open requests" : "Nothing yet"}</strong><p>${pbf === "open" ? "New storage requests from KADZ show here." : "Requests you bid on show here once bidding closes."}</p></div>`; return; }
+    const today = new Date().toISOString().slice(0, 10);
+    box.innerHTML = rows.map((r) => {
+      const mine = warehouses.filter((w) => w.status === "approved" && w.storage_types.includes(r.storage_type));
+      const daysLeft = Math.round((new Date(r.closes_on) - new Date(today)) / 864e5);
+      const iLead = r.my_price != null && r.my_status === "active" && +r.my_price <= +r.lowest_price;
+      const result = r.my_status === "won" ? `<p class="notice"><strong>You won this request.</strong> KADZ will confirm the booking with the client and let you know.</p>`
+        : r.my_status === "lost" ? `<p class="note">Another bid was chosen this time.</p>`
+        : r.status !== "open" ? `<p class="note">Bidding is closed. KADZ is choosing a warehouse.</p>` : "";
+      return `
+      <article class="row-card bid-card${r.status === "open" && !r.my_bid_id ? " attention" : ""}" data-bidreq="${esc(r.id)}">
+        <div class="row-top">
+          <div style="display:grid;gap:.3rem;min-width:0">
+            <span class="label">${esc(r.ref)} · ${r.status === "open" ? (daysLeft <= 0 ? "closes today" : `closes in ${daysLeft} day${daysLeft === 1 ? "" : "s"}`) : "closed"} (${date(r.closes_on)})</span>
+            <h3>${fmt(r.pallets)} pallets · ${esc(TYPES[r.storage_type]?.name || r.storage_type)} · ${esc(r.city)}</h3>
+            <span class="muted">From ${date(r.start_date)} for ${r.months} month${r.months > 1 ? "s" : ""}</span>
+          </div>
+          ${r.my_status ? pill(r.my_status === "won" ? "confirmed" : r.my_status === "lost" ? "completed" : r.my_status === "withdrawn" ? "cancelled" : "quoted", r.my_status === "active" ? "bid placed" : r.my_status === "won" ? "won" : r.my_status === "lost" ? "not chosen" : "withdrawn") : pill("pending", "open")}
+        </div>
+        ${r.details ? `<p class="note">${esc(r.details)}</p>` : ""}
+        <div class="bid-stats">
+          <div><span class="label">Lowest bid now</span><b class="num">${r.lowest_price != null ? money(r.lowest_price) : "No bids yet"}</b></div>
+          <div><span class="label">Bids</span><b class="num">${r.bid_count || 0}</b></div>
+          <div><span class="label">Your bid</span><b class="num">${r.my_price != null && r.my_status !== "withdrawn" ? money(r.my_price) : "–"}</b>${iLead ? `<small class="lead-tag">lowest</small>` : ""}</div>
+        </div>
+        ${result}
+        ${r.status === "open" ? (mine.length ? `
+        <form class="mv-form bid-form" novalidate>
+          <div class="form-row">
+            <label class="ctrl"><span>Warehouse</span><select name="warehouse_id" required>${mine.map((w) => `<option value="${esc(w.id)}" ${w.id === r.my_warehouse ? "selected" : ""}>${esc(w.name)} · ${esc(w.city)}${w.city !== r.city ? " (other city)" : ""}</option>`).join("")}</select></label>
+            <label class="ctrl"><span>Your price <em>SAR / pallet / month, excl. VAT</em></span><input name="price" type="number" min="1" step="0.01" required value="${r.my_status === "active" ? esc(r.my_price) : ""}"></label>
+          </div>
+          <label class="ctrl"><span>Note <em>optional, e.g. what's included</em></span><input name="note" maxlength="500" value="${esc(r.my_note || "")}"></label>
+          <div class="actions"><button class="btn btn-primary" type="submit">${r.my_bid_id && r.my_status === "active" ? "Update bid" : "Place bid"}</button>
+            ${r.my_bid_id && r.my_status === "active" ? `<button class="btn btn-plain" type="button" data-withdraw="${esc(r.my_bid_id)}">Withdraw</button>` : ""}</div>
+        </form>` : `<p class="note">You need an approved warehouse with ${esc(TYPES[r.storage_type]?.name || r.storage_type)} storage to bid.</p>`) : ""}
+      </article>`;
+    }).join("");
+  }
+  $("#bid-list").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const f = e.target, card = f.closest("[data-bidreq]"), r = bidRows.find((x) => x.id === card.dataset.bidreq);
+    if (!f.reportValidity()) return;
+    const row = { warehouse_id: f.elements.warehouse_id.value, price_per_pallet: +f.elements.price.value, note: f.elements.note.value.trim() || null, status: "active" };
+    if (r.lowest_price != null && row.price_per_pallet > +r.lowest_price && !confirm(`The lowest bid is ${money(r.lowest_price)}. Send ${money(row.price_per_pallet)} anyway?`)) return;
+    const { error } = r.my_bid_id
+      ? await sb.from("bids").update(row).eq("id", r.my_bid_id)
+      : await sb.from("bids").insert({ ...row, request_id: r.id, partner_id: uid });
+    if (error) return toast(errMsg(error), true);
+    toast(r.my_bid_id ? "Bid updated" : "Bid placed");
+    loadBids();
+  });
+  $("#bid-list").addEventListener("click", async (e) => {
+    const w = e.target.closest("[data-withdraw]");
+    if (!w) return;
+    if (!confirm("Withdraw your bid?")) return;
+    const { error } = await sb.from("bids").update({ status: "withdrawn" }).eq("id", w.dataset.withdraw);
+    if (error) return toast(errMsg(error), true);
+    toast("Bid withdrawn"); loadBids();
+  });
+  loadBids();
 })();

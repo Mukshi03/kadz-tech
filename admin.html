@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610271441">
+  <link rel="stylesheet" href="styles.css?v=202610271514">
 </head>
 <body data-page="admin">
 
@@ -33,6 +33,7 @@
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" data-tab="warehouses" aria-selected="true">Warehouses <span class="count" id="c-wh" hidden></span></button>
         <button class="tab" role="tab" data-tab="bookings" aria-selected="false">Quotes &amp; bookings <span class="count" id="c-bk" hidden></span></button>
+        <button class="tab" role="tab" data-tab="bids" aria-selected="false">Bidding <span class="count" id="c-bid" hidden></span></button>
         <button class="tab" role="tab" data-tab="moves" aria-selected="false">Inbound / outbound <span class="count" id="c-mv" hidden></span></button>
         <button class="tab" role="tab" data-tab="services" aria-selected="false">Service requests <span class="count" id="c-sr" hidden></span></button>
         <button class="tab" role="tab" data-tab="quotes" aria-selected="false">Quote requests <span class="count" id="c-q" hidden></span></button>
@@ -99,6 +100,37 @@
 
       <div data-panel="quotes" hidden><div class="rows" id="q-list"></div></div>
 
+      <div data-panel="bids" hidden>
+        <div class="row-top" style="margin-bottom:1rem">
+          <div class="seg" role="group" aria-label="Show" style="margin:0">
+            <button type="button" data-bf="open" aria-pressed="true">Open</button>
+            <button type="button" data-bf="closed" aria-pressed="false">Closed</button>
+            <button type="button" data-bf="awarded" aria-pressed="false">Awarded</button>
+            <button type="button" data-bf="" aria-pressed="false">All</button>
+          </div>
+          <button class="btn btn-primary" type="button" id="bid-new">+ Post a request</button>
+        </div>
+        <form class="form" id="bid-form" hidden novalidate style="margin-bottom:1.5rem">
+          <h3>Post a request for bidding</h3>
+          <p class="muted" style="margin-top:-.4rem">All partners see this request (never the client's name) and bid a price per pallet per month.</p>
+          <label class="ctrl"><span>Client <em>only you see this</em></span><select id="bf-client" required><option value="">Choose a client…</option></select></label>
+          <div class="form-row">
+            <label class="ctrl"><span>City</span><select id="bf-city" required data-cities><option value="">Choose…</option></select></label>
+            <label class="ctrl"><span>Storage type</span><select id="bf-type" required data-types><option value="">Choose…</option></select></label>
+            <label class="ctrl"><span>Pallets</span><input id="bf-pallets" type="number" min="1" required></label>
+          </div>
+          <div class="form-row">
+            <label class="ctrl"><span>Start date</span><input id="bf-start" type="date" required data-min-today></label>
+            <label class="ctrl"><span>Months</span><input id="bf-months" type="number" min="1" max="60" value="1" required></label>
+            <label class="ctrl"><span>Bidding closes on</span><input id="bf-closes" type="date" required data-min-today></label>
+          </div>
+          <label class="ctrl"><span>Details for partners <em>optional</em></span><textarea id="bf-details" maxlength="2000" placeholder="Product, handling needs, receiving times. Don't include the client's name."></textarea></label>
+          <div class="form-status" hidden role="status"></div>
+          <div class="actions"><button class="btn btn-primary" type="submit">Post for bidding</button><button class="btn btn-plain" type="button" id="bid-cancel">Cancel</button></div>
+        </form>
+        <div class="rows" id="bid-list"></div>
+      </div>
+
       <div data-panel="moves" hidden>
         <div class="seg" role="group" aria-label="Show">
           <button type="button" data-mvf="requested" aria-pressed="true">To send</button>
@@ -123,11 +155,11 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="i18n.js?v=202610271441"></script>
-<script src="config.js?v=202610271441"></script>
-<script src="main.js?v=202610271441"></script>
-<script src="dashboard-common.js?v=202610271441"></script>
-<script src="quote-pdf.js?v=202610271441"></script>
-<script src="admin.js?v=202610271441"></script>
+<script src="i18n.js?v=202610271514"></script>
+<script src="config.js?v=202610271514"></script>
+<script src="main.js?v=202610271514"></script>
+<script src="dashboard-common.js?v=202610271514"></script>
+<script src="quote-pdf.js?v=202610271514"></script>
+<script src="admin.js?v=202610271514"></script>
 </body>
 </html>

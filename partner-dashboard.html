@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610271441">
+  <link rel="stylesheet" href="styles.css?v=202610271514">
 </head>
 <body data-page="partner-dash">
 
@@ -22,6 +22,7 @@
           <button class="tab" role="tab" data-tab="overview" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Overview</span></button>
           <button class="tab" role="tab" data-tab="warehouses" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10 12 4l9 6v10H3z"/><path d="M7 20v-6h10v6M7 17h10"/></svg><span>My warehouses</span><em id="n-wh"></em></button>
           <button class="tab" role="tab" data-tab="bookings" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Bookings</span><em id="n-bk"></em></button>
+          <button class="tab" role="tab" data-tab="bids" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 4 6 6M11 7l6 6M4 20l8-8M9.5 9.5l5 5"/><path d="M3 21h8"/></svg><span>Bidding</span><em id="n-bid"></em></button>
           <button class="tab" role="tab" data-tab="moves" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v14M3 14l4 4 4-4M17 20V6M13 10l4-4 4 4"/></svg><span>Inbound / outbound</span><em id="n-mv"></em></button>
           <button class="tab" role="tab" data-tab="form" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span id="form-tab">Add warehouse</span></button>
           <button class="tab" role="tab" data-tab="team" aria-selected="false" id="team-tab"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c1-3.5 3.6-5.5 6.5-5.5s5.5 2 6.5 5.5"/><circle cx="17" cy="9" r="2.5"/><path d="M16 14.5c2.6 0 4.6 1.6 5.5 4.5"/></svg><span>Users</span></button>
@@ -185,6 +186,15 @@
         <div class="rows" id="bk-list"><p class="muted">Loading…</p></div>
       </div>
 
+      <div data-panel="bids" hidden>
+        <p class="muted" style="margin-bottom:1rem">Storage requests posted by KADZ. Bid your price per pallet per month with one of your approved warehouses. You see the current lowest bid, and you can lower yours until bidding closes.</p>
+        <div class="seg" role="group" aria-label="Show">
+          <button type="button" data-pbf="open" aria-pressed="true">Open</button>
+          <button type="button" data-pbf="done" aria-pressed="false">Closed &amp; results</button>
+        </div>
+        <div class="rows" id="bid-list"><p class="muted">Loading…</p></div>
+      </div>
+
       <div data-panel="moves" hidden>
         <p class="muted" style="margin-bottom:1rem">Goods arriving at and leaving your warehouses. Requests come from clients and are checked by KADZ first. When the truck has been handled, record what was received or dispatched.</p>
         <div class="seg" role="group" aria-label="Show">
@@ -230,10 +240,10 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="i18n.js?v=202610271441"></script>
-<script src="config.js?v=202610271441"></script>
-<script src="main.js?v=202610271441"></script>
-<script src="dashboard-common.js?v=202610271441"></script>
-<script src="partner-dashboard.js?v=202610271441"></script>
+<script src="i18n.js?v=202610271514"></script>
+<script src="config.js?v=202610271514"></script>
+<script src="main.js?v=202610271514"></script>
+<script src="dashboard-common.js?v=202610271514"></script>
+<script src="partner-dashboard.js?v=202610271514"></script>
 </body>
 </html>

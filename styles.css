@@ -1116,3 +1116,15 @@ select option, select optgroup { background-color: var(--surface); color: var(--
   width: 100%; padding: .7rem .8rem; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); font: inherit; }
 .mv-form textarea { min-height: 80px; resize: vertical; }
 .mv-form input:focus, .mv-form textarea:focus, #invite-form input:focus, .mv-note:focus { outline: 2px solid var(--accent); outline-offset: 0; border-color: transparent; }
+
+/* ---------- Bidding ---------- */
+.bid-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .8rem; }
+.bid-stats > div { padding: .8rem 1rem; border-radius: 10px; background: var(--bg); border: 1px solid var(--line); display: grid; gap: .2rem; }
+.bid-stats b { font: 800 1.35rem var(--f-display); }
+.lead-tag { color: var(--ok); font-weight: 700; }
+.bid-table tr.lowest td { background: color-mix(in srgb, var(--ok) 8%, transparent); }
+.bid-table small { display: block; color: var(--muted); }
+.bid-table td.r small { color: var(--ok); font-weight: 700; }
+#bid-form select { width: 100%; padding: .7rem .8rem; background: var(--bg); border: 1px solid var(--line); border-radius: var(--radius); }
+.mv-form select { width: 100%; padding: .7rem .8rem; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: var(--radius); font: inherit; }
+@media (max-width: 560px) { .bid-stats { grid-template-columns: 1fr 1fr; } }

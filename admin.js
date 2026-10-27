@@ -652,8 +652,110 @@
     loadMoves(); loadStats();
   });
 
+  /* ---------------- Bidding ---------------- */
+  let bidFilter = "open", clientsLoaded = false;
+  const today = () => new Date().toISOString().slice(0, 10);
+  $$("[data-bf]").forEach((b) => b.addEventListener("click", () => {
+    bidFilter = b.dataset.bf;
+    $$("[data-bf]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    loadBids();
+  }));
+  $$("#bid-form [data-min-today]").forEach((i) => (i.min = today()));
+  $("#bid-new").addEventListener("click", async () => {
+    const f = $("#bid-form"); f.hidden = !f.hidden;
+    if (!clientsLoaded) {
+      const { data } = await sb.from("profiles").select("id, full_name, company, email").eq("role", "client").order("company");
+      (data || []).forEach((p) => $("#bf-client").add(new Option(`${p.company || p.full_name || p.email} · ${p.email}`, p.id)));
+      clientsLoaded = true;
+    }
+  });
+  $("#bid-cancel").addEventListener("click", () => { $("#bid-form").reset(); $("#bid-form").hidden = true; });
+  $("#bid-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const f = e.target, st = $(".form-status", f);
+    if (!f.reportValidity()) return;
+    if ($("#bf-closes").value > $("#bf-start").value) { st.hidden = false; st.className = "form-status notice warn"; st.textContent = "Bidding has to close on or before the start date."; return; }
+    const { error } = await sb.from("bid_requests").insert({
+      client_id: $("#bf-client").value, city: $("#bf-city").value, storage_type: $("#bf-type").value,
+      pallets: +$("#bf-pallets").value, start_date: $("#bf-start").value, months: +$("#bf-months").value,
+      closes_on: $("#bf-closes").value, details: $("#bf-details").value.trim() || null
+    });
+    if (error) { st.hidden = false; st.className = "form-status notice warn"; st.textContent = errMsg(error); return; }
+    toast("Posted. Partners can bid now.");
+    f.reset(); f.hidden = true; st.hidden = true; loadBids();
+  });
+
+  async function loadBids() {
+    const box = $("#bid-list");
+    let q = sb.from("bid_requests").select("*, client:profiles!bid_requests_client_id_fkey(full_name, company, email, phone), booking:bookings!bid_requests_booking_id_fkey(ref)")
+      .order("created_at", { ascending: false });
+    if (bidFilter) q = q.eq("status", bidFilter);
+    const [reqs, bids] = await Promise.all([q,
+      sb.from("bids").select("*, partner:profiles!bids_partner_id_fkey(full_name, company, email, phone), warehouse:warehouses!bids_warehouse_id_fkey(name, ref, city)")
+        .order("price_per_pallet", { ascending: true })]);
+    if (reqs.error || bids.error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(reqs.error || bids.error))}</div>`; return; }
+    const open = reqs.data.filter((r) => r.status === "open").length;
+    if (bidFilter === "open") { $("#c-bid").textContent = open; $("#c-bid").hidden = !open; }
+    if (!reqs.data.length) { box.innerHTML = `<div class="empty"><strong>Nothing here</strong><p>Post a request and partners will start bidding.</p></div>`; return; }
+    box.innerHTML = reqs.data.map((r) => {
+      const list = bids.data.filter((b) => b.request_id === r.id && b.status !== "withdrawn");
+      const lowest = list.length ? Math.min(...list.map((b) => +b.price_per_pallet)) : null;
+      const expired = r.status === "open" && r.closes_on < today();
+      const canAward = ["open", "closed"].includes(r.status);
+      return `
+      <article class="row-card${r.status === "open" ? " attention" : ""}" data-req="${esc(r.id)}">
+        <div class="row-top">
+          <div style="display:grid;gap:.3rem;min-width:0">
+            <span class="label">${esc(r.ref)} · posted ${date(r.created_at)} · closes ${date(r.closes_on)}${expired ? " (date passed)" : ""}</span>
+            <h3>${fmt(r.pallets)} pallets · ${esc(TYPES[r.storage_type]?.name || r.storage_type)} · ${esc(r.city)}</h3>
+            <span class="muted">From ${date(r.start_date)} for ${r.months} month${r.months > 1 ? "s" : ""} · for ${esc(r.client?.company || r.client?.full_name || "client")}</span>
+          </div>
+          ${pill(r.status === "open" ? "pending" : r.status === "awarded" ? "confirmed" : r.status === "cancelled" ? "cancelled" : "completed", r.status)}
+        </div>
+        ${r.details ? `<p class="note">${esc(r.details)}</p>` : ""}
+        ${list.length ? `<div class="wh-table-wrap"><table class="wh-table bid-table"><thead><tr><th>Partner</th><th>Warehouse</th><th class="r">Price / pallet / month</th><th>Note</th><th></th></tr></thead><tbody>
+          ${list.map((b) => `<tr class="${+b.price_per_pallet === lowest ? "lowest" : ""}">
+            <td><b>${esc(b.partner?.company || b.partner?.full_name || "")}</b><small>${esc(b.partner?.email || "")}</small></td>
+            <td>${esc(b.warehouse?.name || "")}<small>${esc(b.warehouse?.ref || "")} · ${esc(b.warehouse?.city || "")}</small></td>
+            <td class="r"><b class="num">${money(b.price_per_pallet)}</b>${+b.price_per_pallet === lowest ? `<small>lowest</small>` : ""}</td>
+            <td>${esc(b.note || "")}</td>
+            <td class="r">${b.status === "won" ? pill("confirmed", "winner") : b.status === "lost" ? pill("completed", "not chosen") : canAward ? `<button class="btn btn-sm btn-primary" data-award="${esc(b.id)}">Choose winner</button>` : ""}</td>
+          </tr>`).join("")}</tbody></table></div>` : `<p class="muted">No bids yet.</p>`}
+        <div class="actions">
+          ${r.status === "awarded" && r.booking ? `<span class="muted">Quotation request <strong>${esc(r.booking.ref)}</strong> created for the client.</span> <button class="btn btn-sm btn-plain" data-go-bookings>Open in Quotes &amp; bookings →</button>` : ""}
+          ${r.status === "open" ? `<button class="btn btn-sm btn-plain" data-bid-status="closed">Close bidding</button>` : ""}
+          ${r.status === "closed" ? `<button class="btn btn-sm btn-plain" data-bid-status="open">Reopen</button>` : ""}
+          ${canAward ? `<button class="btn btn-sm btn-danger" data-bid-status="cancelled">Cancel request</button>` : ""}
+        </div>
+      </article>`;
+    }).join("");
+  }
+  $("#bid-list").addEventListener("click", async (e) => {
+    const card = e.target.closest("[data-req]");
+    if (e.target.closest("[data-go-bookings]")) { $('.tab[data-tab="bookings"]').click(); return; }
+    const a = e.target.closest("[data-award]");
+    if (a) {
+      if (!confirm("Choose this bid? A quotation request is created for the client at this warehouse, and the other bidders are marked as not chosen.")) return;
+      a.disabled = true;
+      const { data, error } = await sb.rpc("award_bid", { p_bid: a.dataset.award });
+      if (error) { a.disabled = false; return toast(errMsg(error), true); }
+      toast(`Winner chosen. ${data} is in Quotes & bookings: add your price and send the quotation.`);
+      loaded.bookings = false; loadBids(); loadStats();
+      return;
+    }
+    const s = e.target.closest("[data-bid-status]");
+    if (s) {
+      const to = s.dataset.bidStatus;
+      if (to === "cancelled" && !confirm("Cancel this request? Partners will no longer see it.")) return;
+      const { error } = await sb.from("bid_requests").update({ status: to }).eq("id", card.dataset.req);
+      if (error) return toast(errMsg(error), true);
+      toast({ closed: "Bidding closed", open: "Bidding reopened", cancelled: "Request cancelled" }[to]);
+      loadBids();
+    }
+  });
+
   /* ---------------- Start ---------------- */
-  const loaders = { moves: loadMoves, warehouses: loadWarehouses, bookings: loadBookings, services: loadServices, quotes: loadQuotes, users: loadUsers };
+  const loaders = { bids: loadBids, moves: loadMoves, warehouses: loadWarehouses, bookings: loadBookings, services: loadServices, quotes: loadQuotes, users: loadUsers };
   const loaded = {};
   setupTabs((name) => { if (!loaded[name]) { loaded[name] = true; loaders[name](); } });
   $("#refresh").addEventListener("click", () => {

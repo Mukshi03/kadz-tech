@@ -1002,3 +1002,8 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .sv-c .more { color: var(--accent); }
 .services-grid .sv-c:hover .sv-bg { transform: scale(1.05); }
 @media (max-width: 620px) { .services-grid .sv-c { min-height: 320px; } }
+
+/* Industries: same full-photo cards as the services */
+.industry-grid .sv-c { position: relative; overflow: hidden; min-height: 340px; padding: 0; color: #fff; display: flex; flex-direction: column; justify-content: flex-end; }
+.industry-grid .sv-c:hover .sv-bg { transform: scale(1.05); }
+@media (max-width: 620px) { .industry-grid .sv-c { min-height: 280px; } }

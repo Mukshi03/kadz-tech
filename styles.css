@@ -1148,3 +1148,13 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .rq-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .rq-grid .sv-c { min-height: 340px; }
 @media (max-width: 1100px) { .rq-grid { grid-template-columns: minmax(0, 1fr); } .rq-grid .sv-c { min-height: 260px; } }
+.bf-types { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: .7rem; }
+.bf-type { display: grid; gap: .5rem; padding: .7rem .8rem; border: 1px solid var(--line); border-radius: 10px; background: var(--bg); }
+.bf-type.on { border-color: color-mix(in srgb, var(--accent) 55%, var(--line)); }
+.bf-type .check { border: 0; padding: 0; background: none; }
+.bf-type .chip { font-style: normal; }
+.bf-type small { color: var(--muted); }
+.bf-type input[type=number]:disabled { opacity: .45; }
+.bid-prices { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: .8rem; }
+.bid-prices .chip { font-style: normal; }
+.bid-table th small { display: block; font-size: .65rem; letter-spacing: .04em; text-transform: none; }

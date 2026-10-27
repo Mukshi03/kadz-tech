@@ -653,76 +653,89 @@
   });
 
   /* ---------------- Bidding ---------------- */
-  let bidFilter = "open", clientsLoaded = false;
+  let bidFilter = "open";
   const today = () => new Date().toISOString().slice(0, 10);
+  const itemsText = (items) => (items || []).map((i) => `${esc(TYPES[i.type]?.name || i.type)} ${fmt(i.pallets)}`).join(" · ");
+  const itemsTotal = (items) => (items || []).reduce((s, i) => s + i.pallets, 0);
   $$("[data-bf]").forEach((b) => b.addEventListener("click", () => {
     bidFilter = b.dataset.bf;
     $$("[data-bf]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
     loadBids();
   }));
   $$("#bid-form [data-min-today]").forEach((i) => (i.min = today()));
-  $("#bid-new").addEventListener("click", async () => {
-    const f = $("#bid-form"); f.hidden = !f.hidden;
-    if (!clientsLoaded) {
-      const { data } = await sb.from("profiles").select("id, full_name, company, email").eq("role", "client").order("company");
-      (data || []).forEach((p) => $("#bf-client").add(new Option(`${p.company || p.full_name || p.email} · ${p.email}`, p.id)));
-      clientsLoaded = true;
-    }
-  });
-  $("#bid-cancel").addEventListener("click", () => { $("#bid-form").reset(); $("#bid-form").hidden = true; });
+  // One pallets box per ticked storage type
+  function bfTypes() {
+    let total = 0;
+    $$("#bf-types .bf-type").forEach((row) => {
+      const on = $("input[type=checkbox]", row).checked, n = $("input[type=number]", row);
+      n.disabled = !on; n.required = on; row.classList.toggle("on", on);
+      if (on) total += +n.value || 0;
+    });
+    $("#bf-total").textContent = fmt(total);
+  }
+  $("#bf-types").addEventListener("input", bfTypes);
+  $("#bid-new").addEventListener("click", () => { const f = $("#bid-form"); f.hidden = !f.hidden; if (!f.hidden) $("#bf-subject").focus(); });
+  $("#bid-cancel").addEventListener("click", () => { $("#bid-form").reset(); bfTypes(); $("#bid-form").hidden = true; });
   $("#bid-form").addEventListener("submit", async (e) => {
     e.preventDefault();
     const f = e.target, st = $(".form-status", f);
-    if (!f.reportValidity()) return;
-    if ($("#bf-closes").value > $("#bf-start").value) { st.hidden = false; st.className = "form-status notice warn"; st.textContent = "Bidding has to close on or before the start date."; return; }
+    const items = $$("#bf-types .bf-type").filter((r) => $("input[type=checkbox]", r).checked)
+      .map((r) => ({ type: r.dataset.type, pallets: +$("input[type=number]", r).value }));
+    $("#bf-types .err").hidden = items.length > 0;
+    if (!items.length || !f.reportValidity()) return;
+    const fail = (m) => { st.hidden = false; st.className = "form-status notice warn"; st.textContent = m; };
+    if ($("#bf-closes").value > $("#bf-start").value) return fail("Bidding has to close on or before the start date.");
     const { error } = await sb.from("bid_requests").insert({
-      client_id: $("#bf-client").value, city: $("#bf-city").value, storage_type: $("#bf-type").value,
-      pallets: +$("#bf-pallets").value, start_date: $("#bf-start").value, months: +$("#bf-months").value,
+      subject: $("#bf-subject").value.trim(), city: $("#bf-city").value, items,
+      start_date: $("#bf-start").value, months: +$("#bf-months").value,
       closes_on: $("#bf-closes").value, details: $("#bf-details").value.trim() || null
     });
-    if (error) { st.hidden = false; st.className = "form-status notice warn"; st.textContent = errMsg(error); return; }
+    if (error) return fail(errMsg(error));
     toast("Posted. Partners can bid now.");
-    f.reset(); f.hidden = true; st.hidden = true; loadBids();
+    f.reset(); bfTypes(); f.hidden = true; st.hidden = true; loadBids();
   });
 
   async function loadBids() {
     const box = $("#bid-list");
-    let q = sb.from("bid_requests").select("*, client:profiles!bid_requests_client_id_fkey(full_name, company, email, phone), booking:bookings!bid_requests_booking_id_fkey(ref)")
-      .order("created_at", { ascending: false });
+    let q = sb.from("bid_requests").select("*").order("created_at", { ascending: false });
     if (bidFilter) q = q.eq("status", bidFilter);
     const [reqs, bids] = await Promise.all([q,
       sb.from("bids").select("*, partner:profiles!bids_partner_id_fkey(full_name, company, email, phone), warehouse:warehouses!bids_warehouse_id_fkey(name, ref, city)")
-        .order("price_per_pallet", { ascending: true })]);
+        .order("total_monthly", { ascending: true })]);
     if (reqs.error || bids.error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(reqs.error || bids.error))}</div>`; return; }
     const open = reqs.data.filter((r) => r.status === "open").length;
     if (bidFilter === "open") { $("#c-bid").textContent = open; $("#c-bid").hidden = !open; }
     if (!reqs.data.length) { box.innerHTML = `<div class="empty"><strong>Nothing here</strong><p>Post a request and partners will start bidding.</p></div>`; return; }
     box.innerHTML = reqs.data.map((r) => {
       const list = bids.data.filter((b) => b.request_id === r.id && b.status !== "withdrawn");
-      const lowest = list.length ? Math.min(...list.map((b) => +b.price_per_pallet)) : null;
+      const lowest = list.length ? Math.min(...list.map((b) => +b.total_monthly)) : null;
       const expired = r.status === "open" && r.closes_on < today();
       const canAward = ["open", "closed"].includes(r.status);
+      const items = r.items || [];
       return `
       <article class="row-card${r.status === "open" ? " attention" : ""}" data-req="${esc(r.id)}">
         <div class="row-top">
           <div style="display:grid;gap:.3rem;min-width:0">
             <span class="label">${esc(r.ref)} · posted ${date(r.created_at)} · closes ${date(r.closes_on)}${expired ? " (date passed)" : ""}</span>
-            <h3>${fmt(r.pallets)} pallets · ${esc(TYPES[r.storage_type]?.name || r.storage_type)} · ${esc(r.city)}</h3>
-            <span class="muted">From ${date(r.start_date)} for ${r.months} month${r.months > 1 ? "s" : ""} · for ${esc(r.client?.company || r.client?.full_name || "client")}</span>
+            <h3>${esc(r.subject || "")}</h3>
+            <span class="muted">${esc(r.city)} · from ${date(r.start_date)} for ${r.months} month${r.months > 1 ? "s" : ""} · ${fmt(itemsTotal(items))} pallets</span>
+            <div class="chips" style="display:flex;gap:.35rem;flex-wrap:wrap">${items.map((i) => `<span class="chip ${esc(i.type)}">${esc(TYPES[i.type]?.name || i.type)} · ${fmt(i.pallets)}</span>`).join("")}</div>
           </div>
           ${pill(r.status === "open" ? "pending" : r.status === "awarded" ? "confirmed" : r.status === "cancelled" ? "cancelled" : "completed", r.status)}
         </div>
         ${r.details ? `<p class="note">${esc(r.details)}</p>` : ""}
-        ${list.length ? `<div class="wh-table-wrap"><table class="wh-table bid-table"><thead><tr><th>Partner</th><th>Warehouse</th><th class="r">Price / pallet / month</th><th>Note</th><th></th></tr></thead><tbody>
-          ${list.map((b) => `<tr class="${+b.price_per_pallet === lowest ? "lowest" : ""}">
+        ${list.length ? `<div class="wh-table-wrap"><table class="wh-table bid-table"><thead><tr><th>Partner</th><th>Warehouse</th>
+          ${items.map((i) => `<th class="r">${esc(TYPES[i.type]?.name || i.type)}<small>/ pallet / month</small></th>`).join("")}
+          <th class="r">Total / month</th><th>Note</th><th></th></tr></thead><tbody>
+          ${list.map((b) => `<tr class="${+b.total_monthly === lowest ? "lowest" : ""}">
             <td><b>${esc(b.partner?.company || b.partner?.full_name || "")}</b><small>${esc(b.partner?.email || "")}</small></td>
             <td>${esc(b.warehouse?.name || "")}<small>${esc(b.warehouse?.ref || "")} · ${esc(b.warehouse?.city || "")}</small></td>
-            <td class="r"><b class="num">${money(b.price_per_pallet)}</b>${+b.price_per_pallet === lowest ? `<small>lowest</small>` : ""}</td>
+            ${items.map((i) => `<td class="r num">${money(b.prices?.[i.type])}</td>`).join("")}
+            <td class="r"><b class="num">${money(b.total_monthly)}</b>${+b.total_monthly === lowest ? `<small>lowest</small>` : ""}</td>
             <td>${esc(b.note || "")}</td>
             <td class="r">${b.status === "won" ? pill("confirmed", "winner") : b.status === "lost" ? pill("completed", "not chosen") : canAward ? `<button class="btn btn-sm btn-primary" data-award="${esc(b.id)}">Choose winner</button>` : ""}</td>
           </tr>`).join("")}</tbody></table></div>` : `<p class="muted">No bids yet.</p>`}
         <div class="actions">
-          ${r.status === "awarded" && r.booking ? `<span class="muted">Quotation request <strong>${esc(r.booking.ref)}</strong> created for the client.</span> <button class="btn btn-sm btn-plain" data-go-bookings>Open in Quotes &amp; bookings →</button>` : ""}
           ${r.status === "open" ? `<button class="btn btn-sm btn-plain" data-bid-status="closed">Close bidding</button>` : ""}
           ${r.status === "closed" ? `<button class="btn btn-sm btn-plain" data-bid-status="open">Reopen</button>` : ""}
           ${canAward ? `<button class="btn btn-sm btn-danger" data-bid-status="cancelled">Cancel request</button>` : ""}
@@ -732,15 +745,14 @@
   }
   $("#bid-list").addEventListener("click", async (e) => {
     const card = e.target.closest("[data-req]");
-    if (e.target.closest("[data-go-bookings]")) { $('.tab[data-tab="bookings"]').click(); return; }
     const a = e.target.closest("[data-award]");
     if (a) {
-      if (!confirm("Choose this bid? A quotation request is created for the client at this warehouse, and the other bidders are marked as not chosen.")) return;
+      if (!confirm("Choose this bid as the winner? The other bidders are marked as not chosen, and bidding closes.")) return;
       a.disabled = true;
-      const { data, error } = await sb.rpc("award_bid", { p_bid: a.dataset.award });
+      const { error } = await sb.rpc("award_bid", { p_bid: a.dataset.award });
       if (error) { a.disabled = false; return toast(errMsg(error), true); }
-      toast(`Winner chosen. ${data} is in Quotes & bookings: add your price and send the quotation.`);
-      loaded.bookings = false; loadBids(); loadStats();
+      toast("Winner chosen");
+      loadBids();
       return;
     }
     const s = e.target.closest("[data-bid-status]");

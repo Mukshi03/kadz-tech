@@ -5,8 +5,11 @@
   const u = await requireRole(null);
   if (!u) return;
   $("#who").textContent = u.profile?.full_name || u.session.user.email;
-  setupTabs((name) => { if (name === "moves") loadMoves(); });
+  const openTab = setupTabs((name) => { if (name === "moves") loadMoves(); if (name === "overview") loadOverview(); });
   setupProfileForm(u.profile);
+  $("#hello").textContent = `Welcome back, ${(u.profile?.full_name || "").split(" ")[0] || "there"}`;
+  $("#pd-logout").addEventListener("click", async () => { await sb.auth.signOut(); location.href = "login.html"; });
+  document.addEventListener("click", (e) => { const g = e.target.closest("[data-go]"); if (g) openTab(g.dataset.go); });
 
   const box = $("#bookings");
   let rows = [];
@@ -262,4 +265,45 @@
     loadMoves();
   });
   loadMoves();
+
+  /* ---------- Overview ---------- */
+  async function loadOverview() {
+    const me = u.session.user.id;
+    const [bk, sr, mv] = await Promise.all([
+      sb.from("bookings").select("id, ref, warehouse_id, storage_type, pallets, start_date, months, status, quote_valid_until, quote_number, price_per_pallet, payment_status").eq("client_id", me).order("created_at", { ascending: false }),
+      sb.from("service_requests").select("id, ref, service, status, quote_valid_until, quote_number").eq("client_id", me),
+      sb.from("stock_movements").select("id, ref, booking_id, direction, status, actual_pallets, expected_date, admin_note").eq("client_id", me)
+    ]);
+    const bookings = bk.data || [], services = sr.data || [], moves = mv.error ? [] : (mv.data || []);
+    const active = bookings.filter((b) => b.status === "confirmed");
+    const stored = moves.filter((m) => m.status === "completed").reduce((s, m) => s + (m.direction === "inbound" ? 1 : -1) * (m.actual_pallets || 0), 0);
+    const quotesWaiting = bookings.filter((b) => b.status === "quoted" && !quoteExpired(b));
+    const svcWaiting = services.filter((r) => r.status === "quoted" && !quoteExpired(r));
+    const openMoves = moves.filter((m) => ["requested", "sent"].includes(m.status));
+    const I = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+    $("#ov-stats").innerHTML = `
+      <div class="pd-stat go" data-go="bookings">${I('<path d="M3 10 12 4l9 6v10H3z"/><path d="M7 20v-6h10v6"/>')}<span class="label">Active bookings</span><b>${active.length}</b><small>${fmt(active.reduce((s, b) => s + b.pallets, 0))} pallets reserved</small></div>
+      <div class="pd-stat go" data-go="moves">${I('<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>')}<span class="label">Pallets in storage</span><b>${fmt(stored)}</b><small>received and not yet dispatched</small></div>
+      <div class="pd-stat go" data-go="bookings">${I('<path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5M9 13h7M9 17h5"/>')}<span class="label">Quotations to answer</span><b>${quotesWaiting.length + svcWaiting.length}</b><small>accept or decline online</small></div>
+      <div class="pd-stat go" data-go="moves">${I('<path d="M7 4v14M3 14l4 4 4-4M17 20V6M13 10l4-4 4 4"/>')}<span class="label">Inbound / outbound</span><b>${openMoves.length}</b><small>requests in progress</small></div>`;
+
+    const items = [];
+    quotesWaiting.forEach((b) => items.push(["warn", `Storage quotation <b>${esc(b.quote_number || b.ref)}</b> is waiting for your answer${b.quote_valid_until ? `, valid until ${date(b.quote_valid_until)}` : ""}.`, "bookings", "Review"]));
+    svcWaiting.forEach((r) => items.push(["warn", `${esc(SERVICES[r.service] || "Service")} quotation <b>${esc(r.quote_number || r.ref)}</b> is waiting for your answer.`, "services", "Review"]));
+    bookings.filter((b) => b.status === "confirmed" && b.payment_status === "invoiced").forEach((b) => items.push(["info", `Invoice sent for booking <b>${esc(b.ref)}</b>. Please pay by bank transfer.`, "bookings", "Open"]));
+    moves.filter((m) => m.status === "rejected").slice(0, 3).forEach((m) => items.push(["warn", `Request <b>${esc(m.ref)}</b> was not accepted${m.admin_note ? `: ${esc(m.admin_note)}` : "."}`, "moves", "Open"]));
+    active.forEach((b) => {
+      const has = moves.some((m) => m.booking_id === b.id && m.direction === "inbound" && m.status !== "cancelled" && m.status !== "rejected");
+      if (!has) items.push(["info", `Booking <b>${esc(b.ref)}</b> is confirmed. Tell us when your goods arrive.`, "moves", "Request inbound"]);
+    });
+    $("#ov-attn").innerHTML = items.length
+      ? items.map(([k, t, go, btn]) => `<li class="${k}"><span>${t}</span><button type="button" class="btn btn-sm" data-go="${go}">${btn}</button></li>`).join("")
+      : `<li class="ok"><span>All good. Nothing needs your attention.</span></li>`;
+
+    const latest = bookings.slice(0, 5);
+    $("#ov-recent").innerHTML = latest.length ? `<ul class="pd-recent">${latest.map((b) => `
+      <li><span><b>${esc(b.quote_number || b.ref)}</b> · ${esc(TYPES[b.storage_type]?.name || b.storage_type)}<small>${fmt(b.pallets)} pallets · from ${date(b.start_date)} · ${b.months} month${b.months > 1 ? "s" : ""}</small></span>${bookingPill(b)}</li>`).join("")}</ul>`
+      : `<p class="muted">No storage yet. <a href="warehouses.html">Find a warehouse →</a></p>`;
+  }
+  loadOverview();
 })();

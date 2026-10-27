@@ -1136,3 +1136,12 @@ select option, select optgroup { background-color: var(--surface); color: var(--
 .pd-logout svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
 .pd-logout:hover { color: var(--bad, #e5484d); }
 @media (max-width: 900px) { .pd-logout { width: auto; border-top: 0; padding: .5rem .8rem; justify-self: end; } }
+.pd-links { display: grid; gap: .25rem; padding-top: .9rem; border-top: 1px solid var(--line); }
+.pd-links a { display: flex; align-items: center; gap: .7rem; padding: .6rem .8rem; border-radius: 10px; color: var(--muted); text-decoration: none; font-weight: 600; font-size: .92rem; }
+.pd-links a:hover { color: var(--accent); }
+.pd-links svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 1.7; }
+@media (max-width: 900px) { .pd-links { display: none; } }
+.pd-stat.go { cursor: pointer; }
+.pd-stat.go:hover { border-color: var(--accent); }
+.pd-side { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 901px) { .pd-nav .tab span { white-space: normal; line-height: 1.3; } }

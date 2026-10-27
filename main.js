@@ -137,14 +137,14 @@
   const [brandMain, ...brandRest] = (C.company || "KADZ").trim().split(/\s+/);
   const badge = `<svg class="brand-mark" viewBox="0 0 58 58" aria-hidden="true"><rect x="2" y="2" width="54" height="54" rx="6"/><path d="M14 12h7v34h-7zM21 27 34 12h9L21 37zM26 31l5-6 13 21h-9z"/></svg>`;
   const brand = `${badge}<span class="brand-text"><span class="brand-name">${esc(brandMain)}</span>${brandRest.length ? `<span class="brand-sub">${esc(brandRest.join(" "))}</span>` : ""}</span>`;
-  // Partner dashboard is a work area: just the logo, no site menu or footer
-  const appMode = page === "partner-dash";
+  // Partner and client dashboards are work areas: just the logo, no site menu or footer
+  const appMode = page === "partner-dash" || page === "my-bookings";
   if (appMode) document.body.classList.add("app-mode");
   const header = document.createElement("header");
   header.className = "site-header";
   header.innerHTML = appMode ? `
     <div class="wrap">
-      <a class="brand" href="partner-dashboard.html" aria-label="${esc(C.company)} partner dashboard">${brand}</a>
+      <a class="brand" href="${page === "my-bookings" ? "my-bookings.html" : "partner-dashboard.html"}" aria-label="${esc(C.company)} dashboard">${brand}</a>
     </div>` : `
     <div class="wrap">
       <a class="brand" href="index.html" aria-label="${esc(C.company)} home">

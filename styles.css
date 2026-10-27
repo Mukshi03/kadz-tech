@@ -991,3 +991,14 @@ html[dir="rtl"] .wd-x { right: auto; left: 1rem; }
 
 /* Dropdown lists: give the options their own background so they stay readable (Windows shows them on white) */
 select option, select optgroup { background-color: var(--surface); color: var(--ink); }
+
+/* ---------- Home: service cards with a full photo ---------- */
+.services-grid .sv-c { position: relative; overflow: hidden; min-height: 400px; padding: 0; color: #fff; justify-content: flex-end; }
+.sv-c .sv-bg { position: absolute; inset: 0; background: var(--band) center / cover no-repeat; transition: transform .6s; }
+.sv-c::before { content: ""; position: absolute; inset: 0; z-index: 1; background: linear-gradient(to top, rgba(6,10,16,.95) 25%, rgba(6,10,16,.35) 70%, rgba(6,10,16,.15)); }
+.sv-c .sv-txt { position: relative; z-index: 2; display: grid; gap: .7rem; padding: 1.6rem; }
+.sv-c h3 { color: #fff; }
+.sv-c p { color: rgba(255,255,255,.8); }
+.sv-c .more { color: var(--accent); }
+.services-grid .sv-c:hover .sv-bg { transform: scale(1.05); }
+@media (max-width: 620px) { .services-grid .sv-c { min-height: 320px; } }

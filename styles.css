@@ -971,3 +971,20 @@ html[dir="rtl"] .wd-x { right: auto; left: 1rem; }
 .wd-vas svg { width: 34px; height: 34px; fill: none; stroke: var(--accent); stroke-width: 1.6; margin-bottom: .2rem; }
 .wd-vas b { font-size: .95rem; }
 .wd-vas small { color: var(--muted); font-size: .8rem; }
+
+/* Partner form: pallet positions per storage type */
+.type-pallets { display: grid; gap: .8rem; margin-top: 1rem; padding: 1rem 1.1rem; border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--line)); border-radius: 12px; background: color-mix(in srgb, var(--accent) 5%, var(--surface)); }
+.type-pallets[hidden], .tp[hidden] { display: none; }
+.tp-title { font: 600 .75rem var(--f-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.tp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: .8rem; }
+.tp span { display: flex; align-items: center; gap: .45rem; }
+.tp .chip { font-style: normal; }
+.tp-total { margin: 0; color: var(--muted); }
+.tp-total b { color: var(--ink); font: 800 1.3rem var(--f-display); margin-left: .3rem; }
+
+.wd-types { list-style: none; margin: .3rem 0 0; padding: 0; display: grid; gap: .45rem; }
+.wd-types[hidden] { display: none; }
+.wd-types li { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: .5rem; }
+.wd-types li b { font: 800 1.2rem var(--f-display); }
+.wd-types li small { color: var(--muted); }
+.wd-types li .chip { justify-self: start; }

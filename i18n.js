@@ -16,6 +16,8 @@
   if (lang !== "ar") return;
 
   var AR = {
+    "Pallet positions for each type": "مواقع الطبليات لكل نوع",
+    "Total pallet positions:": "إجمالي مواقع الطبليات:",
     "Shrink wrapping": "التغليف الحراري",
     "Palletizing": "التحميل على الطبليات",
     "Picking & packing": "الانتقاء والتغليف",
@@ -598,6 +600,11 @@
   var ARROW = { "→": "←", "←": "→" };
   // Text with numbers or names in it
   var PATTERNS = [
+    [/^(Dry|Ambient|Chilled|Frozen) pallets free$/, function (m) { return "طبليات " + t(m[1]) + " متاحة"; }],
+    [/^([\d,]+) free$/, function (m) { return m[1] + " متاحة"; }],
+    [/^of ([\d,]+)$/, function (m) { return "من " + m[1]; }],
+    [/^(Dry|Ambient|Chilled|Frozen) free$/, function (m) { return "المتاح " + t(m[1]); }],
+    [/^([\d,]+) of ([\d,]+) pallets$/, function (m) { return m[1] + " من " + m[2] + " طبلية"; }],
     [/^View all (\d+) photos$/, function (m) { return "عرض كل الصور (" + m[1] + ")"; }],
     [/^of ([\d,]+) pallet positions$/, function (m) { return "من أصل " + m[1] + " موقع طبلية"; }],
     [/^([\d,]+) pallets$/, function (m) { return m[1] + " طبلية"; }],

@@ -497,7 +497,12 @@
   }
 
   /* ---------- Shared API for page scripts ---------- */
-  window.KZ = { C, sb, rememberLogin, TYPES, esc, fmt, money, date, $, $$, pill, bookingPill, quoteExpired, typeChips, photoUrl, errMsg,
+  // Free / total pallet positions for each storage type (empty list = one shared count)
+  const typeCounts = (w) => Object.keys(w?.pallets_by_type || {}).length
+    ? (w.storage_types || []).filter((t) => t in w.pallets_by_type)
+        .map((t) => ({ type: t, name: TYPES[t]?.name || t, free: +(w.free_by_type?.[t] ?? 0), total: +w.pallets_by_type[t] }))
+    : [];
+  window.KZ = { C, sb, rememberLogin, TYPES, typeCounts, esc, fmt, money, date, $, $$, pill, bookingPill, quoteExpired, typeChips, photoUrl, errMsg,
                 getUser, requireRole, homeFor, safeNext, toast, showSetupNotice, ready,
                 SERVICES, serviceFacts, serviceLine };
 })();

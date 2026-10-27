@@ -20,7 +20,9 @@
   const load = (cols) => sb.from("public_warehouses").select(cols)
     .gt("pallets_available", 0)
     .order("created_at", { ascending: false });
-  let { data, error } = await load("id,ref,city,district,area_sqm,pallets_available,storage_types,features,vas,min_months,photos");
+  let { data, error } = await load("id,ref,city,district,area_sqm,pallets_available,pallets_by_type,free_by_type,storage_types,features,vas,min_months,photos");
+  // Older database (update 11 not run yet): load without per-type numbers
+  if (error) ({ data, error } = await load("id,ref,city,district,area_sqm,pallets_available,storage_types,features,vas,min_months,photos"));
   // Database update 10 not run yet: load without reference numbers (names stay hidden)
   if (error) ({ data, error } = await load("id,city,district,area_sqm,pallets_available,storage_types,features,min_months,photos"));
 
@@ -36,6 +38,12 @@
   [...new Set(all.map((w) => w.city))].sort().forEach((c) => { if (!known.has(c)) fCity.add(new Option(c, c)); });
   if (q.get("city")) fCity.value = q.get("city");
 
+  // Free pallets: for the chosen storage type when one is picked, otherwise all
+  function freeOf(w) {
+    const t = fType.value;
+    if (t && w.free_by_type && t in w.free_by_type) return +w.free_by_type[t];
+    return w.pallets_available || 0;
+  }
   function render() {
     if (!all.length) {
       count.textContent = "0 warehouses";
@@ -51,8 +59,8 @@
     const rows = all.filter((w) =>
       (!fCity.value || w.city === fCity.value) &&
       (!fType.value || (w.storage_types || []).includes(fType.value)) &&
-      (w.pallets_available || 0) >= minPal);
-    if (fSort.value === "pallets") rows.sort((a, b) => b.pallets_available - a.pallets_available);
+      freeOf(w) >= Math.max(minPal, 1));
+    if (fSort.value === "pallets") rows.sort((a, b) => freeOf(b) - freeOf(a));
     if (fSort.value === "area") rows.sort((a, b) => (b.area_sqm || 0) - (a.area_sqm || 0));
 
     count.textContent = `${rows.length} of ${all.length} warehouse${all.length === 1 ? "" : "s"}`;
@@ -69,7 +77,7 @@
           return `<tr><td><a class="wh-name" href="${href}">${esc(w.ref || "Warehouse")}</a><small>${esc(w.district || "")}</small></td>
             <td>${esc(w.city)}</td><td><div class="chips">${typeChips(w.storage_types)}</div></td>
             <td class="r num">${w.area_sqm ? fmt(w.area_sqm) + " m²" : "—"}</td>
-            <td class="r"><b class="num">${fmt(w.pallets_available)}</b></td>
+            <td class="r"><b class="num">${fmt(freeOf(w))}</b></td>
             <td class="r"><a class="btn btn-primary btn-sm" href="${href}">Get a quotation</a></td></tr>`;
         }).join("")}</tbody></table></div>`;
       return;
@@ -87,7 +95,7 @@
           <p class="features">Price on quotation${w.min_months > 1 ? ` · min. ${w.min_months} months` : ""}</p>
         </div>
         <div class="side">
-          <div><div class="big num">${fmt(w.pallets_available)}</div><span class="label">pallets free</span></div>
+          <div><div class="big num">${fmt(freeOf(w))}</div><span class="label">${fType.value ? esc((window.KZ.TYPES[fType.value]?.name || "") + " pallets free") : "pallets free"}</span></div>
           <a class="btn btn-primary" href="${href}">Get a quotation</a>
         </div>
       </article>`;

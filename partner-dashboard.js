@@ -42,7 +42,9 @@
           ${pill(w.status)}
         </div>
         <dl class="kv">
-          <div><dt>Pallets free</dt><dd>${fmt(w.pallets_available)} / ${fmt(w.pallets_total)}</dd></div>
+          <div><dt>Pallets free</dt><dd>${window.KZ.typeCounts(w).length
+            ? window.KZ.typeCounts(w).map((c) => `${esc(c.name)} ${fmt(c.free)} / ${fmt(c.total)}`).join("<br>")
+            : `${fmt(w.pallets_available)} / ${fmt(w.pallets_total)}`}</dd></div>
           <div><dt>Minimum rental</dt><dd>${w.min_months} month${w.min_months > 1 ? "s" : ""}</dd></div>
           <div><dt>Price</dt><dd>${Object.keys(w.partner_prices || {}).length ? money(Object.values(w.partner_prices)[0]) + " / pallet / month" : "On request"}</dd></div>
           <div><dt>Area</dt><dd>${w.area_sqm ? fmt(w.area_sqm) + " m²" : "–"}</dd></div>
@@ -85,6 +87,20 @@
 
   /* ---------------- Add / edit form ---------------- */
   const form = $("#wh-form");
+  /* Pallet positions per storage type: one box for each ticked type */
+  function showTypePallets() {
+    const on = $$("#w-types .checks input:checked").map((i) => i.value);
+    $("#w-type-pallets").hidden = !on.length;
+    $$("#w-type-pallets .tp").forEach((l) => {
+      const show = on.includes(l.dataset.type), inp = $("input", l);
+      l.hidden = !show; inp.required = show; inp.disabled = !show;
+    });
+    $("#w-pallets-total").textContent = $$("#w-type-pallets .tp:not([hidden]) input").reduce((s, i) => s + (+i.value || 0), 0).toLocaleString("en-US");
+  }
+  $("#w-types").addEventListener("change", showTypePallets);
+  $("#w-type-pallets").addEventListener("input", showTypePallets);
+  showTypePallets();
+
   const checks = (id) => $$(`#${id} input:checked`).map((i) => i.value);
   const setChecks = (id, vals) => $$(`#${id} input`).forEach((i) => (i.checked = (vals || []).includes(i.value)));
 
@@ -98,6 +114,7 @@
     $("#form-tab").textContent = "Add warehouse";
     $("#w-submit").textContent = "Submit for review";
     $("#cancel-edit").hidden = true;
+    showTypePallets();
     $(".form-status", form).hidden = true;
     renderFiles();
   }
@@ -113,13 +130,18 @@
     $("#w-name").value = w.name; $("#w-city").value = w.city;
     $("#w-district").value = w.district || ""; $("#w-map").value = w.map_url || "";
     $("#w-address").value = w.address || ""; $("#w-desc").value = w.description || "";
-    $("#w-area").value = w.area_sqm || ""; $("#w-pallets").value = w.pallets_total;
+    $("#w-area").value = w.area_sqm || "";
+    // Pallet positions per type (older single-type listings: the total belongs to that one type)
+    const byType = Object.keys(w.pallets_by_type || {}).length ? w.pallets_by_type
+      : (w.storage_types.length === 1 ? { [w.storage_types[0]]: w.pallets_total } : {});
+    $$("#w-type-pallets .tp").forEach((l) => ($("input", l).value = byType[l.dataset.type] ?? ""));
     $("#w-min").value = w.min_months;
     // One price for the warehouse (stored for each storage type it offers)
     $("#w-price").value = Object.values(w.partner_prices || {})[0] ?? "";
     $("#w-cmethod").value = w.contact_method || ""; $("#w-cname").value = w.contact_name || "";
     $("#w-cinfo").value = w.contact_info || ""; $("#w-ctime").value = w.contact_time || "";
     setChecks("w-types", w.storage_types); setChecks("w-features", w.features); setChecks("w-licenses", w.licenses); setChecks("w-vas", w.vas);
+    showTypePallets();
     renderFiles();
   }
   $("#cancel-edit").addEventListener("click", () => { resetForm(); openTab("warehouses"); });
@@ -214,7 +236,8 @@
         district: $("#w-district").value.trim() || null, map_url: $("#w-map").value.trim() || null,
         address: $("#w-address").value.trim() || null, description: $("#w-desc").value.trim() || null,
         area_sqm: $("#w-area").value ? +$("#w-area").value : null,
-        pallets_total: +$("#w-pallets").value,
+        pallets_by_type: Object.fromEntries(types.map((t) => [t, +$(`#w-type-pallets [data-type="${t}"] input`).value])),
+        pallets_total: types.reduce((s, t) => s + (+$(`#w-type-pallets [data-type="${t}"] input`).value || 0), 0),
         partner_prices: $("#w-price").value === "" ? {} : Object.fromEntries(types.map((t) => [t, +$("#w-price").value])),
         contact_method: $("#w-cmethod").value || null, contact_name: $("#w-cname").value.trim() || null,
         contact_info: $("#w-cinfo").value.trim() || null, contact_time: $("#w-ctime").value.trim() || null,

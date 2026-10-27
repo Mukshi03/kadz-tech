@@ -140,7 +140,7 @@
         </div>
         <dl class="kv">
           <div><dt>Owner</dt><dd>${contact(w.owner)}${w.owner?.cr_number ? `<br><span class="muted">CR ${esc(w.owner.cr_number)}</span>` : ""}${w.owner?.vat_number ? `<br><span class="muted">VAT ${esc(w.owner.vat_number)}</span>` : ""}</dd></div>
-          <div><dt>Pallets free / total</dt><dd>${fmt(w.pallets_available)} / ${fmt(w.pallets_total)}</dd></div>
+          <div><dt>Pallets free / total</dt><dd>${fmt(w.pallets_available)} / ${fmt(w.pallets_total)}${window.KZ.typeCounts(w).map((c) => `<br><span class="muted">${esc(c.name)} ${fmt(c.free)} / ${fmt(c.total)}</span>`).join("")}</dd></div>
           <div><dt>Area · min. months</dt><dd>${w.area_sqm ? fmt(w.area_sqm) + " m²" : "–"} · ${w.min_months}</dd></div>
           <div><dt>Partner price <span class="muted">/ pallet / month</span></dt><dd>${partnerPriceText(w) || "<span class='muted'>Not set</span>"}</dd></div>
           <div><dt>Site contact</dt><dd>${w.contact_method || w.contact_name || w.contact_info

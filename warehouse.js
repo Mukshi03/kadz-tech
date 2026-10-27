@@ -39,6 +39,11 @@
   /* Summary card */
   $("#wd-free").textContent = fmt(w.pallets_available);
   $("#wd-of").textContent = w.pallets_total ? `of ${fmt(w.pallets_total)} pallet positions` : "";
+  const counts = window.KZ.typeCounts(w);   // free space for each storage type
+  if (counts.length > 1) {
+    $("#wd-types").hidden = false;
+    $("#wd-types").innerHTML = counts.map((c) => `<li><span class="chip ${esc(c.type)}">${esc(c.name)}</span><b class="num">${fmt(c.free)}</b><small>of ${fmt(c.total)}</small></li>`).join("");
+  }
   $("#wd-share").addEventListener("click", async () => {
     const url = location.href;
     try {
@@ -61,6 +66,7 @@
   const rows = [
     [I.box, "Total capacity", w.pallets_total ? `${fmt(w.pallets_total)} pallets` : ""],
     [I.free, "Available capacity", `${fmt(w.pallets_available)} pallets`],
+    ...(counts.length > 1 ? counts.map((c) => [I.free, `${c.name} free`, `${fmt(c.free)} of ${fmt(c.total)} pallets`]) : []),
     [I.temp, "Temperature range", types.map((t) => TYPES[t]?.range).filter(Boolean).join(" · ")],
     [I.type, "Storage type", types.map((t) => TYPES[t]?.name || t).join(", ")],
     [I.area, "Warehouse area", w.area_sqm ? `${fmt(w.area_sqm)} m²` : ""],
@@ -131,7 +137,17 @@
   const form = $("#book-form"), status = $(".form-status", form), btn = $("#b-submit");
   const bType = $("#b-type"), bPal = $("#b-pallets"), bMonths = $("#b-months"), bStart = $("#b-start");
   (w.storage_types || []).forEach((t) => bType.add(new Option(`${TYPES[t]?.name || t} (${TYPES[t]?.range || ""})`, t)));
-  bPal.value = Math.min(10, w.pallets_available || 1);
+  // Pallets can't be more than what's free for the chosen storage type
+  const freeFor = (t) => counts.length ? (counts.find((c) => c.type === t)?.free ?? 0) : (w.pallets_available || 0);
+  function limitPallets() {
+    const max = freeFor(bType.value);
+    bPal.max = Math.max(1, max);
+    $("#b-free").textContent = `${fmt(max)} free`;
+    if (+bPal.value > max) bPal.value = Math.max(1, max);
+  }
+  bPal.value = Math.min(10, freeFor(bType.value) || 1);
+  bType.addEventListener("change", limitPallets);
+  limitPallets();
   bMonths.min = w.min_months; bMonths.value = w.min_months;
   const today = new Date(); today.setMinutes(today.getMinutes() - today.getTimezoneOffset());
   bStart.min = today.toISOString().slice(0, 10);

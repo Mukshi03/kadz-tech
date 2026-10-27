@@ -114,6 +114,9 @@
       <div class="stat"><span class="label">New quote requests</span><b>${n.q}</b></div>
       <div class="stat"><span class="label">Pallets in active bookings</span><b>${fmt(pallets)}</b></div>`;
     [["c-wh", n.wh], ["c-bk", n.bk], ["c-q", n.q], ["c-sr", n.sr]].forEach(([id, v]) => { $("#" + id).textContent = v; $("#" + id).hidden = !v; });
+    // Inbound / outbound requests waiting to be sent to a warehouse
+    const mv = await sb.from("stock_movements").select("id", { count: "exact", head: true }).eq("status", "requested");
+    $("#c-mv").textContent = mv.count || 0; $("#c-mv").hidden = !mv.count;
   }
 
   /* ---------------- Warehouses ---------------- */
@@ -613,8 +616,44 @@
     toast(`Role changed to ${sel.value}`);
   });
 
+  /* ---------------- Inbound / outbound: check and send to the warehouse ---------------- */
+  let mvFilter = "requested";
+  $$("[data-mvf]").forEach((b) => b.addEventListener("click", () => {
+    mvFilter = b.dataset.mvf;
+    $$("[data-mvf]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    loadMoves();
+  }));
+  async function loadMoves() {
+    const box = $("#mv-list");
+    let q = sb.from("stock_movements").select("*, client:profiles!stock_movements_client_id_fkey(full_name, company, email, phone), warehouse:warehouses!stock_movements_warehouse_id_fkey(name, ref, city)")
+      .order("expected_date", { ascending: true });
+    if (mvFilter) q = q.eq("status", mvFilter);
+    const { data, error } = await q;
+    if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
+    if (!data.length) { box.innerHTML = `<div class="empty"><strong>Nothing here</strong><p>No inbound or outbound requests with this status.</p></div>`; return; }
+    box.innerHTML = data.map((m) => window.KZ.moveCard(m, {
+      title: `${esc(m.client?.company || m.client?.full_name || "Client")} → ${esc(m.warehouse?.name || "")} <span class="muted" style="font-size:.7em">${esc(m.warehouse?.ref || "")}</span>`,
+      extra: `<div><dt>Pallets · storage</dt><dd>${fmt(m.pallets)} · ${esc(TYPES[m.storage_type]?.name || m.storage_type)}</dd></div>
+              <div><dt>Client</dt><dd>${contact(m.client || {})}</dd></div>`,
+      actions: m.status === "requested" ? `
+        <input class="mv-note" placeholder="Note for the warehouse (optional)" maxlength="500" style="flex:1;min-width:200px">
+        <button class="btn btn-sm btn-primary" data-mv-send="${esc(m.id)}">Send to warehouse</button>
+        <button class="btn btn-sm btn-danger" data-mv-reject="${esc(m.id)}">Reject</button>` : ""
+    })).join("");
+  }
+  $("#mv-list").addEventListener("click", async (e) => {
+    const s = e.target.closest("[data-mv-send]"), r = e.target.closest("[data-mv-reject]");
+    if (!s && !r) return;
+    const card = e.target.closest("[data-mv]"), note = $(".mv-note", card)?.value.trim() || null;
+    if (r && !note && !confirm("Reject without a note? The client will only see that it was not accepted.")) return;
+    const { error } = await sb.from("stock_movements").update({ status: s ? "sent" : "rejected", admin_note: note }).eq("id", card.dataset.mv);
+    if (error) return toast(errMsg(error), true);
+    toast(s ? "Sent to the warehouse team" : "Request rejected");
+    loadMoves(); loadStats();
+  });
+
   /* ---------------- Start ---------------- */
-  const loaders = { warehouses: loadWarehouses, bookings: loadBookings, services: loadServices, quotes: loadQuotes, users: loadUsers };
+  const loaders = { moves: loadMoves, warehouses: loadWarehouses, bookings: loadBookings, services: loadServices, quotes: loadQuotes, users: loadUsers };
   const loaded = {};
   setupTabs((name) => { if (!loaded[name]) { loaded[name] = true; loaders[name](); } });
   $("#refresh").addEventListener("click", () => {

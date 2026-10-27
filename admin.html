@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610271424">
+  <link rel="stylesheet" href="styles.css?v=202610271441">
 </head>
 <body data-page="admin">
 
@@ -33,6 +33,7 @@
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" data-tab="warehouses" aria-selected="true">Warehouses <span class="count" id="c-wh" hidden></span></button>
         <button class="tab" role="tab" data-tab="bookings" aria-selected="false">Quotes &amp; bookings <span class="count" id="c-bk" hidden></span></button>
+        <button class="tab" role="tab" data-tab="moves" aria-selected="false">Inbound / outbound <span class="count" id="c-mv" hidden></span></button>
         <button class="tab" role="tab" data-tab="services" aria-selected="false">Service requests <span class="count" id="c-sr" hidden></span></button>
         <button class="tab" role="tab" data-tab="quotes" aria-selected="false">Quote requests <span class="count" id="c-q" hidden></span></button>
         <button class="tab" role="tab" data-tab="users" aria-selected="false">Users</button>
@@ -98,6 +99,16 @@
 
       <div data-panel="quotes" hidden><div class="rows" id="q-list"></div></div>
 
+      <div data-panel="moves" hidden>
+        <div class="seg" role="group" aria-label="Show">
+          <button type="button" data-mvf="requested" aria-pressed="true">To send</button>
+          <button type="button" data-mvf="sent" aria-pressed="false">At the warehouse</button>
+          <button type="button" data-mvf="completed" aria-pressed="false">Done</button>
+          <button type="button" data-mvf="" aria-pressed="false">All</button>
+        </div>
+        <div class="rows" id="mv-list"></div>
+      </div>
+
       <div data-panel="users" hidden>
         <div class="inline-form" style="margin-bottom:1rem">
           <label class="ctrl" style="max-width:320px"><span class="label">Search</span><input id="u-search" type="search" placeholder="Name, company or email"></label>
@@ -112,11 +123,11 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="i18n.js?v=202610271424"></script>
-<script src="config.js?v=202610271424"></script>
-<script src="main.js?v=202610271424"></script>
-<script src="dashboard-common.js?v=202610271424"></script>
-<script src="quote-pdf.js?v=202610271424"></script>
-<script src="admin.js?v=202610271424"></script>
+<script src="i18n.js?v=202610271441"></script>
+<script src="config.js?v=202610271441"></script>
+<script src="main.js?v=202610271441"></script>
+<script src="dashboard-common.js?v=202610271441"></script>
+<script src="quote-pdf.js?v=202610271441"></script>
+<script src="admin.js?v=202610271441"></script>
 </body>
 </html>

@@ -4,7 +4,10 @@
           requireRole, setupTabs, setupProfileForm } = window.KZ;
   const u = await requireRole(["partner", "admin"]);
   if (!u) return;
-  const uid = u.session.user.id;
+  // Employees work on their company's account: everything belongs to the partner who invited them
+  const uid = u.profile?.partner_id || u.session.user.id;
+  const isOwner = !u.profile?.partner_id;
+  if (!isOwner) $("#team-tab").hidden = true;
   $("#who").textContent = u.profile?.company || u.profile?.full_name || u.session.user.email;
   setupProfileForm(u.profile);
 
@@ -14,7 +17,11 @@
   let newPhotos = [], newDocs = [];   // files picked but not uploaded yet
   const MAX_FILES = 10, PHOTO_MB = 5, DOC_MB = 10;
 
-  const openTab = setupTabs((name) => { if (name === "bookings") loadBookings(); });
+  const openTab = setupTabs((name) => {
+    if (name === "bookings") loadBookings();
+    if (name === "moves") loadMoves();
+    if (name === "team") loadTeam();
+  });
   $("#new-wh").addEventListener("click", () => { resetForm(); openTab("form"); });
 
   /* ---------------- Warehouses list ---------------- */
@@ -122,6 +129,7 @@
     $("#attn").innerHTML = items.length
       ? items.map(([k, t, id, btn]) => `<li class="${k}"><span>${t}</span>${id ? `<button type="button" class="btn btn-sm" data-edit="${esc(id)}">${btn}</button>` : ""}</li>`).join("")
       : `<li class="ok"><span>All good. Nothing needs your attention.</span></li>`;
+    renderAttnMoves(mvTodo);
   }
   $("#attn").addEventListener("click", (e) => {
     const ed = e.target.closest("[data-edit]");
@@ -355,4 +363,118 @@
   resetForm();
   loadWarehouses();
   loadBookings();
+
+  /* ---------------- Inbound / outbound ---------------- */
+  let pmFilter = "sent";
+  $$("[data-pmf]").forEach((b) => b.addEventListener("click", () => {
+    pmFilter = b.dataset.pmf;
+    $$("[data-pmf]").forEach((x) => x.setAttribute("aria-pressed", String(x === b)));
+    loadMoves();
+  }));
+  let moves = [], mvTodo = 0;
+  async function loadMoves() {
+    const box = $("#mv-list");
+    // Only requests KADZ has sent on. Client names stay private: the booking reference is enough.
+    let q = sb.from("stock_movements").select("*, warehouse:warehouses!stock_movements_warehouse_id_fkey(name, ref)")
+      .in("status", ["sent", "completed"]).order("expected_date", { ascending: true });
+    const { data, error } = await q;
+    if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
+    moves = data;
+    const todo = mvTodo = data.filter((m) => m.status === "sent").length;
+    $("#n-mv").textContent = todo || "";
+    renderAttnMoves(todo);
+    const rows = pmFilter ? data.filter((m) => m.status === pmFilter) : data;
+    if (!rows.length) { box.innerHTML = `<div class="empty"><strong>${pmFilter === "sent" ? "Nothing to do" : "Nothing here"}</strong><p>${pmFilter === "sent" ? "New inbound and outbound requests from KADZ show here." : "No requests with this status."}</p></div>`; return; }
+    const today = new Date().toISOString().slice(0, 10);
+    box.innerHTML = rows.map((m) => {
+      const inb = m.direction === "inbound";
+      return window.KZ.moveCard(m, {
+        title: `${fmt(m.pallets)} pallets · ${esc(TYPES[m.storage_type]?.name || m.storage_type)} · ${esc(m.warehouse?.name || "")}`,
+        actions: m.status === "sent" ? `
+          <button class="btn btn-sm btn-primary" data-done="${esc(m.id)}">${inb ? "Mark as received" : "Mark as dispatched"}</button>
+          <form class="mv-form" data-done-form="${esc(m.id)}" hidden novalidate style="width:100%">
+            <div class="form-row">
+              <label class="ctrl"><span>${inb ? "Received on" : "Dispatched on"}</span><input name="done_date" type="date" value="${today}" max="${today}" required></label>
+              <label class="ctrl"><span>Pallets ${inb ? "received" : "dispatched"}</span><input name="actual_pallets" type="number" min="0" value="${m.pallets}" required></label>
+            </div>
+            <label class="ctrl"><span>Note <em>optional, e.g. damaged pallets</em></span><input name="partner_note" maxlength="500"></label>
+            <div class="actions"><button class="btn btn-primary" type="submit">Save</button><button class="btn btn-plain" type="button" data-done-cancel>Cancel</button></div>
+          </form>` : ""
+      });
+    }).join("");
+  }
+  $("#mv-list").addEventListener("click", (e) => {
+    const d = e.target.closest("[data-done]");
+    if (d) { d.hidden = true; const f = $(`[data-done-form="${d.dataset.done}"]`); f.hidden = false; f.elements.actual_pallets.focus(); return; }
+    if (e.target.closest("[data-done-cancel]")) { const f = e.target.closest("form"); f.hidden = true; $(`[data-done="${f.dataset.doneForm}"]`).hidden = false; }
+  });
+  $("#mv-list").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const f = e.target;
+    if (!f.reportValidity()) return;
+    const v = Object.fromEntries(new FormData(f));
+    const { error } = await sb.from("stock_movements").update({
+      status: "completed", done_date: v.done_date, actual_pallets: +v.actual_pallets, partner_note: v.partner_note.trim() || null
+    }).eq("id", f.dataset.doneForm);
+    if (error) return toast(errMsg(error), true);
+    toast("Saved. The client can see it now.");
+    loadMoves();
+  });
+  // Overview: add open requests to "Needs your attention"
+  function renderAttnMoves(todo) {
+    $("#attn [data-mv-attn]")?.remove();
+    if (!todo) return;
+    $("#attn .ok")?.remove();
+    $("#attn").insertAdjacentHTML("afterbegin", `<li class="warn" data-mv-attn><span><b>${todo} inbound / outbound request${todo === 1 ? "" : "s"}</b> waiting for your team.</span><button type="button" class="btn btn-sm" data-go-mv>Open</button></li>`);
+  }
+  $("#attn").addEventListener("click", (e) => { if (e.target.closest("[data-go-mv]")) openTab("moves"); });
+
+  /* ---------------- Users: the partner's employees ---------------- */
+  async function loadTeam() {
+    const box = $("#team-list");
+    const { data, error } = await sb.from("partner_staff").select("*").eq("partner_id", uid).order("created_at");
+    if (error) { box.innerHTML = `<li class="notice warn">${esc(errMsg(error))}</li>`; return; }
+    const me = u.profile || {};
+    box.innerHTML = `
+      <li><span class="pd-avatar">${esc((me.full_name || "?").slice(0, 1))}</span><span><b>${esc(me.full_name || "")}</b> <small class="you">(you)</small><small>${esc(me.email || u.session.user.email)}</small></span>${pill("partner", "owner")}</li>
+      ${data.map((s) => `
+      <li data-staff="${esc(s.id)}"><span class="pd-avatar">${esc((s.full_name || "?").slice(0, 1))}</span>
+        <span><b>${esc(s.full_name)}</b><small>${esc(s.email)}${s.status === "invited" ? ` · invited ${date(s.created_at)}` : ""}</small></span>
+        ${pill(s.status, s.status === "invited" ? "invite sent" : "active")}
+        <span class="actions">
+          ${s.status === "invited" ? `<button class="btn btn-sm btn-plain" data-copy="${esc(s.email)}">Copy invite link</button>` : ""}
+          <button class="btn btn-sm btn-danger" data-remove="${esc(s.id)}">Remove</button>
+        </span></li>`).join("")}`;
+  }
+  const inviteLink = (email) => new URL(`login.html?mode=signup&invite=1&email=${encodeURIComponent(email)}`, location.href).href;
+  $("#team-list").addEventListener("click", async (e) => {
+    const c = e.target.closest("[data-copy]");
+    if (c) { try { await navigator.clipboard.writeText(inviteLink(c.dataset.copy)); toast("Invite link copied"); } catch (err) { prompt("Copy this link:", inviteLink(c.dataset.copy)); } return; }
+    const r = e.target.closest("[data-remove]");
+    if (r) {
+      if (!confirm("Remove this person? They will lose access to your dashboard straight away.")) return;
+      const { error } = await sb.from("partner_staff").delete().eq("id", r.dataset.remove);
+      if (error) return toast(errMsg(error), true);
+      toast("Removed"); loadTeam();
+    }
+  });
+  $("#invite-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const f = e.target, st = $(".form-status", f);
+    if (!f.reportValidity()) return;
+    const name = $("#i-name").value.trim(), email = $("#i-email").value.trim().toLowerCase();
+    const { error } = await sb.from("partner_staff").insert({ partner_id: uid, full_name: name, email });
+    st.hidden = false;
+    if (error) { st.className = "form-status notice warn"; st.textContent = errMsg(error); return; }
+    const link = inviteLink(email);
+    const company = u.profile?.company || "our company";
+    const mail = `mailto:${encodeURIComponent(email)}?subject=${encodeURIComponent(`Join ${company} on KADZ Logistics`)}&body=${encodeURIComponent(`Hi ${name},\n\nI've added you to ${company}'s warehouse account on KADZ Logistics.\nCreate your account with this email address here:\n${link}\n\nThanks`)}`;
+    st.className = "form-status notice";
+    st.innerHTML = `<strong>${esc(name)}</strong> can now join. Send them this link. They create an account with <strong>${esc(email)}</strong> and verify it with the code we email them.
+      <div class="actions" style="margin-top:.6rem"><a class="btn btn-sm btn-primary" href="${esc(mail)}">Email the invite</a><button type="button" class="btn btn-sm btn-plain" data-copy-new>Copy link</button></div>`;
+    $("[data-copy-new]", st).addEventListener("click", async () => { try { await navigator.clipboard.writeText(link); toast("Invite link copied"); } catch (err) { prompt("Copy this link:", link); } });
+    f.reset(); loadTeam();
+  });
+
+  loadMoves();
 })();

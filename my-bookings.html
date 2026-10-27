@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610271424">
+  <link rel="stylesheet" href="styles.css?v=202610271441">
 </head>
 <body data-page="my-bookings">
 
@@ -30,12 +30,18 @@
     <div class="wrap">
       <div class="tabs" role="tablist">
         <button class="tab" role="tab" data-tab="bookings" aria-selected="true">Storage <span class="count" id="c-bk" hidden></span></button>
+        <button class="tab" role="tab" data-tab="moves" aria-selected="false">Inbound / outbound <span class="count" id="c-mv" hidden></span></button>
         <button class="tab" role="tab" data-tab="services" aria-selected="false">Transport, freight &amp; customs <span class="count" id="c-sr" hidden></span></button>
         <button class="tab" role="tab" data-tab="profile" aria-selected="false">My details</button>
       </div>
 
       <div data-panel="bookings">
         <div class="rows" id="bookings"><p class="muted">Loading…</p></div>
+      </div>
+
+      <div data-panel="moves" hidden>
+        <p class="muted" style="margin-bottom:1rem">Tell us when goods are arriving at or leaving the warehouse. We check each request and send it to the warehouse team, and you can follow it here.</p>
+        <div class="rows" id="moves"><p class="muted">Loading…</p></div>
       </div>
 
       <div data-panel="services" hidden>
@@ -60,11 +66,11 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="i18n.js?v=202610271424"></script>
-<script src="config.js?v=202610271424"></script>
-<script src="main.js?v=202610271424"></script>
-<script src="dashboard-common.js?v=202610271424"></script>
-<script src="quote-pdf.js?v=202610271424"></script>
-<script src="my-bookings.js?v=202610271424"></script>
+<script src="i18n.js?v=202610271441"></script>
+<script src="config.js?v=202610271441"></script>
+<script src="main.js?v=202610271441"></script>
+<script src="dashboard-common.js?v=202610271441"></script>
+<script src="quote-pdf.js?v=202610271441"></script>
+<script src="my-bookings.js?v=202610271441"></script>
 </body>
 </html>

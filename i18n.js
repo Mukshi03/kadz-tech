@@ -16,6 +16,7 @@
   if (lang !== "ar") return;
 
   var AR = {
+    "You've been invited to join your company's warehouse account. Create your account with the email the invite was sent to.": "تمت دعوتك للانضمام إلى حساب المستودعات الخاص بشركتك. أنشئ حسابك بنفس البريد الإلكتروني الذي وصلتك عليه الدعوة.",
     "Pallet positions for each type": "مواقع الطبليات لكل نوع",
     "Total pallet positions:": "إجمالي مواقع الطبليات:",
     "Shrink wrapping": "التغليف الحراري",

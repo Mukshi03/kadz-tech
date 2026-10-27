@@ -24,7 +24,8 @@
     pending: "warn", quoted: "info", approved: "ok", confirmed: "ok", paid: "ok", declined: "bad", expired: "muted",
     rejected: "bad", cancelled: "bad", unpaid: "muted", invoiced: "info",
     completed: "muted", new: "warn", handled: "muted",
-    client: "muted", partner: "info", admin: "warn"
+    client: "muted", partner: "info", admin: "warn",
+    requested: "warn", sent: "info", invited: "warn", active: "ok"
   };
   const pill = (s, label) => `<span class="pill ${PILL[s] || "muted"}">${esc(label || s)}</span>`;
   // Booking statuses read better with friendlier names
@@ -502,7 +503,37 @@
     ? (w.storage_types || []).filter((t) => t in w.pallets_by_type)
         .map((t) => ({ type: t, name: TYPES[t]?.name || t, free: +(w.free_by_type?.[t] ?? 0), total: +w.pallets_by_type[t] }))
     : [];
-  window.KZ = { C, sb, rememberLogin, TYPES, typeCounts, esc, fmt, money, date, $, $$, pill, bookingPill, quoteExpired, typeChips, photoUrl, errMsg,
+  /* Inbound / outbound requests: one card, shared by the client, admin and partner dashboards */
+  const MOVE_STATUS = { requested: "waiting for KADZ", sent: "sent to warehouse", completed: "done", rejected: "not accepted", cancelled: "cancelled" };
+  const MOVE_STEPS = ["requested", "sent", "completed"];
+  function moveCard(m, { title = "", extra = "", actions = "" } = {}) {
+    const inb = m.direction === "inbound";
+    const step = MOVE_STEPS.indexOf(m.status);
+    const steps = ["Requested", "Sent to warehouse", inb ? "Received" : "Dispatched"];
+    return `
+    <article class="row-card mv${m.status === "requested" || m.status === "sent" ? " attention" : ""}" data-mv="${esc(m.id)}">
+      <div class="row-top">
+        <div style="display:grid;gap:.3rem;min-width:0">
+          <span class="label"><span class="mv-dir ${inb ? "in" : "out"}">${inb ? "↓ Inbound" : "↑ Outbound"}</span> ${esc(m.ref)} · booking ${esc(m.booking_ref)}</span>
+          <h3>${title || `${fmt(m.pallets)} pallets · ${esc(TYPES[m.storage_type]?.name || m.storage_type)}`}</h3>
+          <span class="muted">${inb ? "Arriving" : "Collecting"} ${date(m.expected_date)}${m.goods ? ` · ${esc(m.goods)}` : ""}</span>
+        </div>
+        ${pill(m.status, MOVE_STATUS[m.status])}
+      </div>
+      ${step >= 0 ? `<ol class="mv-steps">${steps.map((t, i) => `<li class="${i <= step ? "done" : ""}">${t}</li>`).join("")}</ol>` : ""}
+      <dl class="kv">
+        ${m.vehicle_plate || m.driver_name ? `<div><dt>Truck · driver</dt><dd>${esc([m.vehicle_plate, m.driver_name, m.driver_phone].filter(Boolean).join(" · "))}</dd></div>` : ""}
+        ${m.status === "completed" ? `<div><dt>${inb ? "Received" : "Dispatched"}</dt><dd><strong>${fmt(m.actual_pallets)} pallets</strong> on ${date(m.done_date)}</dd></div>` : ""}
+        ${m.notes ? `<div><dt>Client note</dt><dd>${esc(m.notes)}</dd></div>` : ""}
+        ${m.admin_note ? `<div><dt>KADZ note</dt><dd>${esc(m.admin_note)}</dd></div>` : ""}
+        ${m.partner_note ? `<div><dt>Warehouse note</dt><dd>${esc(m.partner_note)}</dd></div>` : ""}
+        ${extra}
+      </dl>
+      ${actions ? `<div class="actions">${actions}</div>` : ""}
+    </article>`;
+  }
+
+  window.KZ = { C, sb, rememberLogin, TYPES, typeCounts, moveCard, MOVE_STATUS, esc, fmt, money, date, $, $$, pill, bookingPill, quoteExpired, typeChips, photoUrl, errMsg,
                 getUser, requireRole, homeFor, safeNext, toast, showSetupNotice, ready,
                 SERVICES, serviceFacts, serviceLine };
 })();

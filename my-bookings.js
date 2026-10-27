@@ -5,7 +5,7 @@
   const u = await requireRole(null);
   if (!u) return;
   $("#who").textContent = u.profile?.full_name || u.session.user.email;
-  setupTabs();
+  setupTabs((name) => { if (name === "moves") loadMoves(); });
   setupProfileForm(u.profile);
 
   const box = $("#bookings");
@@ -166,4 +166,100 @@
 
   load();
   loadServices();
+
+  /* ---------- Inbound / outbound requests ---------- */
+  const mbox = $("#moves");
+  const { moveCard } = window.KZ;
+  async function loadMoves() {
+    const [bk, mv] = await Promise.all([
+      sb.from("bookings").select("id, ref, warehouse_id, storage_type, pallets, start_date, months, status")
+        .eq("client_id", u.session.user.id).in("status", ["confirmed", "completed"]).order("start_date", { ascending: false }),
+      sb.from("stock_movements").select("*").eq("client_id", u.session.user.id).order("created_at", { ascending: false })
+    ]);
+    if (bk.error || mv.error) { mbox.innerHTML = `<div class="notice warn">${esc(errMsg(bk.error || mv.error))}</div>`; return; }
+    const moves = mv.data || [];
+    const open = moves.filter((m) => ["requested", "sent"].includes(m.status)).length;
+    $("#c-mv").textContent = open; $("#c-mv").hidden = !open;
+    if (!bk.data.length) {
+      mbox.innerHTML = `<div class="empty"><strong>No confirmed bookings yet</strong><p>Once a storage booking is confirmed, you can request inbound and outbound here.</p></div>`;
+      return;
+    }
+    const today = new Date().toISOString().slice(0, 10);
+    mbox.innerHTML = bk.data.map((b) => {
+      const mine = moves.filter((m) => m.booking_id === b.id);
+      const done = (d) => mine.filter((m) => m.direction === d && m.status === "completed").reduce((s, m) => s + (m.actual_pallets || 0), 0);
+      const inStock = done("inbound") - done("outbound");
+      const live = b.status === "confirmed";
+      return `
+      <section class="mv-booking" data-bk="${esc(b.id)}">
+        <div class="mv-stock">
+          <span><span class="label">${esc(b.ref)}</span><br>${esc(TYPES[b.storage_type]?.name || b.storage_type)} · ${fmt(b.pallets)} pallets booked from ${date(b.start_date)}</span>
+          <span style="margin-left:auto">In the warehouse now: <b class="num">${fmt(inStock)}</b> pallets</span>
+          ${live ? `<span class="actions"><button class="btn btn-sm btn-primary" data-new-mv="inbound">↓ Request inbound</button>
+            <button class="btn btn-sm btn-plain" data-new-mv="outbound" ${inStock > 0 ? "" : "disabled title='Nothing in the warehouse yet'"}>↑ Request outbound</button></span>` : ""}
+        </div>
+        <form class="mv-form" hidden novalidate>
+          <h3 class="mv-form-title"></h3>
+          <div class="form-row">
+            <label class="ctrl"><span class="mv-date-label">Arrival date</span><input name="expected_date" type="date" min="${today}" required></label>
+            <label class="ctrl"><span>Pallets</span><input name="pallets" type="number" min="1" required inputmode="numeric"></label>
+          </div>
+          <label class="ctrl"><span>Goods <em>what is in the pallets</em></span><input name="goods" required maxlength="200" placeholder="e.g. Frozen chicken, 20 kg cartons"></label>
+          <div class="form-row">
+            <label class="ctrl"><span>Truck plate <em>optional</em></span><input name="vehicle_plate" maxlength="40"></label>
+            <label class="ctrl"><span>Driver name <em>optional</em></span><input name="driver_name" maxlength="80"></label>
+            <label class="ctrl"><span>Driver phone <em>optional</em></span><input name="driver_phone" type="tel" maxlength="40"></label>
+          </div>
+          <label class="ctrl"><span>Notes <em>optional</em></span><textarea name="notes" maxlength="1000" placeholder="Arrival time, handling instructions"></textarea></label>
+          <div class="actions"><button class="btn btn-primary" type="submit">Send request</button><button class="btn btn-plain" type="button" data-cancel-mv>Cancel</button></div>
+        </form>
+        <div class="rows">${mine.map((m) => moveCard(m, {
+          actions: m.status === "requested" ? `<button class="btn btn-sm btn-danger" data-cancel-req="${esc(m.id)}">Cancel request</button>` : ""
+        })).join("") || `<p class="muted">No inbound or outbound requests for this booking yet.</p>`}</div>
+      </section>`;
+    }).join("");
+    mbox._stock = Object.fromEntries(bk.data.map((b) => {
+      const mine = moves.filter((m) => m.booking_id === b.id && m.status === "completed");
+      return [b.id, mine.reduce((s, m) => s + (m.direction === "inbound" ? 1 : -1) * (m.actual_pallets || 0), 0)];
+    }));
+  }
+
+  mbox.addEventListener("click", async (e) => {
+    const sec = e.target.closest("[data-bk]");
+    const nw = e.target.closest("[data-new-mv]");
+    if (nw && sec) {
+      const f = $(".mv-form", sec), out = nw.dataset.newMv === "outbound";
+      f.reset(); f.hidden = false; f.dataset.dir = nw.dataset.newMv;
+      $(".mv-form-title", f).textContent = out ? "Request outbound (goods leaving)" : "Request inbound (goods arriving)";
+      $(".mv-date-label", f).textContent = out ? "Collection date" : "Arrival date";
+      f.elements.pallets.max = out ? mbox._stock[sec.dataset.bk] : "";
+      f.elements.expected_date.focus();
+      return;
+    }
+    if (e.target.closest("[data-cancel-mv]")) { e.target.closest("form").hidden = true; return; }
+    const c = e.target.closest("[data-cancel-req]");
+    if (c) {
+      if (!confirm("Cancel this request?")) return;
+      const { error } = await sb.from("stock_movements").update({ status: "cancelled" }).eq("id", c.dataset.cancelReq);
+      if (error) return toast(errMsg(error), true);
+      toast("Request cancelled"); loadMoves();
+    }
+  });
+  mbox.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const f = e.target, sec = f.closest("[data-bk]");
+    if (!f.reportValidity()) return;
+    const v = Object.fromEntries(new FormData(f));
+    const btn = $("button[type=submit]", f); btn.disabled = true; btn.textContent = "Sending…";
+    const { error } = await sb.from("stock_movements").insert({
+      booking_id: sec.dataset.bk, direction: f.dataset.dir, expected_date: v.expected_date, pallets: +v.pallets,
+      goods: v.goods.trim(), vehicle_plate: v.vehicle_plate.trim() || null, driver_name: v.driver_name.trim() || null,
+      driver_phone: v.driver_phone.trim() || null, notes: v.notes.trim() || null
+    });
+    btn.disabled = false; btn.textContent = "Send request";
+    if (error) return toast(errMsg(error), true);
+    toast("Request sent. We'll send it to the warehouse team.");
+    loadMoves();
+  });
+  loadMoves();
 })();

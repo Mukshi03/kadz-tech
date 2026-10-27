@@ -34,6 +34,15 @@
   }
   if (params.get("mode") === "signup") show("signup");
   if (params.get("role") === "partner") $('input[name=role][value=partner]').checked = true;
+  // Invited employee: no role choice, the account joins the partner who invited them
+  if (params.get("invite")) {
+    show("signup");
+    $("#invite-note").hidden = false; $("#role-pick").hidden = true;
+    $('input[name=role][value=client]').checked = true;
+    $("#s-company").closest("label").hidden = true;
+    $("#s-company").closest(".form-row").style.gridTemplateColumns = "1fr";
+    if (params.get("email")) $("#s-email").value = params.get("email");
+  }
 
   // "List my warehouse" asks for first and last name, company, CR and VAT numbers.
   // Hidden fields are switched off so the browser doesn't check them.

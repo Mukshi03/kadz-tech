@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610271424">
+  <link rel="stylesheet" href="styles.css?v=202610271441">
 </head>
 <body data-page="login">
 
@@ -56,7 +56,8 @@
       <form class="auth-form" id="signup-form" novalidate hidden>
         <span class="label">Get started</span>
         <h2>Create your account</h2>
-        <fieldset>
+        <p class="notice" id="invite-note" hidden>You've been invited to join your company's warehouse account. Create your account with the email the invite was sent to.</p>
+        <fieldset id="role-pick">
           <legend>I want to</legend>
           <div class="role-pick">
             <label class="check"><span><input type="radio" name="role" value="client" checked> Rent storage</span><small>I'm a business that needs space</small></label>
@@ -121,9 +122,9 @@
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="i18n.js?v=202610271424"></script>
-<script src="config.js?v=202610271424"></script>
-<script src="main.js?v=202610271424"></script>
-<script src="login.js?v=202610271424"></script>
+<script src="i18n.js?v=202610271441"></script>
+<script src="config.js?v=202610271441"></script>
+<script src="main.js?v=202610271441"></script>
+<script src="login.js?v=202610271441"></script>
 </body>
 </html>

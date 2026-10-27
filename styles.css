@@ -988,3 +988,6 @@ html[dir="rtl"] .wd-x { right: auto; left: 1rem; }
 .wd-types li b { font: 800 1.2rem var(--f-display); }
 .wd-types li small { color: var(--muted); }
 .wd-types li .chip { justify-self: start; }
+
+/* Dropdown lists: give the options their own background so they stay readable (Windows shows them on white) */
+select option, select optgroup { background-color: var(--surface); color: var(--ink); }

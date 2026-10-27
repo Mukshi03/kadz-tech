@@ -8,33 +8,47 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="styles.css?v=202610271331">
+  <link rel="stylesheet" href="styles.css?v=202610271424">
 </head>
 <body data-page="partner-dash">
 
 <main>
-  <div class="page-head">
-    <div class="wrap dash-head">
-      <div style="display:grid;gap:.6rem">
-        <span class="dock"><b>Partner</b> <span id="who">…</span></span>
-        <h1>Partner dashboard</h1>
+  <section class="pd">
+    <div class="wrap pd-layout">
+      <!-- Side menu (a row of buttons on phones) -->
+      <aside class="pd-side" aria-label="Dashboard menu">
+        <div class="pd-who"><span class="label">Partner</span><b id="who">…</b></div>
+        <nav class="pd-nav" role="tablist">
+          <button class="tab" role="tab" data-tab="overview" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Overview</span></button>
+          <button class="tab" role="tab" data-tab="warehouses" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10 12 4l9 6v10H3z"/><path d="M7 20v-6h10v6M7 17h10"/></svg><span>My warehouses</span><em id="n-wh"></em></button>
+          <button class="tab" role="tab" data-tab="bookings" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span>Bookings</span><em id="n-bk"></em></button>
+          <button class="tab" role="tab" data-tab="form" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v8M8 12h8"/></svg><span id="form-tab">Add warehouse</span></button>
+          <button class="tab" role="tab" data-tab="profile" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg><span>My details</span></button>
+        </nav>
+      </aside>
+
+      <div class="pd-main">
+        <div class="pd-top">
+          <div><span class="label">Partner dashboard</span><h1 id="hello">Welcome back</h1></div>
+          <button class="btn btn-primary" type="button" id="new-wh">+ Add a warehouse</button>
+        </div>
+
+      <div data-panel="overview">
+        <div class="pd-stats" id="stats"></div>
+        <div class="pd-grid">
+          <section class="pd-card"><h2>Needs your attention</h2><ul class="pd-attn" id="attn"><li class="muted">Loading…</li></ul></section>
+          <section class="pd-card"><div class="pd-card-head"><h2>Recent bookings</h2><button type="button" class="linkbtn" data-go="bookings">See all →</button></div><div id="recent"><p class="muted">Loading…</p></div></section>
+        </div>
       </div>
-      <button class="btn btn-primary" type="button" id="new-wh">Add a warehouse</button>
-    </div>
-  </div>
 
-  <section style="padding-top:2rem">
-    <div class="wrap">
-      <div class="stats" id="stats"></div>
-
-      <div class="tabs" role="tablist">
-        <button class="tab" role="tab" data-tab="warehouses" aria-selected="true">My warehouses</button>
-        <button class="tab" role="tab" data-tab="form" aria-selected="false" id="form-tab">Add warehouse</button>
-        <button class="tab" role="tab" data-tab="bookings" aria-selected="false">Bookings</button>
-        <button class="tab" role="tab" data-tab="profile" aria-selected="false">My details</button>
+      <div data-panel="warehouses" hidden>
+        <div class="pd-bar"><span class="label" id="wh-count"></span>
+          <div class="view-switch" role="group" aria-label="View">
+            <button type="button" data-wview="cards" aria-pressed="true">Cards</button>
+            <button type="button" data-wview="table" aria-pressed="false">Table</button>
+          </div></div>
+        <div class="rows" id="wh-list"><p class="muted">Loading…</p></div>
       </div>
-
-      <div data-panel="warehouses"><div class="rows" id="wh-list"><p class="muted">Loading…</p></div></div>
 
       <div data-panel="form" hidden>
         <form class="form" id="wh-form" novalidate style="max-width:900px">
@@ -182,15 +196,16 @@
           <div><button class="btn btn-primary" type="submit">Save details</button></div>
         </form>
       </div>
+      </div>
     </div>
   </section>
 </main>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.49.4/dist/umd/supabase.js"></script>
-<script src="i18n.js?v=202610271331"></script>
-<script src="config.js?v=202610271331"></script>
-<script src="main.js?v=202610271331"></script>
-<script src="dashboard-common.js?v=202610271331"></script>
-<script src="partner-dashboard.js?v=202610271331"></script>
+<script src="i18n.js?v=202610271424"></script>
+<script src="config.js?v=202610271424"></script>
+<script src="main.js?v=202610271424"></script>
+<script src="dashboard-common.js?v=202610271424"></script>
+<script src="partner-dashboard.js?v=202610271424"></script>
 </body>
 </html>

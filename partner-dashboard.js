@@ -25,49 +25,110 @@
     warehouses = data;
     renderStats();
     if (!data.length) {
+      renderOverview(); $("#wh-count").textContent = "";
       box.innerHTML = `<div class="empty"><strong>No warehouses yet</strong>
         <p>Add your first warehouse. Once our team approves it, businesses can find and book it.</p>
         <button class="btn btn-primary" type="button" data-new>Add a warehouse</button></div>`;
       return;
     }
-    box.innerHTML = data.map((w) => `
-      <article class="row-card${w.status === "rejected" ? " attention" : ""}">
-        <div class="row-top">
-          <div style="display:grid;gap:.3rem;min-width:0">
-            ${w.ref ? `<span class="label">${esc(w.ref)} · shown to clients</span>` : ""}
-            <h3>${esc(w.name)}</h3>
-            <span class="muted">${esc([w.district, w.city].filter(Boolean).join(", "))}</span>
-            <div class="chips" style="display:flex;gap:.35rem;flex-wrap:wrap">${typeChips(w.storage_types)}</div>
+    renderList();
+    renderOverview();
+  }
+
+  /* Free / total for each storage type, or one shared count for older listings */
+  const rowsFor = (w) => {
+    const c = window.KZ.typeCounts(w);
+    return c.length ? c : [{ type: "", name: "All types", free: w.pallets_available, total: w.pallets_total }];
+  };
+  const bar = (r) => {
+    const used = r.total ? Math.round(((r.total - r.free) / r.total) * 100) : 0;
+    return `<div class="pd-bar-row"><span>${r.type ? `<i class="chip ${esc(r.type)}">${esc(r.name)}</i>` : `<i class="chip">${esc(r.name)}</i>`}</span>
+      <div class="pd-meter" title="${used}% booked"><i style="width:${used}%"></i></div>
+      <span class="pd-num"><b class="num">${fmt(r.free)}</b> / ${fmt(r.total)} free</span></div>`;
+  };
+  const needsTypes = (w) => w.storage_types.length > 1 && !Object.keys(w.pallets_by_type || {}).length;
+  const STATUS_TXT = { pending: "Waiting for review by our team.", rejected: "Not approved. Check the email we sent, then edit and save to send it again." };
+
+  let wView = "cards";
+  try { wView = localStorage.getItem("kz-pd-view") || "cards"; } catch (e) {}
+  $$("[data-wview]").forEach((b) => b.addEventListener("click", () => {
+    wView = b.dataset.wview;
+    try { localStorage.setItem("kz-pd-view", wView); } catch (e) {}
+    renderList();
+  }));
+
+  function renderList() {
+    const box = $("#wh-list");
+    $$("[data-wview]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.wview === wView)));
+    $("#wh-count").textContent = `${warehouses.length} warehouse${warehouses.length === 1 ? "" : "s"}`;
+    if (!warehouses.length) return;
+    const actions = (w) => `
+      <button class="btn btn-sm btn-plain" data-edit="${esc(w.id)}">Edit</button>
+      ${w.status === "approved" ? `<a class="btn btn-sm btn-plain" href="warehouse.html?id=${esc(w.id)}">View listing</a>` : ""}
+      ${w.status !== "approved" ? `<button class="btn btn-sm btn-danger" data-del="${esc(w.id)}">Delete</button>` : ""}`;
+    if (wView === "table") {
+      box.innerHTML = `<div class="wh-table-wrap"><table class="wh-table pd-table"><thead><tr>
+        <th>Warehouse</th><th>Status</th><th>Free / total</th><th class="r">Min. rental</th><th></th></tr></thead><tbody>
+        ${warehouses.map((w) => `<tr>
+          <td><b class="pd-name">${esc(w.name)}</b><small>${esc(w.ref || "")} · ${esc(w.city)}</small></td>
+          <td>${pill(w.status)}</td>
+          <td>${rowsFor(w).map((r) => `<div>${esc(r.type ? r.name : "All")} <b class="num">${fmt(r.free)}</b> / ${fmt(r.total)}</div>`).join("")}</td>
+          <td class="r">${w.min_months} mo</td>
+          <td class="r pd-acts">${actions(w)}</td></tr>`).join("")}</tbody></table></div>`;
+      return;
+    }
+    box.innerHTML = warehouses.map((w) => `
+      <article class="pd-wh${w.status === "rejected" || needsTypes(w) ? " attention" : ""}">
+        <div class="pd-thumb">${w.photos?.[0] ? `<img src="${esc(photoUrl(w.photos[0]))}" alt="" loading="lazy">` : ""}<span>${w.photos.length} photo${w.photos.length === 1 ? "" : "s"}</span></div>
+        <div class="pd-wh-body">
+          <div class="pd-wh-top">
+            <div style="min-width:0"><span class="label">${esc(w.ref || "")}${w.ref && w.status === "approved" ? " · shown to clients" : ""}</span>
+              <h3>${esc(w.name)}</h3><span class="muted">${esc([w.district, w.city].filter(Boolean).join(", "))}</span></div>
+            ${pill(w.status)}
           </div>
-          ${pill(w.status)}
-        </div>
-        <dl class="kv">
-          <div><dt>Pallets free</dt><dd>${window.KZ.typeCounts(w).length
-            ? window.KZ.typeCounts(w).map((c) => `${esc(c.name)} ${fmt(c.free)} / ${fmt(c.total)}`).join("<br>")
-            : `${fmt(w.pallets_available)} / ${fmt(w.pallets_total)}`}</dd></div>
-          <div><dt>Minimum rental</dt><dd>${w.min_months} month${w.min_months > 1 ? "s" : ""}</dd></div>
-          <div><dt>Price</dt><dd>${Object.keys(w.partner_prices || {}).length ? money(Object.values(w.partner_prices)[0]) + " / pallet / month" : "On request"}</dd></div>
-          <div><dt>Area</dt><dd>${w.area_sqm ? fmt(w.area_sqm) + " m²" : "–"}</dd></div>
-          <div><dt>Photos</dt><dd>${w.photos.length}</dd></div>
-        </dl>
-        ${w.status === "pending" ? `<p class="note">Waiting for review by our team.</p>` : ""}
-        ${w.status === "rejected" ? `<p class="note">Not approved. We'll email you the details. Edit and save to send it for review again.</p>` : ""}
-        <div class="actions">
-          <button class="btn btn-sm btn-plain" data-edit="${esc(w.id)}">Edit</button>
-          ${w.status === "approved" ? `<a class="btn btn-sm btn-plain" href="warehouse.html?id=${esc(w.id)}">View listing</a>` : ""}
-          ${w.status !== "approved" ? `<button class="btn btn-sm btn-danger" data-del="${esc(w.id)}">Delete</button>` : ""}
+          <div class="pd-bars">${rowsFor(w).map(bar).join("")}</div>
+          <div class="pd-facts"><span>Min. ${w.min_months} month${w.min_months > 1 ? "s" : ""}</span>
+            <span>${Object.keys(w.partner_prices || {}).length ? money(Object.values(w.partner_prices)[0]) + " / pallet / month" : "Price on request"}</span>
+            <span>${w.area_sqm ? fmt(w.area_sqm) + " m²" : "Area not set"}</span></div>
+          ${STATUS_TXT[w.status] ? `<p class="note">${STATUS_TXT[w.status]}</p>` : ""}
+          ${needsTypes(w) ? `<p class="note">Add pallet positions for each storage type so clients can book the right space.</p>` : ""}
+          <div class="pd-wh-acts">${actions(w)}</div>
         </div>
       </article>`).join("");
   }
 
+  /* ---------------- Overview ---------------- */
+  const I = (d) => `<svg viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
   function renderStats() {
     const approved = warehouses.filter((w) => w.status === "approved");
+    const total = approved.reduce((s, w) => s + w.pallets_total, 0);
+    const free = approved.reduce((s, w) => s + w.pallets_available, 0);
+    const booked = total - free, occ = total ? Math.round((booked / total) * 100) : 0;
+    $("#n-wh").textContent = warehouses.length || "";
     $("#stats").innerHTML = `
-      <div class="stat"><span class="label">Warehouses</span><b>${warehouses.length}</b></div>
-      <div class="stat"><span class="label">Approved</span><b>${approved.length}</b></div>
-      <div class="stat"><span class="label">Pallets free</span><b>${fmt(approved.reduce((s, w) => s + w.pallets_available, 0))}</b></div>
-      <div class="stat"><span class="label">Pallets booked</span><b>${fmt(approved.reduce((s, w) => s + (w.pallets_total - w.pallets_available), 0))}</b></div>`;
+      <div class="pd-stat">${I('<path d="M3 10 12 4l9 6v10H3z"/><path d="M7 20v-6h10v6"/>')}<span class="label">Warehouses</span><b>${warehouses.length}</b><small>${approved.length} approved</small></div>
+      <div class="pd-stat">${I('<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="m8.5 12 2.5 2.5 4.5-5"/>')}<span class="label">Pallets free</span><b>${fmt(free)}</b><small>of ${fmt(total)} positions</small></div>
+      <div class="pd-stat">${I('<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>')}<span class="label">Pallets booked</span><b>${fmt(booked)}</b><small>in confirmed bookings</small></div>
+      <div class="pd-stat">${I('<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 1 9 9h-9z"/>')}<span class="label">Occupancy</span><b>${occ}%</b><div class="pd-meter"><i style="width:${occ}%"></i></div></div>`;
   }
+  function renderOverview() {
+    const items = [];
+    warehouses.forEach((w) => {
+      if (w.status === "rejected") items.push(["warn", `<b>${esc(w.name)}</b> was not approved. Make the changes and save it again.`, w.id, "Edit"]);
+      if (needsTypes(w)) items.push(["warn", `<b>${esc(w.name)}</b> needs pallet positions for each storage type.`, w.id, "Add numbers"]);
+      if (!w.photos.length) items.push(["warn", `<b>${esc(w.name)}</b> has no photos.`, w.id, "Add photos"]);
+      if (w.status === "pending") items.push(["info", `<b>${esc(w.name)}</b> is waiting for review by our team.`, null]);
+    });
+    $("#attn").innerHTML = items.length
+      ? items.map(([k, t, id, btn]) => `<li class="${k}"><span>${t}</span>${id ? `<button type="button" class="btn btn-sm" data-edit="${esc(id)}">${btn}</button>` : ""}</li>`).join("")
+      : `<li class="ok"><span>All good. Nothing needs your attention.</span></li>`;
+  }
+  $("#attn").addEventListener("click", (e) => {
+    const ed = e.target.closest("[data-edit]");
+    if (ed) { fillForm(warehouses.find((w) => w.id === ed.dataset.edit)); openTab("form"); }
+  });
+  $$("[data-go]").forEach((b) => b.addEventListener("click", () => openTab(b.dataset.go)));
+  $("#hello").textContent = `Welcome back, ${u.profile?.company || u.profile?.full_name || "partner"}`;
 
   $("#wh-list").addEventListener("click", async (e) => {
     if (e.target.closest("[data-new]")) { resetForm(); openTab("form"); return; }
@@ -269,7 +330,12 @@
     const box = $("#bk-list");
     const res = await sb.rpc("partner_bookings");
     const error = res.error, data = (res.data || []).filter((b) => b.status !== "discussing");
-    if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; return; }
+    if (error) { box.innerHTML = `<div class="notice warn">${esc(errMsg(error))}</div>`; $("#recent").innerHTML = ""; return; }
+    $("#n-bk").textContent = data.length || "";
+    // Overview: the latest 5
+    $("#recent").innerHTML = data.length ? `<ul class="pd-recent">${data.slice(0, 5).map((b) => `
+      <li><span><b>${esc(b.ref)}</b> · ${esc(b.warehouse_name)}<small>${esc(TYPES[b.storage_type]?.name || b.storage_type)} · ${fmt(b.pallets)} pallets · from ${date(b.start_date)}</small></span>${pill(b.status)}</li>`).join("")}</ul>`
+      : `<p class="muted">No bookings yet. Confirmed bookings at your warehouses show here.</p>`;
     if (!data.length) { box.innerHTML = `<div class="empty"><strong>Nothing yet</strong><p>When a booking at your warehouse is confirmed, it shows here.</p></div>`; return; }
     box.innerHTML = data.map((b) => `
       <article class="row-card${b.status === "discussing" ? " attention" : ""}">
@@ -288,4 +354,5 @@
 
   resetForm();
   loadWarehouses();
+  loadBookings();
 })();
